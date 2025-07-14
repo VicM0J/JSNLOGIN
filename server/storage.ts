@@ -1859,7 +1859,6 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
         eq(users.area, 'envios')
       ));
 
-
     for (const user of areaUsers) {
       await this.createNotification({
         userId: user.id,
@@ -1875,6 +1874,7 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
     await db.update(repositionMaterials)
       .set({
         isPaused: false,
+        pauseReason: null,
         resumedBy: userId,
         resumedAt: new Date(),
         updatedAt: new Date()
@@ -1888,6 +1888,24 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
       'Reposición reanudada por almacén',
       userId
     );
+
+    // Notificar a áreas relevantes
+    const areaUsers = await db.select().from(users)
+      .where(or(
+        eq(users.area, 'admin'),
+        eq(users.area, 'operaciones'),
+        eq(users.area, 'envios')
+      ));
+
+    for (const user of areaUsers) {
+      await this.createNotification({
+        userId: user.id,
+        type: 'reposition_resumed',
+        title: 'Reposición Reanudada',
+        message: 'La reposición ha sido reanudada por almacén',
+        repositionId
+      });
+    }
   }
 
   async getRepositionMaterialStatus(repositionId: number): Promise<any> {

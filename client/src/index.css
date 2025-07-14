@@ -95,6 +95,82 @@
   animation-delay: 4s;
 }
 
+/* Modo claro */
+:root,
+.light,
+[data-theme="light"],
+body.light {
+  --background: hsl(0, 0%, 100%) !important;
+  --foreground: hsl(20, 14.3%, 4.1%) !important;
+  --muted: hsl(60, 4.8%, 95.9%) !important;
+  --muted-foreground: hsl(25, 5.3%, 44.7%) !important;
+  --popover: hsl(0, 0%, 100%) !important;
+  --popover-foreground: hsl(20, 14.3%, 4.1%) !important;
+  --card: hsl(0, 0%, 100%) !important;
+  --card-foreground: hsl(20, 14.3%, 4.1%) !important;
+  --border: hsl(20, 5.9%, 90%) !important;
+  --input: hsl(20, 5.9%, 90%) !important;
+  --primary: #504b78 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: #f1f5f9 !important;
+  --secondary-foreground: #0f172a !important;
+  --accent: #8c69a5 !important;
+  --accent-foreground: #ffffff !important;
+  --destructive: #ef4444 !important;
+  --destructive-foreground: #ffffff !important;
+  --ring: #8c69a5 !important;
+  --radius: 0.5rem !important;
+
+  /* Variables específicas de JASANA para modo claro */
+  --jasana-primary: #504b78 !important;
+  --jasana-secondary: #233154 !important;
+  --jasana-accent: #8c69a5 !important;
+  --jasana-success: #22c55e !important;
+  --jasana-warning: #f59e0b !important;
+  --jasana-error: #ef4444 !important;
+  --jasana-sidebar-bg: #ffffff !important;
+  --jasana-topbar-bg: #ffffff !important;
+  --jasana-content-bg: #f8fafc !important;
+}
+
+/* Modo oscuro */
+.dark,
+[data-theme="dark"],
+body.dark {
+  --background: hsl(224, 71%, 4%) !important;
+  --foreground: hsl(213, 31%, 91%) !important;
+  --muted: hsl(223, 47%, 11%) !important;
+  --muted-foreground: hsl(215.4, 16.3%, 56.9%) !important;
+  --popover: hsl(224, 71%, 4%) !important;
+  --popover-foreground: hsl(213, 31%, 91%) !important;
+  --card: hsl(224, 71%, 4%) !important;
+  --card-foreground: hsl(213, 31%, 91%) !important;
+  --border: hsl(216, 34%, 17%) !important;
+  --input: hsl(216, 34%, 17%) !important;
+  --primary: #8c69a5 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: hsl(222, 84%, 5%) !important;
+  --secondary-foreground: hsl(213, 31%, 91%) !important;
+  --accent: #de8fd9 !important;
+  --accent-foreground: #1e1b4b !important;
+  --destructive: #f87171 !important;
+  --destructive-foreground: #ffffff !important;
+  --ring: #de8fd9 !important;
+  --radius: 0.5rem !important;
+
+  /* Variables específicas de JASANA para modo oscuro */
+  --jasana-primary: #8c69a5 !important;
+  --jasana-secondary: #de8fd9 !important;
+  --jasana-accent: #f8bbed !important;
+  --jasana-success: #4ade80 !important;
+  --jasana-warning: #fbbf24 !important;
+  --jasana-error: #f87171 !important;
+  --jasana-sidebar-bg: #0f172a !important;
+  --jasana-topbar-bg: #1e293b !important;
+  --jasana-content-bg: #0f172a !important;
+}
+
+/* Fallback para :root (modo claro por defecto) */
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
@@ -107,45 +183,25 @@
   --border: hsl(20, 5.9%, 90%);
   --input: hsl(20, 5.9%, 90%);
   --primary: #504b78;
-  --primary-foreground: #f8bbed;
-  --secondary: #233154;
-  --secondary-foreground: #f8bbed;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
   --accent: #8c69a5;
   --accent-foreground: #ffffff;
-  --destructive: #8c69a5;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --ring: #233154;
+  --ring: #8c69a5;
   --radius: 0.5rem;
 
   --jasana-primary: #504b78;
   --jasana-secondary: #233154;
   --jasana-accent: #8c69a5;
-  --jasana-success: #de8fd9;
-  --jasana-warning: #f8bbed;
-  --jasana-error: #8c69a5;
-}
-
-.dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: #504b78;
-  --primary-foreground: #f8bbed;
-  --secondary: #233154;
-  --secondary-foreground: #f8bbed;
-  --accent: #8c69a5;
-  --accent-foreground: #ffffff;
-  --destructive: #8c69a5;
-  --destructive-foreground: #ffffff;
-  --ring: #de8fd9;
-  --radius: 0.5rem;
+  --jasana-success: #22c55e;
+  --jasana-warning: #f59e0b;
+  --jasana-error: #ef4444;
+  --jasana-sidebar-bg: #ffffff;
+  --jasana-topbar-bg: #ffffff;
+  --jasana-content-bg: #f8fafc;
 }
 
 @layer base {
@@ -154,8 +210,34 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+  }
+
+  /* Forzar colores de texto en todos los elementos */
+  h1, h2, h3, h4, h5, h6, p, span, div, label, button {
+    color: var(--foreground);
+  }
+
+  /* Asegurar que los inputs usen los colores correctos */
+  input, textarea, select {
+    background-color: var(--background) !important;
+    color: var(--foreground) !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Asegurar que las cards usen los colores correctos */
+  .card {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Forzar colores en los botones */
+  .button {
+    color: var(--foreground) !important;
   }
 }
 
@@ -304,9 +386,9 @@
 
 /* Estilos para el diseño deslizante horizontal */
 .auth-container {
-  width: 768px;
+  width: 650px;
   max-width: 100%;
-  min-height: 480px;
+  min-height: 420px;
   position: relative;
 }
 
@@ -325,6 +407,8 @@
 
 .auth-container.register-active .login-container {
   transform: translateX(100%);
+  z-index: 1;
+  opacity: 0;
 }
 
 .register-container {
@@ -358,7 +442,7 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  padding: 2rem;
+  padding: 1.2rem;
   height: 100%;
   text-align: center;
   border-radius: 1rem 0 0 1rem;
@@ -496,7 +580,7 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  padding: 0 2.5rem;
+  padding: 0 2rem;
   text-align: center;
   top: 0;
   height: 100%;

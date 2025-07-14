@@ -486,20 +486,24 @@ export default function AgendaPage() {
                     const dayName = getDayName(day).charAt(0).toUpperCase() + getDayName(day).slice(1);
                     
                     return (
-                      <div key={index} className={`border rounded-lg overflow-hidden min-h-[320px] ${
-                        isToday(day) ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-200'
+                      <div key={index} className={`border rounded-lg overflow-hidden min-h-[320px] transition-colors duration-200 ${
+                        isToday(day) 
+                          ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600' 
+                          : 'bg-card border-border'
                       }`}>
                         {/* Header del día */}
-                        <div className={`text-center py-3 border-b ${
-                          isToday(day) ? 'bg-blue-100 border-blue-200' : 'bg-white border-gray-200'
+                        <div className={`text-center py-3 border-b transition-colors duration-200 ${
+                          isToday(day) 
+                            ? 'bg-blue-100 dark:bg-blue-800/50 border-blue-200 dark:border-blue-600' 
+                            : 'bg-card border-border'
                         }`}>
-                          <div className={`text-sm font-semibold uppercase tracking-wide ${
-                            isToday(day) ? 'text-blue-700' : 'text-gray-600'
+                          <div className={`text-sm font-semibold uppercase tracking-wide transition-colors duration-200 ${
+                            isToday(day) ? 'text-blue-700 dark:text-blue-300' : 'text-muted-foreground'
                           }`}>
                             {dayName}
                           </div>
-                          <div className={`text-2xl font-bold ${
-                            isToday(day) ? 'text-blue-800' : 'text-gray-800'
+                          <div className={`text-2xl font-bold transition-colors duration-200 ${
+                            isToday(day) ? 'text-blue-800 dark:text-blue-200' : 'text-foreground'
                           }`}>
                             {day.getDate()}
                           </div>
@@ -510,7 +514,7 @@ export default function AgendaPage() {
                           {dayEvents.map((event) => (
                             <div
                               key={event.id}
-                              className="bg-white border border-gray-200 rounded-md p-3 hover:shadow-sm cursor-pointer group transition-all duration-150 hover:border-gray-300"
+                              className="bg-card border border-border rounded-md p-3 hover:shadow-sm cursor-pointer group transition-all duration-150 hover:border-muted-foreground/30"
                               onClick={() => canCreateEdit && startEdit(event)}
                             >
                               {/* Header de la tarea */}
@@ -527,20 +531,20 @@ export default function AgendaPage() {
                               </div>
                               
                               {/* Título de la tarea */}
-                              <div className="font-medium text-gray-900 text-sm mb-2 leading-tight">
+                              <div className="font-medium text-foreground text-sm mb-2 leading-tight">
                                 {event.title}
                               </div>
                               
                               {/* Área asignada */}
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                                   {getAreaDisplayName(event.assignedToArea)}
                                 </span>
                               </div>
                               
                               {/* Descripción */}
                               {event.description && (
-                                <div className="text-xs text-gray-600 leading-relaxed line-clamp-2 mb-2">
+                                <div className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-2">
                                   {event.description}
                                 </div>
                               )}
@@ -590,7 +594,7 @@ export default function AgendaPage() {
                             </div>
                           ))}
                           {dayEvents.length === 0 && (
-                            <div className="text-gray-400 text-center text-xs py-8">
+                            <div className="text-muted-foreground text-center text-xs py-8">
                               Sin tareas programadas
                             </div>
                           )}

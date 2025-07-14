@@ -746,6 +746,10 @@ function configureWebSocket(app: Express): Server {
   // Exponer función de broadcast
   (httpServer as any).wss = wss;
   (httpServer as any).broadcast = broadcastToAll;
+  
+  // Store httpServer reference in app for access in routes
+  app.set('httpServer', httpServer);
+  
   return httpServer;
 }
 
@@ -1594,7 +1598,8 @@ function registerAlmacenRoutes(app: Express) {
       await storage.pauseReposition(repositionId, reason.trim(), user.id);
 
       // Send WebSocket notification
-      if ((app as any).wss) {
+      const httpServer = req.app.get('httpServer');
+      if (httpServer && httpServer.wss) {
         const notification = {
           type: 'notification',
           data: {
@@ -1604,7 +1609,7 @@ function registerAlmacenRoutes(app: Express) {
           }
         };
 
-        (app as any).wss.clients.forEach((client: any) => {
+        httpServer.wss.clients.forEach((client: any) => {
           if (client.readyState === 1) {
             client.send(JSON.stringify(notification));
           }
@@ -1633,16 +1638,18 @@ function registerAlmacenRoutes(app: Express) {
       await storage.resumeReposition(repositionId, user.id);
 
       // Send WebSocket notification
-      if ((app as any).wss) {
+      const httpServer = req.app.get('httpServer');
+      if (httpServer && httpServer.wss) {
         const notification = {
           type: 'notification',
           data: {
-            type: 'reposition_resumed',            message: `Reposición reanudada por almacén`,
+            type: 'reposition_resumed',
+            message: `Reposición reanudada por almacén`,
             repositionId: repositionId
           }
         };
 
-        (app as any).wss.clients.forEach((client: any) => {
+        httpServer.wss.clients.forEach((client: any) => {
           if (client.readyState === 1) {
             client.send(JSON.stringify(notification));
           }

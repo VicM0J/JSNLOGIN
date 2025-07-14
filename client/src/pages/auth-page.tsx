@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -13,8 +12,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, User, Lock, Users, Building2, Shield, MessageSquare, ExternalLink, Eye, EyeOff } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Loader2,
+  User,
+  Lock,
+  Users,
+  Building2,
+  Shield,
+  MessageSquare,
+  ExternalLink,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -64,45 +80,68 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 flex items-center justify-center p-4 relative overflow-hidden">
+<div className="h-screen grid place-items-center bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
+
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-16 left-16 w-48 h-48 bg-gradient-to-r from-purple-300 to-indigo-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-float"></div>
         <div className="absolute top-32 right-16 w-64 h-64 bg-gradient-to-r from-pink-300 to-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-35 animate-float-delayed"></div>
         <div className="absolute -bottom-24 left-1/3 w-56 h-56 bg-gradient-to-r from-blue-300 to-cyan-300 rounded-full mix-blend-multiply filter blur-2xl opacity-45 animate-float-slow"></div>
+
+        {/* Additional background details */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-yellow-200 to-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-gradient-to-r from-green-200 to-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-float-delayed"></div>
+        <div className="absolute top-3/4 left-1/2 w-36 h-36 bg-gradient-to-r from-rose-200 to-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-35 animate-float-slow"></div>
+
+        {/* Geometric shapes */}
+        <div className="absolute top-20 right-1/3 w-16 h-16 bg-gradient-to-br from-purple-400/20 to-indigo-400/20 transform rotate-45 animate-float opacity-20"></div>
+        <div className="absolute bottom-20 left-1/4 w-12 h-12 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 transform rotate-12 animate-float-delayed opacity-25"></div>
+        <div className="absolute top-1/2 right-20 w-20 h-20 bg-gradient-to-br from-pink-400/20 to-purple-400/20 transform -rotate-12 animate-float-slow opacity-20"></div>
+
+        {/* Small floating dots */}
+        <div className="absolute top-1/3 left-20 w-3 h-3 bg-purple-400/40 rounded-full animate-float"></div>
+        <div className="absolute bottom-1/3 right-20 w-2 h-2 bg-blue-400/40 rounded-full animate-float-delayed"></div>
+        <div className="absolute top-2/3 left-1/3 w-4 h-4 bg-pink-400/40 rounded-full animate-float-slow"></div>
+        <div className="absolute bottom-1/2 right-1/3 w-2 h-2 bg-indigo-400/40 rounded-full animate-float"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-4xl mx-auto">
-        {/* Logo y título */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-30 h-16 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl mb-4 transform hover:scale-105 transition-transform duration-300">
-            <img
-              src="/LogoJASANA.png"
-              alt="JASANA Logo"
-              className="w-15 h-15 object-contain"
-              draggable={false}
-            />
-          </div>
-          <p className="text-gray-600 font-medium text-sm">Sistema de Gestión de Pedidos</p>
-        </div>
-
+      <div className="relative z-10 w-full max-w-4xl mx-auto object-center">
         {/* Contenedor principal con efecto deslizante */}
-        <div className={`auth-container backdrop-blur-lg bg-white/20 shadow-2xl border border-purple-200/50 rounded-2xl overflow-hidden relative transition-all duration-700 ease-in-out ${isRegisterMode ? 'register-active' : ''}`}>
-          
+        <div
+          className={`auth-container backdrop-blur-lg bg-white/20 shadow-2xl border border-purple-200/50 rounded-2xl overflow-hidden relative transition-all duration-700 ease-in-out ${isRegisterMode ? "register-active" : ""}`}
+        >
           {/* Formulario de Registro */}
           <div className="form-container register-container">
             <form onSubmit={handleRegister} className="auth-form">
+              <div className="text-center mb-3">
+                <div>
+                  <img
+                    src="/LogoJASANA.png"
+                    alt="JASANA Logo"
+                    className="w-32 h-28 object-contain center mx-auto transform hover:scale-105 transition-transform duration-300"
+                    draggable={false}
+                  />
+                </div>
+                <p className="text-gray-600 font-medium text-xs mb-1">
+                  Sistema de Gestión de Pedidos
+                </p>
+              </div>
               <h1 className="text-2xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-2">
                 <Users className="w-6 h-6" />
                 Crear Cuenta
               </h1>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div className="input-container">
                   <Input
                     type="text"
                     value={registerData.username}
-                    onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+                    onChange={(e) =>
+                      setRegisterData({
+                        ...registerData,
+                        username: e.target.value,
+                      })
+                    }
                     required
                     placeholder=" "
                     className="auth-input"
@@ -114,7 +153,12 @@ export default function AuthPage() {
                   <Input
                     type={showRegisterPassword ? "text" : "password"}
                     value={registerData.password}
-                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                    onChange={(e) =>
+                      setRegisterData({
+                        ...registerData,
+                        password: e.target.value,
+                      })
+                    }
                     required
                     placeholder=" "
                     className="auth-input"
@@ -123,9 +167,15 @@ export default function AuthPage() {
                   <button
                     type="button"
                     className="password-toggle"
-                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                    onClick={() =>
+                      setShowRegisterPassword(!showRegisterPassword)
+                    }
                   >
-                    {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showRegisterPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -134,7 +184,9 @@ export default function AuthPage() {
                 <Input
                   type="text"
                   value={registerData.name}
-                  onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, name: e.target.value })
+                  }
                   required
                   placeholder=" "
                   className="auth-input"
@@ -145,7 +197,9 @@ export default function AuthPage() {
               <div className="input-container mb-3">
                 <Select
                   value={registerData.area}
-                  onValueChange={(value) => setRegisterData({ ...registerData, area: value as any })}
+                  onValueChange={(value) =>
+                    setRegisterData({ ...registerData, area: value as any })
+                  }
                 >
                   <SelectTrigger className="auth-input">
                     <SelectValue placeholder="Seleccionar área" />
@@ -160,7 +214,7 @@ export default function AuthPage() {
                     <SelectItem value="patronaje">📐 Patronaje</SelectItem>
                     <SelectItem value="almacen">🏪 Almacén</SelectItem>
                     <SelectItem value="diseño">🎨 Diseño</SelectItem>
-                    <SelectItem value="admin">⚙️ Admin</SelectItem> 
+                    <SelectItem value="admin">⚙️ Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -170,12 +224,19 @@ export default function AuthPage() {
                   <Input
                     type="password"
                     value={registerData.adminPassword}
-                    onChange={(e) => setRegisterData({ ...registerData, adminPassword: e.target.value })}
+                    onChange={(e) =>
+                      setRegisterData({
+                        ...registerData,
+                        adminPassword: e.target.value,
+                      })
+                    }
                     required
                     placeholder=" "
                     className="auth-input border-orange-300 focus:border-orange-400 bg-orange-100/50"
                   />
-                  <Label className="auth-label text-orange-600">Contraseña de Admin</Label>
+                  <Label className="auth-label text-orange-600">
+                    Contraseña de Admin
+                  </Label>
                 </div>
               )}
 
@@ -197,6 +258,19 @@ export default function AuthPage() {
           {/* Formulario de Login */}
           <div className="form-container login-container">
             <form onSubmit={handleLogin} className="auth-form">
+              <div className="text-center mb-3">
+                <div >
+                  <img
+                    src="/LogoJASANA.png"
+                    alt="JASANA Logo"
+                    className="w-32 h-28 object-contain center mx-auto transform hover:scale-105 transition-transform duration-300"
+                    draggable={false}
+                  />
+                </div>
+                <p className="text-gray-600 font-medium text-xs mb-1">
+                  Sistema de Gestión de Pedidos
+                </p>
+              </div>
               <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center justify-center gap-2">
                 <User className="w-6 h-6" />
                 Iniciar Sesión
@@ -206,7 +280,9 @@ export default function AuthPage() {
                 <Input
                   type="text"
                   value={loginData.username}
-                  onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                  onChange={(e) =>
+                    setLoginData({ ...loginData, username: e.target.value })
+                  }
                   required
                   placeholder=" "
                   className="auth-input"
@@ -218,7 +294,9 @@ export default function AuthPage() {
                 <Input
                   type={showLoginPassword ? "text" : "password"}
                   value={loginData.password}
-                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                  onChange={(e) =>
+                    setLoginData({ ...loginData, password: e.target.value })
+                  }
                   required
                   placeholder=" "
                   className="auth-input"
@@ -229,7 +307,11 @@ export default function AuthPage() {
                   className="password-toggle"
                   onClick={() => setShowLoginPassword(!showLoginPassword)}
                 >
-                  {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showLoginPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
 
@@ -260,7 +342,9 @@ export default function AuthPage() {
           <div className="overlay-container">
             <div className="overlay">
               <div className="overlay-panel overlay-left">
-                <h1 className="text-2xl font-bold mb-4">¡Bienvenido de Vuelta!</h1>
+                <h1 className="text-2xl font-bold mb-4">
+                  ¡Bienvenido de Vuelta!
+                </h1>
                 <p className="mb-6">Si ya tienes cuenta, inicia sesión aquí</p>
                 <button
                   type="button"
@@ -300,16 +384,20 @@ export default function AuthPage() {
 
           <div className="space-y-3 text-center px-1">
             <p className="text-gray-600 text-sm leading-relaxed">
-              Para restablecer tu contraseña, necesitas ponerte en contacto con el administrador del sistema.
+              Para restablecer tu contraseña, necesitas ponerte en contacto con
+              el administrador del sistema.
             </p>
 
             <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 p-3 rounded-xl border border-blue-500/30">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <MessageSquare className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold text-blue-300 text-sm">Contacto por Teams</span>
+                <span className="font-semibold text-blue-300 text-sm">
+                  Contacto por Teams
+                </span>
               </div>
               <p className="text-blue-600 text-xs mb-2">
-                Comunícate con el administrador a través de Microsoft Teams para solicitar el restablecimiento de tu contraseña.
+                Comunícate con el administrador a través de Microsoft Teams para
+                solicitar el restablecimiento de tu contraseña.
               </p>
             </div>
           </div>
