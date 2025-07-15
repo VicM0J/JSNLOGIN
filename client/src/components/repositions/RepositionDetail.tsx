@@ -238,8 +238,8 @@ export function RepositionDetail({
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8">
-          <div className="text-center">Cargando detalles...</div>
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-8">
+          <div className="text-center dark:text-white">Cargando detalles...</div>
         </div>
       </div>
     );
@@ -249,15 +249,15 @@ export function RepositionDetail({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-2xl font-bold text-purple-800">
+              <h2 className="text-2xl font-bold text-purple-800 dark:text-purple-300">
                 Detalles de Solicitud
               </h2>
-              <p className="text-lg font-semibold text-gray-700 mt-1">
+              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300 mt-1">
                 {reposition.folio}
               </p>
             </div>
@@ -289,97 +289,97 @@ export function RepositionDetail({
           </div>
 
           {/* Información del Solicitante */}
-          <Card>
+          <Card className="dark:bg-slate-700 dark:border-slate-600">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 dark:text-white">
                 <User className="w-5 h-5" />
                 Información del Solicitante
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="font-semibold text-gray-700">Nombre</p>
-                <p>{reposition.solicitanteNombre}</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Nombre</p>
+                <p className="dark:text-white">{reposition.solicitanteNombre}</p>
               </div>
               <div>
-                <p className="font-semibold text-gray-700">Área</p>
-                <p className="capitalize">{reposition.solicitanteArea}</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Área</p>
+                <p className="capitalize dark:text-white">{reposition.solicitanteArea}</p>
               </div>
               <div>
-                <p className="font-semibold text-gray-700">Fecha de Solicitud</p>
-                <p>{new Date(reposition.fechaSolicitud).toLocaleDateString()}</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Fecha de Solicitud</p>
+                <p className="dark:text-white">{new Date(reposition.fechaSolicitud).toLocaleDateString()}</p>
               </div>
             </CardContent>
           </Card>
 
           {/* Número de Solicitud */}
-          <Card>
+          <Card className="dark:bg-slate-700 dark:border-slate-600">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 dark:text-white">
                 <FileText className="w-5 h-5" />
                 Número de Solicitud
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <p className="font-semibold text-gray-700">No. Solicitud de Pedido</p>
-                <p>{reposition.noSolicitud}</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">No. Solicitud de Pedido</p>
+                <p className="dark:text-white">{reposition.noSolicitud}</p>
               </div>
               {reposition.noHoja && (
                 <div>
-                  <p className="font-semibold text-gray-700">No. de Hoja</p>
-                  <p>{reposition.noHoja}</p>
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">No. de Hoja</p>
+                  <p className="dark:text-white">{reposition.noHoja}</p>
                 </div>
               )}
               {reposition.fechaCorte && (
                 <div>
-                  <p className="font-semibold text-gray-700">Fecha de Corte</p>
-                  <p>{new Date(reposition.fechaCorte).toLocaleDateString()}</p>
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Fecha de Corte</p>
+                  <p className="dark:text-white">{new Date(reposition.fechaCorte).toLocaleDateString()}</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Descripción del Daño - Diferente para reproceso vs reposición */}
-          <Card>
+          <Card className="dark:bg-slate-700 dark:border-slate-600">
             <CardHeader>
-              <CardTitle>Descripción del Daño</CardTitle>
+              <CardTitle className="dark:text-white">Descripción del Daño</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {reposition.type === 'reproceso' ? (
                 <>
                   {/* Campos específicos para reproceso */}
                   <div>
-                    <p className="font-semibold text-gray-700">Nombre del Causante del Daño</p>
-                    <p>{reposition.causanteDano}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Nombre del Causante del Daño</p>
+                    <p className="dark:text-white">{reposition.causanteDano}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Tipo de Accidente</p>
-                    <p>{reposition.tipoAccidente || 'No especificado'}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Tipo de Accidente</p>
+                    <p className="dark:text-white">{reposition.tipoAccidente || 'No especificado'}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Área que causó el daño</p>
-                    <p className="capitalize">{reposition.areaCausanteDano || 'No especificado'}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Área que causó el daño</p>
+                    <p className="capitalize dark:text-white">{reposition.areaCausanteDano || 'No especificado'}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Área actual</p>
-                    <p className="capitalize">{reposition.currentArea}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Área actual</p>
+                    <p className="capitalize dark:text-white">{reposition.currentArea}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Descripción del Suceso</p>
-                    <p className="whitespace-pre-wrap">{reposition.descripcionSuceso}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Descripción del Suceso</p>
+                    <p className="whitespace-pre-wrap dark:text-white">{reposition.descripcionSuceso}</p>
                   </div>
                 </>
               ) : (
                 <>
                   {/* Campos para reposición (formato original) */}
                   <div>
-                    <p className="font-semibold text-gray-700">Causante del Daño</p>
-                    <p>{reposition.causanteDano}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Causante del Daño</p>
+                    <p className="dark:text-white">{reposition.causanteDano}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Descripción del Suceso</p>
-                    <p className="whitespace-pre-wrap">{reposition.descripcionSuceso}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Descripción del Suceso</p>
+                    <p className="whitespace-pre-wrap dark:text-white">{reposition.descripcionSuceso}</p>
                   </div>
                 </>
               )}
@@ -388,45 +388,45 @@ export function RepositionDetail({
 
           {/* Información del Producto - Solo para reposiciones */}
           {reposition.type !== 'reproceso' && (
-            <Card>
+            <Card className="dark:bg-slate-700 dark:border-slate-600">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 dark:text-white">
                   <Package className="w-5 h-5" />
                   Información del Producto
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="font-semibold text-gray-700">Modelo de la Prenda</p>
-                  <p>{reposition.modeloPrenda}</p>
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Modelo de la Prenda</p>
+                  <p className="dark:text-white">{reposition.modeloPrenda}</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-700">Tela</p>
-                  <p>{reposition.tela}</p>
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Tela</p>
+                  <p className="dark:text-white">{reposition.tela}</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-700">Color</p>
-                  <p>{reposition.color}</p>
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Color</p>
+                  <p className="dark:text-white">{reposition.color}</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-700">Tipo de Pieza</p>
-                  <p>{reposition.tipoPieza}</p>
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Tipo de Pieza</p>
+                  <p className="dark:text-white">{reposition.tipoPieza}</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-700">Piezas Totales</p>
-                  <p className="text-lg font-bold text-purple-600">
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Piezas Totales</p>
+                  <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
                     {pieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0) + contrastPieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0)} piezas
                   </p>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-700">Urgencia</p>
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Urgencia</p>
                   <Badge className={urgencyColors[reposition.urgencia as keyof typeof urgencyColors]}>
                     {reposition.urgencia}
                   </Badge>
                 </div>
                 {pieces.some(piece => piece.folioOriginal && piece.folioOriginal !== null && piece.folioOriginal !== '') && (
                   <div className="md:col-span-2">
-                    <p className="font-semibold text-gray-700">Folios Originales</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Folios Originales</p>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {pieces
                         .filter(piece => piece.folioOriginal && piece.folioOriginal !== null && piece.folioOriginal !== '')
@@ -441,14 +441,14 @@ export function RepositionDetail({
                 )}
                 {reposition.consumoTela && (
                   <div>
-                    <p className="font-semibold text-gray-700">Consumo de Tela</p>
-                    <p>{reposition.consumoTela} metros</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Consumo de Tela</p>
+                    <p className="dark:text-white">{reposition.consumoTela} metros</p>
                   </div>
                 )}
                 {reposition.consumoTela && (
                   <div>
-                    <p className="font-semibold text-gray-700">Valor Estimado</p>
-                    <p className="text-lg font-bold text-green-600">
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Valor Estimado</p>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
                       ${(reposition.consumoTela * 60).toFixed(2)}
                     </p>
                   </div>
@@ -459,9 +459,9 @@ export function RepositionDetail({
 
           {/* Segunda Tela - Solo para reposiciones con tela contraste */}
           {reposition.type !== 'reproceso' && reposition.telaContraste && (
-            <Card>
+            <Card className="dark:bg-slate-700 dark:border-slate-600">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 dark:text-white">
                   <Package className="w-5 h-5" />
                   Segunda Tela
                 </CardTitle>
@@ -469,16 +469,16 @@ export function RepositionDetail({
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="font-semibold text-gray-700">Tela</p>
-                    <p>{reposition.telaContraste.tela || 'N/A'}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Tela</p>
+                    <p className="dark:text-white">{reposition.telaContraste.tela || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Color</p>
-                    <p>{reposition.telaContraste.color || 'N/A'}</p>
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Color</p>
+                    <p className="dark:text-white">{reposition.telaContraste.color || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-700">Tipos de Piezas</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-gray-700 dark:text-gray-300">Tipos de Piezas</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {contrastPieces.length > 0 
                         ? contrastPieces.map(piece => piece.tipoPieza).filter((value, index, self) => self.indexOf(value) === index).join(', ')
                         : 'No especificado'
@@ -490,22 +490,22 @@ export function RepositionDetail({
                 {/* Detalles de piezas de Segunda Tela */}
                 {contrastPieces.length > 0 && (
                   <div>
-                    <h4 className="font-semibold text-gray-700 mb-2">Detalles de Piezas:</h4>
+                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Detalles de Piezas:</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {contrastPieces.map((piece: any, index: number) => (
-                        <div key={`contrast-info-${piece.id}`} className="bg-blue-50 p-3 rounded-lg">
+                        <div key={`contrast-info-${piece.id}`} className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                           <div className="space-y-1">
                             <div>
-                              <span className="font-medium text-blue-800">Tipo de Pieza:</span>
-                              <p className="text-blue-700">{piece.tipoPieza}</p>
+                              <span className="font-medium text-blue-800 dark:text-blue-300">Tipo de Pieza:</span>
+                              <p className="text-blue-700 dark:text-blue-200">{piece.tipoPieza}</p>
                             </div>
                             <div>
-                              <span className="font-medium text-blue-800">Talla:</span>
-                              <p className="text-blue-700">{piece.talla}</p>
+                              <span className="font-medium text-blue-800 dark:text-blue-300">Talla:</span>
+                              <p className="text-blue-700 dark:text-blue-200">{piece.talla}</p>
                             </div>
                             <div>
-                              <span className="font-medium text-blue-800">Cantidad:</span>
-                              <p className="text-blue-700 font-bold">{typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0} piezas</p>
+                              <span className="font-medium text-blue-800 dark:text-blue-300">Cantidad:</span>
+                              <p className="text-blue-700 dark:text-blue-200 font-bold">{typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0} piezas</p>
                             </div>
                           </div>
                         </div>
@@ -519,9 +519,9 @@ export function RepositionDetail({
 
           {/* Piezas Solicitadas - Solo para reposiciones */}
           {reposition.type !== 'reproceso' && (pieces.length > 0 || contrastPieces.length > 0) && (
-            <Card>
+            <Card className="dark:bg-slate-700 dark:border-slate-600">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between dark:text-white">
                   <span>Piezas Solicitadas</span>
                   <Badge variant="outline" className="text-sm">
                     Total: {pieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0) + contrastPieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0)} piezas
@@ -531,7 +531,7 @@ export function RepositionDetail({
               <CardContent>
                 {/* Sección de Tela Principal */}
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-700 mb-3 text-lg">Tela Principal</h4>
+                  <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-lg">Tela Principal</h4>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -569,16 +569,16 @@ export function RepositionDetail({
                       })}
                     </TableBody>
                   </Table>
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="mt-3 p-3 bg-gray-50 dark:bg-slate-600 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">Subtotal Tela Principal:</span>
-                      <span className="text-lg font-bold text-purple-600">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Subtotal Tela Principal:</span>
+                      <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
                         {pieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0)} piezas
                       </span>
                     </div>
                     {pieces.some(piece => piece.folioOriginal && piece.folioOriginal !== null && piece.folioOriginal !== '') && (
                       <div className="mt-2">
-                        <span className="font-semibold text-gray-700">Folios incluidos:</span>
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Folios incluidos:</span>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {pieces
                             .filter(piece => piece.folioOriginal && piece.folioOriginal !== null && piece.folioOriginal !== '')
@@ -597,7 +597,7 @@ export function RepositionDetail({
                 {/* Sección de Segunda Tela - Solo si hay piezas de segunda tela */}
                 {contrastPieces.length > 0 && (
                   <div className="mb-6">
-                    <h4 className="font-semibold text-gray-700 mb-3 text-lg">Segunda Tela</h4>
+                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 text-lg">Segunda Tela</h4>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -631,19 +631,19 @@ export function RepositionDetail({
                         })}
                       </TableBody>
                     </Table>
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                       <div className="flex justify-between items-center">
-                        <span className="font-semibold text-blue-800">Subtotal Segunda Tela:</span>
-                        <span className="text-lg font-bold text-blue-600">
+                        <span className="font-semibold text-blue-800 dark:text-blue-300">Subtotal Segunda Tela:</span>
+                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                           {contrastPieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0)} piezas
                         </span>
                       </div>
                       <div className="mt-2">
-                        <span className="font-semibold text-blue-800">Detalles:</span>
+                        <span className="font-semibold text-blue-800 dark:text-blue-300">Detalles:</span>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-1">
                           {contrastPieces.map((piece: any, index: number) => (
-                            <div key={`detail-${piece.id}`} className="bg-blue-100 p-2 rounded">
-                              <div className="text-xs text-blue-800">
+                            <div key={`detail-${piece.id}`} className="bg-blue-100 dark:bg-blue-800/30 p-2 rounded">
+                              <div className="text-xs text-blue-800 dark:text-blue-200">
                                 <strong>{piece.tipoPieza || 'Tipo no especificado'}</strong> - 
                                 Talla {piece.talla} - 
                                 {typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0} piezas
@@ -656,24 +656,24 @@ export function RepositionDetail({
                   </div>
                 )}
                 {/* Resumen General Final */}
-                <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="font-bold text-purple-800 text-xl">Total General de la Solicitud:</span>
-                    <span className="text-2xl font-bold text-purple-600">
+                    <span className="font-bold text-purple-800 dark:text-purple-300 text-xl">Total General de la Solicitud:</span>
+                    <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                       {pieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0) + contrastPieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0)} piezas
                     </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex justify-between items-center p-2 bg-white rounded">
-                      <span className="font-semibold text-gray-700">Tela Principal:</span>
-                      <span className="font-bold text-purple-600">
+                    <div className="flex justify-between items-center p-2 bg-white dark:bg-slate-600 rounded">
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Tela Principal:</span>
+                      <span className="font-bold text-purple-600 dark:text-purple-400">
                         {pieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0)} piezas
                       </span>
                     </div>
                     {contrastPieces.length > 0 && (
-                      <div className="flex justify-between items-center p-2 bg-white rounded">
-                        <span className="font-semibold text-gray-700">Segunda Tela:</span>
-                        <span className="font-bold text-blue-600">
+                      <div className="flex justify-between items-center p-2 bg-white dark:bg-slate-600 rounded">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Segunda Tela:</span>
+                        <span className="font-bold text-blue-600 dark:text-blue-400">
                           {contrastPieces.reduce((total, piece) => total + (typeof piece.cantidad === 'number' ? piece.cantidad : parseInt(piece.cantidad) || 0), 0)} piezas
                         </span>
                       </div>
@@ -686,12 +686,12 @@ export function RepositionDetail({
 
           {/* Observaciones */}
           {reposition.observaciones && (
-            <Card>
+            <Card className="dark:bg-slate-700 dark:border-slate-600">
               <CardHeader>
-                <CardTitle>Observaciones</CardTitle>
+                <CardTitle className="dark:text-white">Observaciones</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap">{reposition.observaciones}</p>
+                <p className="whitespace-pre-wrap dark:text-white">{reposition.observaciones}</p>
               </CardContent>
             </Card>
           )}
@@ -699,9 +699,9 @@ export function RepositionDetail({
 
 
           {/* Documentos */}
-          <Card>
+          <Card className="dark:bg-slate-700 dark:border-slate-600">
             <CardHeader>
-              <CardTitle className="flex justify-between items-center">
+              <CardTitle className="flex justify-between items-center dark:text-white">
                 <span className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
                   Documentos ({documents.length})
@@ -721,20 +721,20 @@ export function RepositionDetail({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre del Archivo</TableHead>
-                      <TableHead>Tamaño</TableHead>
-                      <TableHead>Subido por</TableHead>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead className="dark:text-gray-300">Nombre del Archivo</TableHead>
+                      <TableHead className="dark:text-gray-300">Tamaño</TableHead>
+                      <TableHead className="dark:text-gray-300">Subido por</TableHead>
+                      <TableHead className="dark:text-gray-300">Fecha</TableHead>
+                      <TableHead className="dark:text-gray-300">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {documents.map((doc: any) => (
                       <TableRow key={doc.id}>
-                        <TableCell>{doc.originalName}</TableCell>
-                        <TableCell>{(doc.size / 1024).toFixed(1)} KB</TableCell>
-                        <TableCell>{doc.uploaderName}</TableCell>
-                        <TableCell>
+                        <TableCell className="dark:text-white">{doc.originalName}</TableCell>
+                        <TableCell className="dark:text-white">{(doc.size / 1024).toFixed(1)} KB</TableCell>
+                        <TableCell className="dark:text-white">{doc.uploaderName}</TableCell>
+                        <TableCell className="dark:text-white">
                           {new Date(doc.createdAt).toLocaleDateString('es-ES')}
                         </TableCell>
                         <TableCell>
@@ -751,7 +751,7 @@ export function RepositionDetail({
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-gray-500 text-center py-4">
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                   No hay documentos adjuntos
                 </p>
               )}
@@ -759,8 +759,8 @@ export function RepositionDetail({
               {/* Upload Modal */}
               {showUpload && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                    <h3 className="text-lg font-semibold mb-4">Añadir Documentos</h3>
+                  <div className="bg-white dark:bg-slate-800 rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 className="text-lg font-semibold mb-4 dark:text-white">Añadir Documentos</h3>
                     <FileUpload
                       onFileSelect={setSelectedFiles}
                       label="Documentos adicionales"
@@ -793,18 +793,18 @@ export function RepositionDetail({
           </Card>
 
           {/* Estado Actual */}
-          <Card>
+          <Card className="dark:bg-slate-700 dark:border-slate-600">
             <CardHeader>
-              <CardTitle>Estado Actual</CardTitle>
+              <CardTitle className="dark:text-white">Estado Actual</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="font-semibold text-gray-700">Área Actual</p>
-                <p className="capitalize">{reposition.currentArea}</p>
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Área Actual</p>
+                <p className="capitalize dark:text-white">{reposition.currentArea}</p>
               </div>
               <div>
-                <p className="font-semibold text-gray-700">Fecha de Creación</p>
-                <p>{new Date(reposition.createdAt).toLocaleString('es-ES', {
+                <p className="font-semibold text-gray-700 dark:text-gray-300">Fecha de Creación</p>
+                <p className="dark:text-white">{new Date(reposition.createdAt).toLocaleString('es-ES', {
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric', 
@@ -815,8 +815,8 @@ export function RepositionDetail({
               </div>
               {reposition.approvedAt && (
                 <div>
-                  <p className="font-semibold text-gray-700">Fecha de Aprobación</p>
-                  <p>{new Date(reposition.approvedAt).toLocaleString('es-ES', {
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">Fecha de Aprobación</p>
+                  <p className="dark:text-white">{new Date(reposition.approvedAt).toLocaleString('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',

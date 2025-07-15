@@ -26,7 +26,7 @@ export function StatsCards() {
         {[...Array(4)].map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardContent className="p-6">
-              <div className="h-16 bg-gray-200 rounded"></div>
+              <div className="h-16 bg-blue-200 rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -39,7 +39,7 @@ export function StatsCards() {
       title: "Pedidos Activos",
       value: stats?.activeOrders || 0,
       icon: Package,
-      bgColor: "bg-[#f2f2f2]",
+      bgColor: "bg-[#0d2a74]",
       iconColor: "text-primary",
     },
     {

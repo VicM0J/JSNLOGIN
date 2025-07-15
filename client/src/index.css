@@ -1163,6 +1163,173 @@
   color: #d1d5db;
 }
 
+/* SweetAlert2 Dark Mode Styles */
+.dark .swal2-popup {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(51, 65, 85, 0.5) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .swal2-title {
+  color: #ffffff !important;
+}
+
+.dark .swal2-content {
+  color: #ffffff !important;
+}
+
+.dark .swal2-html-container {
+  color: #ffffff !important;
+}
+
+.dark .swal2-input {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid #475569 !important;
+}
+
+.dark .swal2-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.dark .swal2-textarea {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid #475569 !important;
+}
+
+.dark .swal2-select {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid #475569 !important;
+}
+
+.dark .swal2-confirm {
+  background-color: var(--jasana-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.dark .swal2-confirm:hover {
+  background-color: var(--jasana-secondary) !important;
+}
+
+.dark .swal2-cancel {
+  background-color: rgba(75, 85, 99, 0.8) !important;
+  color: #ffffff !important;
+  border: 1px solid #6b7280 !important;
+}
+
+.dark .swal2-cancel:hover {
+  background-color: rgba(107, 114, 128, 0.9) !important;
+}
+
+.dark .swal2-deny {
+  background-color: rgba(239, 68, 68, 0.8) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.dark .swal2-deny:hover {
+  background-color: rgba(220, 38, 38, 0.9) !important;
+}
+
+.dark .swal2-close {
+  color: #ffffff !important;
+}
+
+.dark .swal2-close:hover {
+  color: #f87171 !important;
+}
+
+.dark .swal2-icon.swal2-success [class^='swal2-success-line'] {
+  background-color: #4ade80 !important;
+}
+
+.dark .swal2-icon.swal2-success .swal2-success-ring {
+  border-color: #4ade80 !important;
+}
+
+.dark .swal2-icon.swal2-error {
+  border-color: #f87171 !important;
+  color: #f87171 !important;
+}
+
+.dark .swal2-icon.swal2-warning {
+  border-color: #fbbf24 !important;
+  color: #fbbf24 !important;
+}
+
+.dark .swal2-icon.swal2-info {
+  border-color: #60a5fa !important;
+  color: #60a5fa !important;
+}
+
+.dark .swal2-icon.swal2-question {
+  border-color: #c4b5fd !important;
+  color: #c4b5fd !important;
+}
+
+.dark .swal2-progress-steps .swal2-progress-step {
+  background-color: var(--jasana-primary) !important;
+}
+
+.dark .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step {
+  background-color: var(--jasana-secondary) !important;
+}
+
+.dark .swal2-progress-steps .swal2-progress-step-line {
+  background-color: #475569 !important;
+}
+
+.dark .swal2-loader {
+  border-color: var(--jasana-primary) transparent var(--jasana-primary) transparent !important;
+}
+
+.dark .swal2-validation-message {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Light mode adjustments for consistency */
+.light .swal2-popup {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.light .swal2-title {
+  color: #0f172a !important;
+}
+
+.light .swal2-content {
+  color: #0f172a !important;
+}
+
+.light .swal2-html-container {
+  color: #0f172a !important;
+}
+
+.light .swal2-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.light .swal2-textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.light .swal2-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
 /* Fade animations */
 @keyframes fade-in {
   from {
