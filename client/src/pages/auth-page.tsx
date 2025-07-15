@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import "../Auth.css";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,7 @@ export default function AuthPage() {
   };
 
   return (
-<div className="h-screen grid place-items-center bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
+    <div className="auth-page h-screen grid place-items-center bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
 
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -122,9 +123,6 @@ export default function AuthPage() {
                     draggable={false}
                   />
                 </div>
-                <p className="text-gray-600 font-medium text-xs mb-1">
-                  Sistema de Gestión de Pedidos
-                </p>
               </div>
               <h1 className="text-2xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-2">
                 <Users className="w-6 h-6" />
@@ -195,17 +193,17 @@ export default function AuthPage() {
               </div>
 
               <div className="input-container mb-3">
-                <Select
+                <Select 
                   value={registerData.area}
                   onValueChange={(value) =>
                     setRegisterData({ ...registerData, area: value as any })
                   }
                 >
-                  <SelectTrigger className="auth-input">
+                  <SelectTrigger className="auth-page  items-center right-4">
                     <SelectValue placeholder="Seleccionar área" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg bg-white/95 backdrop-blur-lg border-purple-200">
-                    <SelectItem value="corte">✂️ Corte</SelectItem>
+                  <SelectContent className="auth-page [data-radix-select-value]">
+                    <SelectItem  value="corte">✂️ Corte</SelectItem>
                     <SelectItem value="bordado">🪡 Bordado</SelectItem>
                     <SelectItem value="ensamble">🔧 Ensamble</SelectItem>
                     <SelectItem value="plancha">👔 Plancha/Empaque</SelectItem>
@@ -372,10 +370,10 @@ export default function AuthPage() {
 
       {/* Forgot Password Dialog */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
-        <DialogContent className="max-w-sm rounded-2xl bg-white/95 backdrop-blur-lg border border-purple-200 shadow-2xl">
+        <DialogContent className="max-w-sm rounded-2xl bg-black/95 backdrop-blur-lg border border-purple-200 shadow-2xl">
           <DialogHeader className="text-center pb-3">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-full flex items-center justify-center mb-3">
-              <Lock className="w-6 h-6 text-white" />
+            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-[#414b7a] to-[#764ba2] rounded-full flex items-center justify-center mb-3">
+              <Lock className="w-6 h-6 text-black" />
             </div>
             <DialogTitle className="text-xl font-bold text-gray-800">
               ¿Olvidaste tu contraseña?
