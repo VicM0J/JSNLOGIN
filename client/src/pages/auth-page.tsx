@@ -285,7 +285,7 @@ export default function AuthPage() {
                   }
                   required
                   placeholder=" "
-                  className="auth-input"
+                  className="background #ffffff/10 border border-purple-200 focus:border-purple-400 focus:ring-purple-400"
                 />
                 <Label className="auth-label">Usuario</Label>
               </div>
