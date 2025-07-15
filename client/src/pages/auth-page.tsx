@@ -192,29 +192,38 @@ export default function AuthPage() {
                 <Label className="auth-label">Nombre Completo</Label>
               </div>
 
-              <div className="input-container mb-3">
+              <div className="input-container mb-4">
                 <Select 
                   value={registerData.area}
                   onValueChange={(value) =>
                     setRegisterData({ ...registerData, area: value as any })
                   }
                 >
-                  <SelectTrigger className="w-full h-[42px] flex items-center justify-between">
-                    <SelectValue placeholder="Seleccionar área" />
+                  <SelectTrigger 
+                    className="w-full h-[42px] flex items-center justify-between text-gray-900 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 auth-input"
+                    data-has-value={registerData.area ? "true" : "false"}
+                  >
+                    <SelectValue placeholder=" " />
                   </SelectTrigger>
-                  <SelectContent className="auth-page [data-radix-select-value]">
-                    <SelectItem  value="corte">✂️ Corte</SelectItem>
-                    <SelectItem value="bordado">🪡 Bordado</SelectItem>
-                    <SelectItem value="ensamble">🔧 Ensamble</SelectItem>
-                    <SelectItem value="plancha">👔 Plancha/Empaque</SelectItem>
-                    <SelectItem value="calidad">✅ Calidad</SelectItem>
-                    <SelectItem value="envios">📦 Envíos</SelectItem>
-                    <SelectItem value="patronaje">📐 Patronaje</SelectItem>
-                    <SelectItem value="almacen">🏪 Almacén</SelectItem>
-                    <SelectItem value="diseño">🎨 Diseño</SelectItem>
-                    <SelectItem value="admin">⚙️ Admin</SelectItem>
+                  <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white">
+                    <SelectItem value="corte" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">✂️ Corte</SelectItem>
+                    <SelectItem value="bordado" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">🪡 Bordado</SelectItem>
+                    <SelectItem value="ensamble" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">🔧 Ensamble</SelectItem>
+                    <SelectItem value="plancha" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">👔 Plancha/Empaque</SelectItem>
+                    <SelectItem value="calidad" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">✅ Calidad</SelectItem>
+                    <SelectItem value="envios" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">📦 Envíos</SelectItem>
+                    <SelectItem value="patronaje" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">📐 Patronaje</SelectItem>
+                    <SelectItem value="almacen" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">🏪 Almacén</SelectItem>
+                    <SelectItem value="diseño" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">🎨 Diseño</SelectItem>
+                    <SelectItem value="admin" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">⚙️ Admin</SelectItem>
                   </SelectContent>
                 </Select>
+                <Label className="auth-label">
+                  {registerData.area 
+                    ? registerData.area.charAt(0).toUpperCase() + registerData.area.slice(1)
+                    : "Área"
+                  }
+                </Label>
               </div>
 
               {registerData.area && registerData.area !== "admin" && (

@@ -265,8 +265,10 @@
 /* Espaciado específico para el select de área */
 .auth-page .input-container:has([data-radix-select-trigger]),
 .auth-page .input-container:has([role="combobox"]) {
-  margin-bottom: 0.75rem !important;
+  margin-bottom: 1.25rem !important;
   margin-top: 0.75rem !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 /* Grid de inputs en el registro */
@@ -460,8 +462,9 @@ html.dark .auth-page .overlay-button:hover {
   background: transparent !important;
   border: none !important;
   cursor: pointer !important;
-  color: #64748b !important;
+  color: #1f2937 !important;
   transition: color 0.3s ease !important;
+  z-index: 10 !important;
 }
 
 .auth-page .password-toggle:hover,
@@ -476,6 +479,7 @@ html.dark .auth-page .overlay-button:hover {
 .auth-page .password-toggle svg,
 .auth-page button[class*="password-toggle"] svg {
   color: inherit !important;
+  fill: currentColor !important;
 }
 
 /* Botones del login */
@@ -579,11 +583,100 @@ html.dark .auth-page .overlay-button:hover {
   font-size: 14px !important;
 }
 
+/* Select trigger styling for light mode */
+.auth-page [role="combobox"],
+.auth-page [data-radix-select-trigger] {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  width: 100% !important;
+  padding: 0.75rem !important;
+  font-size: 14px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  outline: none !important;
+  transition: all 0.3s ease !important;
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Select trigger placeholder text */
+.auth-page [data-radix-select-trigger] [data-placeholder] {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* Select trigger value text */
+.auth-page [data-radix-select-trigger] [data-radix-select-value] {
+  color: #0f172a !important;
+  font-weight: 500 !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 14px !important;
+}
+
 /* Select placeholder */
 .auth-page [data-placeholder] {
   color: #64748b !important;
   font-family: 'Montserrat', sans-serif !important;
   font-size: 14px !important;
+}
+
+/* Force text color for SelectValue component in light mode */
+.auth-page [data-radix-select-trigger] span,
+.auth-page [data-radix-select-trigger] [data-radix-select-value],
+.auth-page [data-radix-select-trigger] [data-radix-select-value] span {
+  color: #000000 !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+/* Ensure select trigger text is always visible in light mode */
+.auth-page [data-radix-select-trigger] {
+  color: #000000 !important;
+}
+
+.auth-page [data-radix-select-trigger] * {
+  color: #000000 !important;
+}
+
+/* Select label animation */
+.auth-page .input-container:has([data-radix-select-trigger]) .auth-label {
+  position: absolute !important;
+  top: 50% !important;
+  left: 0.75rem !important;
+  color: #64748b !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
+  pointer-events: none !important;
+  transform: translateY(-50%) !important;
+  background: transparent !important;
+  padding: 0 !important;
+  font-family: 'Montserrat', sans-serif !important;
+  z-index: 20 !important;
+}
+
+/* Label moves up when select is open */
+.auth-page .input-container:has([data-radix-select-trigger][data-state="open"]) .auth-label {
+  top: -8px !important;
+  left: 8px !important;
+  font-size: 12px !important;
+  color: #8c69a5 !important;
+  background: #ffffff !important;
+  padding: 0 4px !important;
+  border-radius: 4px !important;
+}
+
+/* Label shows selected value when select has a value */
+.auth-page .input-container:has([data-radix-select-trigger][data-has-value="true"]) .auth-label {
+  top: -8px !important;
+  left: 8px !important;
+  font-size: 12px !important;
+  color: #000000 !important;
+  background: #ffffff !important;
+  padding: 0 4px !important;
+  border-radius: 4px !important;
 }
 
 /* Panel superpuesto */
@@ -774,7 +867,7 @@ html.dark .auth-page input[class*="auth-input"]:not(:placeholder-shown) + .auth-
 html.dark .auth-page .password-toggle,
 html.dark .auth-page button[class*="password-toggle"],
 html.dark .auth-page .input-container button[type="button"] {
-  color: #64748b !important;
+  color: #94a3b8 !important;
   background: transparent !important;
 }
 
@@ -784,7 +877,7 @@ html.dark .auth-page .input-container button[type="button"] {
 html.dark .auth-page .password-toggle:hover,
 html.dark .auth-page button[class*="password-toggle"]:hover,
 html.dark .auth-page .input-container button[type="button"]:hover {
-  color: #8c69a5 !important;
+  color: #a855f7 !important;
 }
 
 /* Botones del overlay en modo oscuro - mantener blanco */
@@ -904,11 +997,71 @@ html.dark .auth-page [data-radix-select-value] {
   font-size: 14px !important;
 }
 
+/* Dark mode select trigger placeholder */
+.dark .auth-page [data-radix-select-trigger] [data-placeholder],
+html.dark .auth-page [data-radix-select-trigger] [data-placeholder] {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+/* Dark mode select trigger value */
+.dark .auth-page [data-radix-select-trigger] [data-radix-select-value],
+html.dark .auth-page [data-radix-select-trigger] [data-radix-select-value] {
+  color: #f1f5f9 !important;
+  font-weight: 500 !important;
+}
+
 .dark .auth-page [data-placeholder],
 html.dark .auth-page [data-placeholder] {
   color: #94a3b8 !important;
   font-family: 'Montserrat', sans-serif !important;
   font-size: 14px !important;
+}
+
+/* Dark mode select label animation */
+.dark .auth-page .input-container:has([data-radix-select-trigger]) .auth-label,
+html.dark .auth-page .input-container:has([data-radix-select-trigger]) .auth-label {
+  color: #94a3b8 !important;
+}
+
+.dark .auth-page .input-container:has([data-radix-select-trigger][data-state="open"]) .auth-label,
+html.dark .auth-page .input-container:has([data-radix-select-trigger][data-state="open"]) .auth-label {
+  color: #a855f7 !important;
+  background: #1e293b !important;
+}
+
+/* Dark mode label shows selected value when select has a value */
+.dark .auth-page .input-container:has([data-radix-select-trigger][data-has-value="true"]) .auth-label,
+html.dark .auth-page .input-container:has([data-radix-select-trigger][data-has-value="true"]) .auth-label {
+  top: -8px !important;
+  left: 8px !important;
+  font-size: 12px !important;
+  color: #f1f5f9 !important;
+  background: #1e293b !important;
+  padding: 0 4px !important;
+  border-radius: 4px !important;
+}
+
+/* Dark mode select text color */
+.dark .auth-page [data-radix-select-trigger] span,
+.dark .auth-page [data-radix-select-trigger] [data-radix-select-value],
+.dark .auth-page [data-radix-select-trigger] [data-radix-select-value] span,
+html.dark .auth-page [data-radix-select-trigger] span,
+html.dark .auth-page [data-radix-select-trigger] [data-radix-select-value],
+html.dark .auth-page [data-radix-select-trigger] [data-radix-select-value] span {
+  color: #f1f5f9 !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 500 !important;
+}
+
+.dark .auth-page [data-radix-select-trigger],
+html.dark .auth-page [data-radix-select-trigger] {
+  color: #f1f5f9 !important;
+}
+
+.dark .auth-page [data-radix-select-trigger] *,
+html.dark .auth-page [data-radix-select-trigger] * {
+  color: #f1f5f9 !important;
 }
 
 /* Colores específicos de texto en modo oscuro */
