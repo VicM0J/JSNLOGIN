@@ -147,6 +147,164 @@
   --input: hsl(217, 32%, 17%);
   --primary: #8c69a5;
   --primary-foreground: #ffffff;
+
+
+/* Forzar estilos de modo claro en la página de login */
+.auth-container * {
+  /* Forzar colores específicos para todos los elementos del login */
+}
+
+.auth-container .auth-input,
+.dark .auth-container .auth-input {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+.auth-container .auth-input::placeholder,
+.dark .auth-container .auth-input::placeholder {
+  color: #64748b !important;
+}
+
+.auth-container .auth-input:focus,
+.dark .auth-container .auth-input:focus {
+  border-color: #8c69a5 !important;
+  box-shadow: 0 0 0 3px rgba(140, 105, 165, 0.1) !important;
+}
+
+.auth-container .auth-label,
+.dark .auth-container .auth-label {
+  color: #64748b !important;
+}
+
+.auth-container .auth-input:focus + .auth-label,
+.auth-container .auth-input:not(:placeholder-shown) + .auth-label,
+.dark .auth-container .auth-input:focus + .auth-label,
+.dark .auth-container .auth-input:not(:placeholder-shown) + .auth-label {
+  color: #8c69a5 !important;
+  background: #ffffff !important;
+}
+
+.auth-container .password-toggle,
+.dark .auth-container .password-toggle {
+  color: #64748b !important;
+}
+
+.auth-container .password-toggle:hover,
+.dark .auth-container .password-toggle:hover {
+  color: #8c69a5 !important;
+}
+
+/* Botones del login en modo claro */
+.auth-container .auth-button,
+.dark .auth-container .auth-button {
+  background: linear-gradient(135deg, #8c69a5, #6b5b95) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.auth-container .auth-button:hover,
+.dark .auth-container .auth-button:hover {
+  background: linear-gradient(135deg, #6b5b95, #8c69a5) !important;
+}
+
+/* Select component en login */
+.auth-container [role="combobox"],
+.dark .auth-container [role="combobox"] {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Select dropdown content en login */
+.auth-container [role="listbox"],
+.auth-container [data-radix-select-content],
+.dark .auth-container [role="listbox"],
+.dark .auth-container [data-radix-select-content] {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Select items en login */
+.auth-container [role="option"],
+.auth-container [data-radix-select-item],
+.dark .auth-container [role="option"],
+.dark .auth-container [data-radix-select-item] {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.auth-container [role="option"]:hover,
+.auth-container [data-radix-select-item]:hover,
+.dark .auth-container [role="option"]:hover,
+.dark .auth-container [data-radix-select-item]:hover {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Forzar color negro en los nombres de las áreas del select */
+.auth-container [data-radix-select-content],
+.auth-container [data-radix-select-content] *,
+.auth-container [role="listbox"],
+.auth-container [role="listbox"] *,
+.dark .auth-container [data-radix-select-content],
+.dark .auth-container [data-radix-select-content] *,
+.dark .auth-container [role="listbox"],
+.dark .auth-container [role="listbox"] * {
+  color: #0f172a !important;
+}
+
+/* Específicamente para los items del select de áreas */
+.auth-container [data-radix-select-item],
+.auth-container [data-radix-select-item] *,
+.auth-container [data-radix-select-item] span,
+.auth-container [role="option"],
+.auth-container [role="option"] *,
+.auth-container [role="option"] span,
+.dark .auth-container [data-radix-select-item],
+.dark .auth-container [data-radix-select-item] *,
+.dark .auth-container [data-radix-select-item] span,
+.dark .auth-container [role="option"],
+.dark .auth-container [role="option"] *,
+.dark .auth-container [role="option"] span {
+  color: #0f172a !important;
+}
+
+/* Forzar en el portal del select */
+[data-radix-portal] .auth-container [data-radix-select-content],
+[data-radix-portal] .auth-container [data-radix-select-content] *,
+[data-radix-portal] .dark .auth-container [data-radix-select-content],
+[data-radix-portal] .dark .auth-container [data-radix-select-content] * {
+  color: #0f172a !important;
+}
+
+/* Texto general en el login */
+.auth-container h1,
+.auth-container p,
+.auth-container span,
+.auth-container div,
+.auth-container label,
+.dark .auth-container h1,
+.dark .auth-container p,
+.dark .auth-container span,
+.dark .auth-container div,
+.dark .auth-container label {
+  color: #0f172a !important;
+}
+
+/* Texto específico para elementos con color gris */
+.auth-container .text-gray-600,
+.dark .auth-container .text-gray-600 {
+  color: #64748b !important;
+}
+
+.auth-container .text-gray-800,
+.dark .auth-container .text-gray-800 {
+  color: #0f172a !important;
+}
+
+
   --secondary: hsl(217, 32%, 17%);
   --secondary-foreground: hsl(210, 40%, 98%);
   --accent: #de8fd9;
@@ -1315,33 +1473,33 @@
   width: 100%;
 }
 
+/* Estilos específicos para el login - siempre en modo claro */
 .auth-input {
   width: 100%;
   padding: 0.75rem;
   font-size: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   outline: none;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
+  background: #ffffff !important;
   transition: all 0.3s ease;
-  color: #ffffff !important;
+  color: #0f172a !important;
 }
 
 .auth-input:focus {
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+  border-color: #8c69a5;
+  box-shadow: 0 0 0 3px rgba(140, 105, 165, 0.1);
 }
 
 .auth-input::placeholder {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: #64748b !important;
 }
 
 .auth-label {
   position: absolute;
   top: 50%;
   left: 0.75rem;
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: #64748b !important;
   font-size: 14px;
   transition: all 0.3s ease;
   pointer-events: none;
@@ -1355,8 +1513,8 @@
   top: -8px;
   left: 8px;
   font-size: 12px;
-  color: #ffffff !important;
-  background: rgba(0, 0, 0, 0.8);
+  color: #8c69a5 !important;
+  background: #ffffff;
   padding: 0 4px;
   border-radius: 4px;
 }
@@ -1369,12 +1527,12 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #ffffff !important;
+  color: #64748b !important;
   transition: color 0.3s ease;
 }
 
 .password-toggle:hover {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: #8c69a5 !important;
 }
 
 .auth-button {
@@ -1491,4 +1649,27 @@
 
 .overlay-button svg {
   color: inherit !important;
+}
+
+/* Mantener texto blanco fijo en el overlay independiente del modo */
+.overlay {
+  color: #ffffff;
+}
+
+.overlay h1,
+.overlay h2, 
+.overlay h3,
+.overlay p,
+.overlay span {
+  color: #ffffff;
+}
+
+.overlay-button {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.overlay-button:hover {
+  background: #ffffff;
+  color: #667eea;
 }
