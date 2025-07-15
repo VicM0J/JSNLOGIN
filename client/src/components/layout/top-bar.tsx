@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,6 +36,7 @@ interface TopBarProps {
 
 export function TopBar({ onShowNotifications }: TopBarProps) {
   const { user, logoutMutation } = useAuth();
+  const { theme } = useTheme();
   const [showProfile, setShowProfile] = useState(false);
 
   const { data: pendingTransfers = [] } = useQuery<any[]>({
@@ -102,18 +104,18 @@ export function TopBar({ onShowNotifications }: TopBarProps) {
 
   const getAreaColor = (area: string) => {
     const colors: Record<string, string> = {
-      corte: "bg-[#de8fd9] text-[#233154]",
-      bordado: "bg-[#8c69a5] text-white",
-      ensamble: "bg-[#504b78] text-white",
-      plancha: "bg-[#f8bbed] text-[#233154]",
-      calidad: "bg-[#233154] text-white",
-      envios: "bg-[#8c69a5] text-white",
-      admin: "bg-[#504b78] text-white",
-      operaciones: "bg-[#8c69a5] text-white",
-      almacen: "bg-[#504b78] text-white",
-      diseño: "bg-[#de8fd9] text-[#233154]"
+      corte: "bg-[#10b981] text-white",
+      bordado: "bg-[#3b82f6] text-white",
+      ensamble: "bg-[#8b5cf6] text-white", 
+      plancha: "bg-[#ec4899] text-white",
+      calidad: "bg-[#6366f1] text-white",
+      envios: "bg-[#8b5cf6] text-white",
+      admin: "bg-[#64748b] text-white",
+      operaciones: "bg-[#22c55e] text-white",
+      almacen: "bg-[#f59e0b] text-white",
+      diseño: "bg-[#a855f7] text-white"
     };
-    return colors[area] || "bg-gray-500 text-white";
+    return colors[area] || "bg-gray-400 text-white";
   };
 
   const getGreeting = () => {
@@ -174,7 +176,9 @@ export function TopBar({ onShowNotifications }: TopBarProps) {
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                   <Avatar className="h-10 w-10 ring-2 ring-offset-2 ring-offset-background ring-primary/20">
                     <AvatarImage src="" alt={user?.name || ""} />
-                    <AvatarFallback className={`font-semibold text-sm ${getAreaColor(user?.area || '')}`}>
+                    <AvatarFallback 
+                      className={`font-semibold text-sm ${getAreaColor(user?.area || '')}`}
+                    >
                       {getUserInitials(user?.name || "")}
                     </AvatarFallback>
                   </Avatar>
@@ -187,7 +191,10 @@ export function TopBar({ onShowNotifications }: TopBarProps) {
                     <p className="text-xs leading-none text-muted-foreground">
                       {user?.username}
                     </p>
-                    <Badge variant="secondary" className={`text-xs px-2 py-0.5 w-fit ${getAreaColor(user?.area || '')}`}>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs px-2 py-0.5 w-fit ${getAreaColor(user?.area || '')}`}
+                    >
                       {user?.area ? getAreaDisplayName(user.area) : ''}
                     </Badge>
                   </div>
@@ -232,14 +239,18 @@ export function TopBar({ onShowNotifications }: TopBarProps) {
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20 ring-4 ring-offset-4 ring-offset-background ring-primary/20">
                 <AvatarImage src="" alt={user?.name || ""} />
-                <AvatarFallback className={`font-bold text-lg ${getAreaColor(user?.area || '')}`}>
+                <AvatarFallback 
+                  className={`font-bold text-lg ${getAreaColor(user?.area || '')}`}
+                >
                   {getUserInitials(user?.name || "")}
                 </AvatarFallback>
               </Avatar>
               <div className="space-y-2">
                 <h3 className="text-xl font-semibold">{user?.name}</h3>
                 <p className="text-sm text-muted-foreground">@{user?.username}</p>
-                <Badge className={`text-xs px-3 py-1 ${getAreaColor(user?.area || '')}`}>
+                <Badge 
+                  className={`text-xs px-3 py-1 ${getAreaColor(user?.area || '')}`}
+                >
                   {user?.area ? getAreaDisplayName(user.area) : ''}
                 </Badge>
               </div>

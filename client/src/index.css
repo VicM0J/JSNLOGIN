@@ -8,10 +8,12 @@
     transform: rotateY(-90deg) scale(0.8);
     opacity: 0;
   }
+
   50% {
     transform: rotateY(-45deg) scale(0.9);
     opacity: 0.5;
   }
+
   100% {
     transform: rotateY(0deg) scale(1);
     opacity: 1;
@@ -22,9 +24,11 @@
   0% {
     transform: rotateX(0deg);
   }
+
   50% {
     transform: rotateX(90deg) scale(0.9);
   }
+
   100% {
     transform: rotateX(0deg);
   }
@@ -34,36 +38,47 @@
   0% {
     transform: rotateY(0deg);
   }
+
   50% {
     transform: rotateY(180deg) scale(0.8);
   }
+
   100% {
     transform: rotateY(360deg);
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
 }
 
 @keyframes float-delayed {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-15px);
   }
 }
 
 @keyframes float-slow {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -125,7 +140,7 @@ body.light {
   --jasana-primary: #504b78 !important;
   --jasana-secondary: #233154 !important;
   --jasana-accent: #8c69a5 !important;
-  --jasana-success: #16a34a !important;
+  --jasana-success: #0d682e !important;
   --jasana-warning: #ea580c !important;
   --jasana-error: #dc2626 !important;
   --jasana-sidebar-bg: #ffffff !important;
@@ -218,7 +233,17 @@ body.dark {
   }
 
   /* Forzar colores de texto en todos los elementos */
-  h1, h2, h3, h4, h5, h6, p, span, div, label, a {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  label,
+  a {
     color: var(--foreground) !important;
   }
 
@@ -234,13 +259,16 @@ body.dark {
   }
 
   /* Asegurar que los inputs usen los colores correctos */
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     background-color: var(--input) !important;
     color: var(--foreground) !important;
     border-color: var(--border) !important;
   }
 
-  input::placeholder, textarea::placeholder {
+  input::placeholder,
+  textarea::placeholder {
     color: var(--muted-foreground) !important;
   }
 
@@ -252,12 +280,14 @@ body.dark {
   }
 
   /* Elementos de tabla */
-  th, td {
+  th,
+  td {
     color: var(--foreground) !important;
   }
 
   /* Elementos de navegación */
-  nav, nav * {
+  nav,
+  nav * {
     color: var(--foreground) !important;
   }
 
@@ -280,22 +310,22 @@ body.dark {
   }
 
   /* Asegurar que todos los textos sean legibles en modo claro */
-  .light p, 
-  .light span, 
+  .light p,
+  .light span,
   .light div:not([class*="bg-"]),
-  .light h1, 
-  .light h2, 
-  .light h3, 
-  .light h4, 
-  .light h5, 
+  .light h1,
+  .light h2,
+  .light h3,
+  .light h4,
+  .light h5,
   .light h6 {
-    color: #1f2937 !important;
+    color: #16181a !important;
   }
 
   /* Textos pequeños en modo claro */
   .light .text-sm,
   .light .text-xs {
-    color: #4b5563 !important;
+    color: #191a1b !important;
   }
 
   /* Badges y elementos de estado en modo claro */
@@ -370,7 +400,7 @@ body.dark {
   }
 
   .light .bg-green-50 {
-    background-color: #f0fdf4 !important;
+    background-color: #161816 !important;
     color: #166534 !important;
   }
 
@@ -391,11 +421,11 @@ body.dark {
     border: 1px solid #e5e7eb !important;
   }
 
-  .light .card h1, 
-  .light .card h2, 
-  .light .card h3, 
-  .light .card h4, 
-  .light .card h5, 
+  .light .card h1,
+  .light .card h2,
+  .light .card h3,
+  .light .card h4,
+  .light .card h5,
   .light .card h6,
   .light .card p,
   .light .card span,
@@ -460,7 +490,7 @@ body.dark {
 
   .light .status-completed {
     background-color: #10b981 !important;
-    color: #ffffff !important;
+    color: #0e5312 !important;
     border: 1px solid #059669 !important;
     font-weight: 600 !important;
   }
@@ -675,11 +705,11 @@ body.dark {
   }
 
   /* Botones con fondos oscuros deben mantener texto blanco en modo claro */
-  .light button[class*="bg-purple"], 
-  .light button[class*="bg-blue"], 
-  .light button[class*="bg-indigo"], 
-  .light button[class*="bg-violet"], 
-  .light button[class*="bg-primary"], 
+  .light button[class*="bg-purple"],
+  .light button[class*="bg-blue"],
+  .light button[class*="bg-indigo"],
+  .light button[class*="bg-violet"],
+  .light button[class*="bg-primary"],
   .light .bg-primary,
   .light .bg-purple-600,
   .light .bg-blue-600,
@@ -692,7 +722,7 @@ body.dark {
   .light .auth-button,
   .light .overlay-button,
   .light button[style*="gradient"] {
-    color: white !important;
+    color: rgb(27, 27, 26) !important;
   }
 
   /* Fondos claros para botones de acciones en modo claro */
@@ -1078,6 +1108,19 @@ body.dark {
     font-weight: 700 !important;
   }
 
+  /* FORZAR TEXTO BLANCO EN AVATARES - SIMPLE Y EFECTIVO */
+  [data-radix-avatar-fallback] {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
+  /* ASEGURAR QUE LOS AVATARES SIEMPRE TENGAN TEXTO BLANCO */
+  .avatar-fallback,
+  [role="img"][data-radix-avatar-fallback] {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
   /* Dropdowns y menús en modo claro */
   .light [role="menu"] {
     background-color: #ffffff !important;
@@ -1289,6 +1332,7 @@ body.dark {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -1300,6 +1344,7 @@ body.dark {
     transform: translateX(0);
     opacity: 1;
   }
+
   to {
     transform: translateX(100%);
     opacity: 0;
@@ -1313,13 +1358,14 @@ body.dark {
 .slide-out-right {
   animation: slideOutRight 0.3s ease-out;
 }
+
 /* Badge styles for areas - light and dark mode con mejor contraste */
 .badge-corte {
-  background-color: #10b981 !important;
+  background-color: #076848 !important;
   color: #ffffff !important;
   border: 2px solid #059669 !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-corte {
@@ -1340,7 +1386,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #1e40af !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-bordado {
@@ -1361,7 +1407,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #6d28d9 !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-ensamble {
@@ -1382,7 +1428,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #c2410c !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-plancha {
@@ -1403,7 +1449,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #be185d !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-calidad {
@@ -1424,7 +1470,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #4338ca !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-envios {
@@ -1445,7 +1491,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #374151 !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-admin {
@@ -1467,7 +1513,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #047857 !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-operaciones {
@@ -1488,7 +1534,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #78350f !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-almacen {
@@ -1509,7 +1555,7 @@ body.dark {
   color: #ffffff !important;
   border: 2px solid #7e22ce !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
 }
 
 .light .badge-diseño {
@@ -1530,6 +1576,7 @@ body.dark {
     opacity: 0;
     transform: translateY(8px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1546,16 +1593,19 @@ body.dark {
     transform: scale(1) translateY(0px);
     filter: blur(0px);
   }
+
   40% {
     opacity: 0;
     transform: scale(0.95) translateY(-10px);
     filter: blur(5px);
   }
+
   70% {
     opacity: 0;
     transform: scale(0.95) translateY(-10px);
     filter: blur(5px);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateY(0px);
@@ -1569,16 +1619,19 @@ body.dark {
     transform: scale(1) translateY(0px);
     filter: blur(0px);
   }
+
   40% {
     opacity: 0;
     transform: scale(0.95) translateY(10px);
     filter: blur(5px);
   }
+
   70% {
     opacity: 0;
     transform: scale(0.95) translateY(10px);
     filter: blur(5px);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateY(0px);
@@ -1635,18 +1688,22 @@ body.dark {
 }
 
 @keyframes mostrar {
-  0%, 49.99% {
+
+  0%,
+  49.99% {
     opacity: 0;
     z-index: 1;
   }
-  50%, 100% {
+
+  50%,
+  100% {
     opacity: 1;
     z-index: 5;
   }
 }
 
 .auth-form {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
@@ -1696,7 +1753,7 @@ body.dark {
   border: 1px solid #d1d5db;
   border-radius: 8px;
   outline: none;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(5px);
   transition: all 0.3s ease;
 }
@@ -1723,13 +1780,13 @@ body.dark {
   padding: 0;
 }
 
-.auth-input:focus + .auth-label,
-.auth-input:not(:placeholder-shown) + .auth-label {
+.auth-input:focus+.auth-label,
+.auth-input:not(:placeholder-shown)+.auth-label {
   top: -8px;
   left: 8px;
   font-size: 12px;
   color: #8b5cf6;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   padding: 0 4px;
   border-radius: 4px;
 }
@@ -1861,5 +1918,5 @@ body.dark {
   background: white;
   color: #667eea !important;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
 }

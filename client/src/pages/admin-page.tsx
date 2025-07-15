@@ -329,19 +329,19 @@ export default function AdminPage() {
 
   const getAreaBadgeColor = (area: string) => {
     const colors: Record<string, string> = {
-      corte: "bg-green-100 text-green-800",
-      bordado: "bg-blue-100 text-blue-800",
-      ensamble: "bg-purple-100 text-purple-800",
-      plancha: "bg-orange-100 text-orange-800",
-      calidad: "bg-pink-100 text-pink-800",
-      envios: "bg-purple-100 text-purple-800",
-      admin: "bg-gray-100 text-gray-800",
-      almacen: "bg-cyan-100 text-cyan-800",
-      diseño: "bg-red-100 text-red-800",
+      corte: "badge-corte",
+      bordado: "badge-bordado", 
+      ensamble: "badge-ensamble",
+      plancha: "badge-plancha",
+      calidad: "badge-calidad",
+      envios: "badge-envios",
+      admin: "badge-admin",
+      almacen: "badge-almacen",
+      diseño: "badge-diseño",
       patronaje: "bg-yellow-100 text-yellow-800",
-      operaciones: "bg-indigo-100 text-indigo-800"
+      operaciones: "badge-operaciones"
     };
-    return colors[area] || "bg-gray-100 text-gray-800";
+    return colors[area] || "badge-admin";
   };
 
   const activeOrders = orders.filter(order => order.status === 'active');
