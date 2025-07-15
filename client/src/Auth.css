@@ -93,10 +93,10 @@
   animation-delay: 4s;
 }
 
-/* Contenedor principal del login - siempre tema claro */
+/* Contenedor principal del login */
 .auth-page .auth-container {
   backdrop-filter: blur(16px);
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.3) !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   border: 1px solid rgba(147, 51, 234, 0.2) !important;
   border-radius: 1rem !important;
@@ -106,6 +106,25 @@
   width: 100% !important;
   max-width: 1024px !important;
   height: 480px !important;
+}
+
+/* Estilos para el logo en el login */
+.auth-page .auth-form img {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2)) 
+          drop-shadow(0 0 20px rgba(139, 92, 246, 0.3)) !important;
+  background: radial-gradient(circle at center, 
+              rgba(255, 255, 255, 0.9) 0%, 
+              rgba(255, 255, 255, 0.7) 50%, 
+              transparent 100%) !important;
+  border-radius: 50% !important;
+  padding: 0.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.auth-page .auth-form img:hover {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3)) 
+          drop-shadow(0 0 30px rgba(139, 92, 246, 0.5)) !important;
+  transform: scale(1.05) !important;
 }
 
 /* Estados del contenedor */
@@ -179,9 +198,10 @@
   height: 100% !important;
   text-align: center !important;
   overflow-y: auto !important;
+  transition: background-color 0.3s ease !important;
 }
 
-/* Títulos y texto */
+/* Títulos y texto - modo claro */
 .auth-page h1,
 .auth-page h2,
 .auth-page h3,
@@ -195,6 +215,7 @@
 .auth-page a {
   color: #0f172a !important;
   font-family: 'Montserrat', sans-serif !important;
+  transition: color 0.3s ease !important;
 }
 
 .auth-page h1 {
@@ -244,8 +265,8 @@
 /* Espaciado específico para el select de área */
 .auth-page .input-container:has([data-radix-select-trigger]),
 .auth-page .input-container:has([role="combobox"]) {
-  margin-bottom: 2rem !important;
-  margin-top: 1rem !important;
+  margin-bottom: 0.75rem !important;
+  margin-top: 0.75rem !important;
 }
 
 /* Grid de inputs en el registro */
@@ -293,6 +314,110 @@
 .auth-page input[type="email"]::placeholder {
   color: #64748b !important;
   opacity: 1 !important;
+}
+
+/* Contenedor principal en modo oscuro */
+.dark .auth-page .auth-container,
+html.dark .auth-page .auth-container {
+  background: rgba(15, 23, 42, 0.4) !important;
+  border: 1px solid rgba(71, 85, 105, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Logo en modo oscuro */
+.dark .auth-page .auth-form img,
+html.dark .auth-page .auth-form img {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4)) 
+          drop-shadow(0 0 25px rgba(168, 85, 247, 0.4)) 
+          drop-shadow(0 0 40px rgba(255, 255, 255, 0.1)) !important;
+  background: radial-gradient(circle at center, 
+              rgba(30, 41, 59, 0.9) 0%, 
+              rgba(51, 65, 85, 0.8) 50%, 
+              transparent 100%) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+}
+
+.dark .auth-page .auth-form img:hover,
+html.dark .auth-page .auth-form img:hover {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)) 
+          drop-shadow(0 0 35px rgba(168, 85, 247, 0.6)) 
+          drop-shadow(0 0 50px rgba(255, 255, 255, 0.2)) !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
+}
+
+/* Botones del formulario en modo oscuro */
+.dark .auth-page .auth-button,
+html.dark .auth-page .auth-button {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+}
+
+.dark .auth-page .auth-button:hover,
+html.dark .auth-page .auth-button:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* Botones del overlay en modo oscuro */
+.dark .auth-page .overlay-button,
+html.dark .auth-page .overlay-button {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 2px solid rgba(255, 255, 255, 0.8) !important;
+}
+
+.dark .auth-page .overlay-button:hover,
+html.dark .auth-page .overlay-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Select en modo oscuro */
+.dark .auth-page [data-radix-select-trigger] {
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
+.dark .auth-page [data-radix-select-content] {
+  background: #334155 !important;
+  border-color: #475569 !important;
+}
+
+.dark .auth-page [data-radix-select-item] {
+  color: #f1f5f9 !important;
+}
+
+.dark .auth-page [data-radix-select-item][data-highlighted] {
+  background: #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Password toggle en modo oscuro */
+.dark .auth-page .password-toggle {
+  color: #94a3b8 !important;
+}
+
+.dark .auth-page .password-toggle:hover {
+  color: #a855f7 !important;
+}
+
+/* Dialogo en modo oscuro */
+.dark .auth-page .dialog-content {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border-color: #475569 !important;
+}
+
+.dark .auth-page .dialog-content * {
+  color: #f1f5f9 !important;
 }
 
 /* Labels de los inputs */
@@ -399,9 +524,11 @@
   border-radius: 8px !important;
   outline: none !important;
   transition: all 0.3s ease !important;
-  margin-bottom: 1rem !important;
   position: relative !important;
   z-index: 10 !important;
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 .auth-page [role="combobox"]:focus,
@@ -430,17 +557,19 @@
 .auth-page [role="option"],
 .auth-page [data-radix-select-item] {
   background: #ffffff !important;
-  color: #000000 !important; /* Changed to black */
+  color: #0f172a !important;
   font-family: 'Montserrat', sans-serif !important;
   padding: 0.5rem 0.75rem !important;
   font-size: 14px !important;
   cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
 }
 
 .auth-page [role="option"]:hover,
-.auth-page [data-radix-select-item]:hover {
+.auth-page [data-radix-select-item]:hover,
+.auth-page [data-radix-select-item][data-highlighted] {
   background: #f8fafc !important;
-  color: #000000 !important; /* Ensure hover also has black text */
+  color: #0f172a !important;
 }
 
 /* Select value text */
@@ -560,12 +689,19 @@
   color: inherit !important;
 }
 
-/* Asegurar que NUNCA se aplique modo oscuro al login */
-.dark .auth-page,
+/* Soporte para tema oscuro en el login */
+.auth-page {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark .auth-page {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%) !important;
+}
+
 .dark .auth-page *,
 .dark .auth-page *:before,
 .dark .auth-page *:after {
-  color: #0f172a !important;
+  color: #f1f5f9 !important;
 }
 
 .dark .auth-page .auth-input,
@@ -578,9 +714,9 @@ html.dark .auth-page input[class*="auth-input"],
 html.dark .auth-page input[type="text"],
 html.dark .auth-page input[type="password"],
 html.dark .auth-page input[type="email"] {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
 }
 
 .dark .auth-page .auth-input::placeholder,
@@ -593,7 +729,7 @@ html.dark .auth-page input[class*="auth-input"]::placeholder,
 html.dark .auth-page input[type="text"]::placeholder,
 html.dark .auth-page input[type="password"]::placeholder,
 html.dark .auth-page input[type="email"]::placeholder {
-  color: #64748b !important;
+  color: #94a3b8 !important;
   opacity: 1 !important;
 }
 
@@ -607,17 +743,17 @@ html.dark .auth-page input[class*="auth-input"]:focus,
 html.dark .auth-page input[type="text"]:focus,
 html.dark .auth-page input[type="password"]:focus,
 html.dark .auth-page input[type="email"]:focus {
-  border-color: #8c69a5 !important;
-  box-shadow: 0 0 0 3px rgba(140, 105, 165, 0.1) !important;
-  background: #ffffff !important;
-  color: #0f172a !important;
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
+  background: #475569 !important;
+  color: #f1f5f9 !important;
 }
 
 .dark .auth-page .auth-label,
 .dark .auth-page label[class*="auth-label"],
 html.dark .auth-page .auth-label,
 html.dark .auth-page label[class*="auth-label"] {
-  color: #64748b !important;
+  color: #94a3b8 !important;
 }
 
 .dark .auth-page .auth-input:focus + .auth-label,
@@ -628,8 +764,8 @@ html.dark .auth-page .auth-input:focus + .auth-label,
 html.dark .auth-page .auth-input:not(:placeholder-shown) + .auth-label,
 html.dark .auth-page input[class*="auth-input"]:focus + .auth-label,
 html.dark .auth-page input[class*="auth-input"]:not(:placeholder-shown) + .auth-label {
-  color: #8c69a5 !important;
-  background: #ffffff !important;
+  color: #a855f7 !important;
+  background: #1e293b !important;
 }
 
 .dark .auth-page .password-toggle,
@@ -703,97 +839,137 @@ html.dark .auth-page button[class*="password-toggle"] svg {
 .dark .auth-page [data-radix-select-trigger],
 html.dark .auth-page [role="combobox"],
 html.dark .auth-page [data-radix-select-trigger] {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
   width: 100% !important;
   padding: 0.75rem !important;
   font-size: 14px !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #475569 !important;
   border-radius: 8px !important;
   outline: none !important;
   transition: all 0.3s ease !important;
+  min-height: 42px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 .dark .auth-page [role="combobox"]:focus,
 .dark .auth-page [data-radix-select-trigger]:focus,
 html.dark .auth-page [role="combobox"]:focus,
 html.dark .auth-page [data-radix-select-trigger]:focus {
-  border-color: #8c69a5 !important;
-  box-shadow: 0 0 0 3px rgba(140, 105, 165, 0.1) !important;
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
 }
 
 .dark .auth-page [role="listbox"],
 .dark .auth-page [data-radix-select-content],
 html.dark .auth-page [role="listbox"],
 html.dark .auth-page [data-radix-select-content] {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-  border: 1px solid #e2e8f0 !important;
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+  border: 1px solid #475569 !important;
   border-radius: 8px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  z-index: 50 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+  z-index: 999 !important;
 }
 
 .dark .auth-page [role="option"],
 .dark .auth-page [data-radix-select-item],
 html.dark .auth-page [role="option"],
 html.dark .auth-page [data-radix-select-item] {
-  background: #ffffff !important;
-  color: #000000 !important; /* Changed to black */
+  background: #334155 !important;
+  color: #f1f5f9 !important;
   padding: 0.5rem 0.75rem !important;
   font-size: 14px !important;
   cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
 }
 
 .dark .auth-page [role="option"]:hover,
 .dark .auth-page [data-radix-select-item]:hover,
+.dark .auth-page [data-radix-select-item][data-highlighted],
 html.dark .auth-page [role="option"]:hover,
-html.dark .auth-page [data-radix-select-item]:hover {
-  background: #f8fafc !important;
-  color: #000000 !important; /* Ensure hover also has black text */
+html.dark .auth-page [data-radix-select-item]:hover,
+html.dark .auth-page [data-radix-select-item][data-highlighted] {
+  background: #475569 !important;
+  color: #f1f5f9 !important;
 }
 
 .dark .auth-page [data-radix-select-value],
 html.dark .auth-page [data-radix-select-value] {
-  color: #0f172a !important;
+  color: #f1f5f9 !important;
   font-family: 'Montserrat', sans-serif !important;
   font-size: 14px !important;
 }
 
 .dark .auth-page [data-placeholder],
 html.dark .auth-page [data-placeholder] {
-  color: #64748b !important;
+  color: #94a3b8 !important;
   font-family: 'Montserrat', sans-serif !important;
   font-size: 14px !important;
 }
 
+/* Colores específicos de texto en modo oscuro */
+.dark .auth-page .text-gray-600,
+html.dark .auth-page .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .auth-page .text-gray-800,
+html.dark .auth-page .text-gray-800 {
+  color: #f1f5f9 !important;
+}
+
+/* Enlaces y texto de ayuda en modo oscuro */
+.dark .auth-page a,
+html.dark .auth-page a {
+  color: #c4b5fd !important;
+}
+
+.dark .auth-page a:hover,
+html.dark .auth-page a:hover {
+  color: #a855f7 !important;
+}
+
+/* Formulario en modo oscuro */
+.dark .auth-page .auth-form,
+html.dark .auth-page .auth-form {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(71, 85, 105, 0.3) !important;
+}
+
+/* Títulos y texto en modo oscuro */
 .dark .auth-page h1,
+.dark .auth-page h2,
+.dark .auth-page h3,
+.dark .auth-page h4,
+.dark .auth-page h5,
+.dark .auth-page h6,
 .dark .auth-page p,
 .dark .auth-page span,
 .dark .auth-page div,
-.dark .auth-page label {
-  color: #0f172a !important;
+.dark .auth-page label,
+.dark .auth-page a,
+html.dark .auth-page h1,
+html.dark .auth-page h2,
+html.dark .auth-page h3,
+html.dark .auth-page h4,
+html.dark .auth-page h5,
+html.dark .auth-page h6,
+html.dark .auth-page p,
+html.dark .auth-page span,
+html.dark .auth-page div,
+html.dark .auth-page label,
+html.dark .auth-page a {
+  color: #f1f5f9 !important;
 }
 
-.dark .auth-page .text-gray-600 {
-  color: #64748b !important;
-}
-
-.dark .auth-page .text-gray-800 {
-  color: #0f172a !important;
-}
-
-/* Asegurar que el fondo del formulario siempre sea blanco */
-.dark .auth-page .auth-form,
-html.dark .auth-page .auth-form {
-  background-color: #ffffff !important;
-}
-
-/* Otros elementos específicos del formulario */
+/* Overlay en modo oscuro */
 .dark .auth-page .overlay {
-  background: linear-gradient(to right, #8c69a5, #de8fd9) !important;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%) !important;
 }
 
 .dark .auth-page .overlay-panel h1,

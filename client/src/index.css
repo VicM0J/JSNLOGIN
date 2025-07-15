@@ -1528,6 +1528,12 @@
   border-radius: 4px;
 }
 
+.dark .auth-input:focus + .auth-label,
+.dark .auth-input:not(:placeholder-shown) + .auth-label {
+  background: #1e293b !important;
+  color: #a855f7 !important;
+}
+
 .password-toggle {
   position: absolute;
   right: 12px;

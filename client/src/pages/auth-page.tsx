@@ -81,7 +81,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="auth-page h-screen grid place-items-center bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
+    <div className="auth-page h-screen grid place-items-center bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-700 p-4 relative overflow-hidden">
 
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -119,17 +119,17 @@ export default function AuthPage() {
                   <img
                     src="/LogoJASANA.png"
                     alt="JASANA Logo"
-                    className="w-32 h-28 object-contain center mx-auto transform hover:scale-105 transition-transform duration-300"
+                    className="w-32 h-28 object-contain center mx-auto transform hover:scale-105 transition-transform duration-300 drop-shadow-lg"
                     draggable={false}
                   />
                 </div>
               </div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-2">
-                <Users className="w-6 h-6" />
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center justify-center gap-2">
+                <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 Crear Cuenta
               </h1>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="input-container">
                   <Input
                     type="text"
@@ -199,7 +199,7 @@ export default function AuthPage() {
                     setRegisterData({ ...registerData, area: value as any })
                   }
                 >
-                  <SelectTrigger className="auth-page  items-center right-4">
+                  <SelectTrigger className="w-full h-[42px] flex items-center justify-between">
                     <SelectValue placeholder="Seleccionar área" />
                   </SelectTrigger>
                   <SelectContent className="auth-page [data-radix-select-value]">
@@ -257,20 +257,20 @@ export default function AuthPage() {
           <div className="form-container login-container">
             <form onSubmit={handleLogin} className="auth-form">
               <div className="text-center mb-3">
-                <div >
+                <div>
                   <img
                     src="/LogoJASANA.png"
                     alt="JASANA Logo"
-                    className="w-32 h-28 object-contain center mx-auto transform hover:scale-105 transition-transform duration-300"
+                    className="w-32 h-28 object-contain center mx-auto transform hover:scale-105 transition-transform duration-300 drop-shadow-lg"
                     draggable={false}
                   />
                 </div>
-                <p className="text-gray-600 font-medium text-xs mb-1">
+                <p className="text-gray-600 dark:text-gray-300 font-medium text-xs mb-1">
                   Sistema de Gestión de Pedidos
                 </p>
               </div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center justify-center gap-2">
-                <User className="w-6 h-6" />
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center justify-center gap-2">
+                <User className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 Iniciar Sesión
               </h1>
 
@@ -316,7 +316,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setShowForgotPassword(true)}
-                className="text-gray-600 hover:text-purple-600 font-medium transition-colors duration-300 text-sm underline mb-4"
+                className="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium transition-colors duration-300 text-sm underline mb-4"
               >
                 ¿Olvidaste tu contraseña?
               </button>
@@ -340,10 +340,10 @@ export default function AuthPage() {
           <div className="overlay-container">
             <div className="overlay">
               <div className="overlay-panel overlay-left">
-                <h1 className="text-2xl font-bold mb-4">
+                <h1 className="text-2xl font-bold mb-4 text-white drop-shadow-lg">
                   ¡Bienvenido de Vuelta!
                 </h1>
-                <p className="mb-6">Si ya tienes cuenta, inicia sesión aquí</p>
+                <p className="mb-6 text-white/90 drop-shadow">Si ya tienes cuenta, inicia sesión aquí</p>
                 <button
                   type="button"
                   className="overlay-button"
@@ -353,8 +353,8 @@ export default function AuthPage() {
                 </button>
               </div>
               <div className="overlay-panel overlay-right">
-                <h1 className="text-2xl font-bold mb-4">¡Hola!</h1>
-                <p className="mb-6">Introduce tus datos y crea una cuenta</p>
+                <h1 className="text-2xl font-bold mb-4 text-white drop-shadow-lg">¡Hola!</h1>
+                <p className="mb-6 text-white/90 drop-shadow">Introduce tus datos y crea una cuenta</p>
                 <button
                   type="button"
                   className="overlay-button"
@@ -370,18 +370,18 @@ export default function AuthPage() {
 
       {/* Forgot Password Dialog */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
-        <DialogContent className="max-w-sm rounded-2xl bg-black/95 backdrop-blur-lg border border-purple-200 shadow-2xl">
+        <DialogContent className="max-w-sm rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border border-purple-200 dark:border-slate-700 shadow-2xl dialog-content">
           <DialogHeader className="text-center pb-3">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-[#414b7a] to-[#764ba2] rounded-full flex items-center justify-center mb-3">
-              <Lock className="w-6 h-6 text-black" />
+            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-500 dark:to-indigo-500 rounded-full flex items-center justify-center mb-3 shadow-lg">
+              <Lock className="w-6 h-6 text-white" />
             </div>
-            <DialogTitle className="text-xl font-bold text-gray-800">
+            <DialogTitle className="text-xl font-bold text-gray-800 dark:text-gray-100">
               ¿Olvidaste tu contraseña?
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3 text-center px-1">
-            <p className="text-gray-600 text-sm leading-relaxed">
+            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
               Para restablecer tu contraseña, necesitas ponerte en contacto con
               el administrador del sistema.
             </p>
@@ -404,7 +404,7 @@ export default function AuthPage() {
             <Button
               variant="outline"
               onClick={() => setShowForgotPassword(false)}
-              className="flex-1 h-9 rounded-lg border border-purple-200 hover:border-purple-400 transition-all duration-300 text-gray-800 text-sm"
+              className="flex-1 h-9 rounded-lg border border-purple-200 dark:border-slate-600 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 text-gray-800 dark:text-gray-200 text-sm"
             >
               Cerrar
             </Button>
