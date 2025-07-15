@@ -153,7 +153,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
             <img src="../../../public/logo.svg" alt="Logo" className="h-10 w-10 object-contain" />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-[var(--jasana-accent)] to-[var(--jasana-primary)] bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-500 via-pink-400 to-purple-700 bg-clip-text text-transparent">
               JASANA
             </h1>
             <p className="text-xs text-muted-foreground">Sistema de Pedidos</p>

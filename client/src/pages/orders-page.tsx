@@ -150,9 +150,9 @@ export default function OrdersPage() {
   };
 
   const getStatusBadgeColor = (status: string) => {
-    if (status === 'completed') return "bg-green-100 text-green-800";
-    if (status === 'paused') return "bg-red-100 text-red-800";
-    return "bg-yellow-100 text-yellow-800";
+    if (status === 'completed') return "status-completed";
+    if (status === 'paused') return "status-paused";
+    return "status-active";
   };
 
   const getAreaDisplayName = (area: Area) => {

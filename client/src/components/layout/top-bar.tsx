@@ -138,7 +138,7 @@ export function TopBar({ onShowNotifications }: TopBarProps) {
           {/* Información del usuario */}
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
-              <h1 className="text-lg font-bold bg-gradient-to-r from-[var(--jasana-accent)] to-[var(--jasana-primary)] bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold bg-gradient-to-r from-purple-500 via-pink-400 to-purple-700 bg-clip-text text-transparent">
                 {getGreeting()}, {user?.name}
               </h1>
               <p className="text-xs text-muted-foreground">{user?.area ? getAreaDisplayName(user.area) : ''}</p>

@@ -209,22 +209,22 @@ export function OrdersTable({
 
   const getAreaBadgeColor = (area: Area) => {
     const colors: Record<Area, string> = {
-      corte: "bg-green-100 text-green-800",
-      bordado: "bg-blue-100 text-blue-800",
-      ensamble: "bg-purple-100 text-purple-800",
-      plancha: "bg-orange-100 text-orange-800",
-      calidad: "bg-pink-100 text-pink-800",
-      envios: "bg-purple-100 text-purple-800",
+      corte: "badge-corte",
+      bordado: "badge-bordado", 
+      ensamble: "badge-ensamble",
+      plancha: "badge-plancha",
+      calidad: "badge-calidad",
+      envios: "badge-envios",
       almacen: "bg-indigo-100 text-indigo-800",
-      admin: "bg-gray-100 text-gray-800",
+      admin: "badge-admin",
     };
     return colors[area] || "bg-gray-100 text-gray-800";
   };
 
   const getStatusBadgeColor = (status: string) => {
-    if (status === 'completed') return "bg-green-100 text-green-800";
-    if (status === 'paused') return "bg-red-100 text-red-800";
-    return "bg-yellow-100 text-yellow-800";
+    if (status === 'completed') return "status-completed";
+    if (status === 'paused') return "status-paused";
+    return "status-active";
   };
 
   const getAreaDisplayName = (area: Area) => {
