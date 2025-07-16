@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Settings, Users, RotateCcw, Shield, TrendingUp, Package, Edit2, Trash2, UserPlus, Download, Database, Bell, FileText, Activity, AlertTriangle } from "lucide-react";
+import { Settings, Users, RotateCcw, Shield, TrendingUp, Package, Edit2, Trash2, UserPlus, Download, Database, Bell, FileText, Activity, AlertTriangle, Upload } from "lucide-react";
 import { type Order } from "@shared/schema";
 
 // Define User type locally with 'active' property if not present in @shared/schema
@@ -42,6 +43,9 @@ export default function AdminPage() {
   const [confirmationCode, setConfirmationCode] = useState("");
   const [isClearingDatabase, setIsClearingDatabase] = useState(false);
   const [isResettingSequence, setIsResettingSequence] = useState(false);
+  const [deleteUsersChecked, setDeleteUsersChecked] = useState(false);
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
 
   if (user?.area !== 'admin') {
     return (
@@ -162,8 +166,8 @@ export default function AdminPage() {
   });
 
   const clearDatabaseMutation = useMutation({
-    mutationFn: async (confirmationCode: string) => {
-      const res = await apiRequest("POST", "/api/admin/clear-database", { confirmationCode });
+    mutationFn: async (data: { confirmationCode: string; deleteUsers: boolean }) => {
+      const res = await apiRequest("POST", "/api/admin/clear-database", data);
       return res.json();
     },
     onSuccess: () => {
@@ -173,6 +177,7 @@ export default function AdminPage() {
       });
       setShowClearDatabaseModal(false);
       setConfirmationCode("");
+      setDeleteUsersChecked(false);
       // Invalidar todas las queries
       queryClient.invalidateQueries();
     },
@@ -181,6 +186,65 @@ export default function AdminPage() {
         title: "Error al limpiar base de datos", 
         description: error.message, 
         variant: "destructive" 
+      });
+    }
+  });
+
+  const backupUsersMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/backup-users");
+      return res.blob();
+    },
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `backup-usuarios-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      toast({
+        title: "Respaldo completado",
+        description: "El respaldo de usuarios ha sido descargado exitosamente",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error al generar respaldo",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const restoreUsersMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('backup', file);
+      const res = await fetch('/api/admin/restore-users', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Error al restaurar usuarios');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Restauración completada",
+        description: "Los usuarios han sido restaurados exitosamente",
+      });
+      setShowRestoreModal(false);
+      setRestoreFile(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error al restaurar usuarios",
+        description: error.message,
+        variant: "destructive"
       });
     }
   });
@@ -240,18 +304,20 @@ export default function AdminPage() {
     });
   };
 
-  const handleBackupDatabase = () => {
-    toast({
-      title: "Respaldo iniciado",
-      description: "Se ha iniciado el proceso de respaldo de la base de datos",
-    });
-    // Simular proceso de respaldo
-    setTimeout(() => {
+  const handleBackupUsers = () => {
+    backupUsersMutation.mutate();
+  };
+
+  const handleRestoreUsers = () => {
+    if (!restoreFile) {
       toast({
-        title: "Respaldo completado",
-        description: "La base de datos ha sido respaldada exitosamente",
+        title: "Error",
+        description: "Por favor selecciona un archivo de respaldo",
+        variant: "destructive"
       });
-    }, 3000);
+      return;
+    }
+    restoreUsersMutation.mutate(restoreFile);
   };
 
   const handleExportReports = () => {
@@ -300,7 +366,10 @@ export default function AdminPage() {
       });
       return;
     }
-    clearDatabaseMutation.mutate(confirmationCode);
+    clearDatabaseMutation.mutate({ 
+      confirmationCode, 
+      deleteUsers: deleteUsersChecked 
+    });
   };
 
   const handleNotificationTest = () => {
@@ -669,12 +738,24 @@ export default function AdminPage() {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start h-12 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border-gray-300" 
-                  onClick={handleBackupDatabase}
+                  onClick={handleBackupUsers}
+                  disabled={backupUsersMutation.isPending}
                 >
                   <Database className="mr-3 h-5 w-5 text-blue-600" />
                   <div className="text-left">
-                    <div className="font-medium">Respaldar Base de Datos</div>
-                    <div className="text-xs text-gray-500">Crear copia de seguridad</div>
+                    <div className="font-medium">Respaldar Usuarios</div>
+                    <div className="text-xs text-gray-500">Crear copia de seguridad de usuarios</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start h-12 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border-gray-300" 
+                  onClick={() => setShowRestoreModal(true)}
+                >
+                  <Upload className="mr-3 h-5 w-5 text-green-600" />
+                  <div className="text-left">
+                    <div className="font-medium">Restaurar Usuarios</div>
+                    <div className="text-xs text-gray-500">Restaurar desde copia de seguridad</div>
                   </div>
                 </Button>
                 <Button 
@@ -834,16 +915,31 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              <div>
-                <Label className="text-red-700 font-semibold">
-                  Para confirmar, escriba exactamente: BORRAR_TODO_JASANA_2025
-                </Label>
-                <Input 
-                  value={confirmationCode} 
-                  onChange={e => setConfirmationCode(e.target.value)} 
-                  placeholder="Escriba el código de confirmación"
-                  className="border-red-300 focus:border-red-500"
-                />
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="delete-users"
+                    checked={deleteUsersChecked}
+                    onCheckedChange={(checked) => setDeleteUsersChecked(checked as boolean)}
+                  />
+                  <Label 
+                    htmlFor="delete-users" 
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Eliminar también todos los usuarios (excepto Admin)
+                  </Label>
+                </div>
+                <div>
+                  <Label className="text-red-700 font-semibold">
+                    Para confirmar, escriba exactamente: BORRAR_TODO_JASANA_2025
+                  </Label>
+                  <Input 
+                    value={confirmationCode} 
+                    onChange={e => setConfirmationCode(e.target.value)} 
+                    placeholder="Escriba el código de confirmación"
+                    className="border-red-300 focus:border-red-500"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2">
@@ -871,6 +967,61 @@ export default function AdminPage() {
                   >
                     {isResettingSequence ? "Reiniciando..." : "🔄 Reiniciar IDs de Usuarios"}
                   </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showRestoreModal} onOpenChange={(open) => {
+          setShowRestoreModal(open);
+          if (!open) {
+            setRestoreFile(null);
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Restaurar Usuarios
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-4 border border-blue-200 bg-blue-50 rounded-lg">
+                <p className="text-blue-800 font-semibold mb-2">ℹ️ Información</p>
+                <p className="text-blue-700 text-sm">
+                  Esta acción restaurará los usuarios desde un archivo de respaldo. Los usuarios existentes con el mismo username serán actualizados.
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-gray-700 font-medium">
+                  Seleccionar archivo de respaldo
+                </Label>
+                <Input 
+                  type="file"
+                  accept=".json,application/json"
+                  onChange={(e) => setRestoreFile(e.target.files?.[0] || null)}
+                  className="mt-2"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowRestoreModal(false);
+                    setRestoreFile(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleRestoreUsers}
+                  disabled={restoreUsersMutation.isPending || !restoreFile}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {restoreUsersMutation.isPending ? "Restaurando..." : "Restaurar Usuarios"}
+                </Button>
               </div>
             </div>
           </DialogContent>

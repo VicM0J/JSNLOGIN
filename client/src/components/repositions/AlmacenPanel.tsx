@@ -26,6 +26,7 @@ interface Reposition {
   createdAt: string;
   isPaused?: boolean;
   pauseReason?: string;
+  observaciones?: string;
 }
 
 const statusColors = {
@@ -192,6 +193,13 @@ export function AlmacenPanel() {
                     <p>{new Date(reposition.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
+
+                {reposition.observaciones && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
+                    <span className="font-medium text-gray-700">Observaciones:</span>
+                    <p className="text-sm text-gray-600 mt-1">{reposition.observaciones}</p>
+                  </div>
+                )}
 
                 {reposition.isPaused && reposition.pauseReason && (
                   <div className="bg-red-50 border border-red-200 rounded p-3">

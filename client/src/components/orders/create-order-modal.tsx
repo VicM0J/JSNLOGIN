@@ -231,16 +231,18 @@ export function CreateOrderModal({ open, onClose }: CreateOrderModalProps) {
                   <SelectValue placeholder="Seleccionar tipo..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="camisa">Camisa</SelectItem>
                   <SelectItem value="blusa">Blusa</SelectItem>
-                  <SelectItem value="pantalon">Pantalón</SelectItem>
-                  <SelectItem value="short">Short</SelectItem>
-                  <SelectItem value="falda">Falda</SelectItem>
-                  <SelectItem value="vestido">Vestido</SelectItem>
-                  <SelectItem value="saco">Saco</SelectItem>
-                  <SelectItem value="chaleco">Chaleco</SelectItem>
-                  <SelectItem value="mandil">Mandil</SelectItem>
-                  <SelectItem value="fajo">Fajo</SelectItem>  
+                        <SelectItem value="camisa">Camisa</SelectItem>
+                        <SelectItem value="chaleco">Chaleco</SelectItem>
+                        <SelectItem value="chamarra">Chamarra</SelectItem>
+                        <SelectItem value="fajo">Fajo</SelectItem>
+                        <SelectItem value="falda">Falda</SelectItem>
+                        <SelectItem value="faldaShort">Falda Short</SelectItem>
+                        <SelectItem value="mandil">Mandil</SelectItem>
+                        <SelectItem value="pantalon">Pantalón</SelectItem>
+                        <SelectItem value="saco">Saco</SelectItem>
+                        <SelectItem value="short">Short</SelectItem>
+                        <SelectItem value="vestido">Vestido</SelectItem>
                 </SelectContent>
               </Select>
             </div>

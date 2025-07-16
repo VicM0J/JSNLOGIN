@@ -16,7 +16,9 @@ import {
   SidebarMenuItem,
   SidebarMenuBadge,
   SidebarSeparator,
-  SidebarProvider
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar
 } from "@/components/ui/sidebar";
 import { 
   Factory, 
@@ -32,7 +34,8 @@ import {
   BarChart3,
   Calendar,
   MessageSquare,
-  FileX
+  FileX,
+  PanelLeft
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -46,6 +49,7 @@ interface CustomSidebarProps {
 export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateReposition }: CustomSidebarProps) {
   const { user, logoutMutation } = useAuth();
   const [location, setLocation] = useLocation();
+  const { state } = useSidebar();
 
   const { data: pendingTransfers = [] } = useQuery<any[]>({
     queryKey: ["/api/transfers/pending"],
@@ -146,21 +150,20 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
   };
 
   return (
-    <Sidebar variant="inset" className="border-r-0 bg-[var(--jasana-sidebar-bg)]">
+    <Sidebar variant="inset" collapsible="icon" className="border-r-0 bg-[var(--jasana-sidebar-bg)]">
       <SidebarHeader className="border-b bg-[var(--jasana-sidebar-bg)]">
         <div className="flex items-center gap-3 px-2 py-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--jasana-accent)]/20 to-[var(--jasana-primary)]/20 shadow-md dark:from-[var(--jasana-accent)]/30 dark:to-[var(--jasana-primary)]/30">
             <img src="../../../public/logo.svg" alt="Logo" className="h-10 w-10 object-contain" />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-500 via-pink-400 to-purple-700 bg-clip-text text-transparent">
               JASANA
             </h1>
             <p className="text-xs text-muted-foreground">Sistema de Pedidos</p>
           </div>
+          <SidebarTrigger className="ml-auto h-6 w-6 group-data-[collapsible=icon]:ml-0" />
         </div>
-        
-        
       </SidebarHeader>
       
       <SidebarContent className="bg-[var(--jasana-sidebar-bg)]">
@@ -170,9 +173,13 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
-                  onClick={() => setLocation('/')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setLocation('/'); // o lo que corresponda
+                    }}
                   isActive={location === '/'}
                   className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
                     location === '/' 
@@ -181,13 +188,18 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   }`}
                 >
                   <Home className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="transition-colors duration-200">Tablero</span>
+                  <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Tablero</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
-                  onClick={() => setLocation('/orders')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setLocation('/orders');
+                  }}
+
                   isActive={location === '/orders'}
                   className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
                     location === '/orders' 
@@ -196,15 +208,17 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   }`}
                 >
                   <Package className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="transition-colors duration-200">Pedidos</span>
+                  <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Pedidos</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              
-              
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
-                  onClick={() => setLocation('/repositions')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setLocation('/repositions');
+                  }}
                   isActive={location === '/repositions'}
                   className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm group ${
                     location === '/repositions' 
@@ -213,9 +227,9 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   }`}
                 >
                   <FileEdit className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="transition-colors duration-200">Reposiciones</span>
+                  <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Reposiciones</span>
                   {(repositionNotifications.length > 0 || pendingRepositions.length > 0) && (
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 group-data-[collapsible=icon]:hidden">
                       {repositionNotifications.length > 0 && (
                         <SidebarMenuBadge className="bg-destructive text-destructive-foreground transition-transform duration-200 group-hover:scale-110">
                           {repositionNotifications.length}
@@ -231,9 +245,13 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
-                  onClick={() => setLocation('/history')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setLocation('/history');
+                  }}
                   isActive={location === '/history'}
                   className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
                     location === '/history' 
@@ -242,13 +260,17 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   }`}
                 >
                   <History className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="transition-colors duration-200">Historial</span>
+                  <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Historial</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
-              <SidebarMenuItem>
+              <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
-                  onClick={() => setLocation('/agenda')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setLocation('/agenda');
+                  }}
                   isActive={location === '/agenda'}
                   className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
                     location === '/agenda' 
@@ -257,14 +279,18 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   }`}
                 >
                   <Calendar className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="transition-colors duration-200">Agenda</span>
+                  <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Agenda</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               
               {user?.area === 'almacen' && (
-                <SidebarMenuItem>
+                <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                   <SidebarMenuButton 
-                    onClick={() => setLocation('/almacen')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setLocation('/almacen');
+                    }}
                     isActive={location === '/almacen'}
                     className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
                       location === '/almacen' 
@@ -273,7 +299,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                     }`}
                   >
                     <Factory className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                    <span className="transition-colors duration-200">Almacén</span>
+                    <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Almacén</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -291,25 +317,32 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
               <SidebarGroupContent>
                 <SidebarMenu>
                   {canCreateOrders && (
-                    <SidebarMenuItem>
+                    <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                       <SidebarMenuButton 
-                        onClick={onCreateOrder}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCreateOrder();
+                        }}
                         className="h-10 bg-gradient-to-r from-[#8c69a5]/10 to-[#504b78]/10 hover:from-[#8c69a5]/20 hover:to-[#504b78]/20 border border-[#8c69a5]/20 transition-all duration-200 hover:scale-[1.02] hover:shadow-md group"
                       >
                         <Plus className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-90" />
-                        <span className="transition-colors duration-200">Crear Pedido</span>
+                        <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Crear Pedido</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
                   
                   {canCreateRepositions && (
-                    <SidebarMenuItem>
+                    <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                       <SidebarMenuButton 
-                        onClick={onCreateReposition}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onCreateReposition();
+                        }}
                         className="h-10 bg-gradient-to-r from-[#de8fd9]/10 to-[#f8bbed]/10 hover:from-[#de8fd9]/20 hover:to-[#f8bbed]/20 border border-[#de8fd9]/20 transition-all duration-200 hover:scale-[1.02] hover:shadow-md group"
                       >
                         <FileX className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                        <span className="transition-colors duration-200">Crear Reposición</span>
+                        <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Crear Reposición</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
@@ -328,9 +361,13 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem>
+                  <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                     <SidebarMenuButton 
-                      onClick={() => setLocation('/admin')}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setLocation('/admin');
+                      }}
                       isActive={location === '/admin'}
                       className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm group ${
                         location === '/admin' 
@@ -339,13 +376,17 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                       }`}
                     >
                       <Settings className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-90" />
-                      <span className="transition-colors duration-200">Administración</span>
+                      <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Administración</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   
-                  <SidebarMenuItem>
+                  <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                     <SidebarMenuButton 
-                      onClick={() => setLocation('/metrics')}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setLocation('/metrics');
+                      }}
                       isActive={location === '/metrics'}
                       className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
                         location === '/metrics' 
@@ -354,7 +395,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                       }`}
                     >
                       <BarChart3 className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                      <span className="transition-colors duration-200">Métricas</span>
+                      <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Métricas</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -370,7 +411,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
             <a href={`msteams:/l/chat/0/0?users=${user?.username}`} className="block">
               <SidebarMenuButton className="h-10 w-full bg-gradient-to-r from-[#8c69a5] to-[#504b78] hover:from-[#7a5d93] hover:to-[#453c6a] text-white transition-all duration-200 hover:scale-[1.02] hover:shadow-md group">
                 <MessageSquare className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                <span className="transition-colors duration-200">Teams</span>
+                <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Teams</span>
               </SidebarMenuButton>
             </a>
           </SidebarMenuItem>
@@ -383,7 +424,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
 // Componente wrapper para usar con SidebarProvider
 export function SidebarWrapper({ onShowNotifications, onCreateOrder, onCreateReposition }: CustomSidebarProps) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <CustomSidebar onShowNotifications={onShowNotifications} onCreateOrder={onCreateOrder} onCreateReposition={onCreateReposition} />
     </SidebarProvider>
   );

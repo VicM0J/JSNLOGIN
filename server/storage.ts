@@ -208,8 +208,10 @@ export interface IStorage {
   getOrderDocuments(orderId: number): Promise<any[]>;
 
   getRepositionPieces(repositionId: number): Promise<any[]>;
-  async clearEntireDatabase(): Promise<void>;
+  async clearEntireDatabase(deleteUsers?: boolean): Promise<void>;
   async resetUserSequence(): Promise<void>;
+  async backupUsers(): Promise<any>;
+  async restoreUsers(backupData: any): Promise<any>;
 }
 
 export interface LocalRepositionTimer {
@@ -2043,7 +2045,8 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
       status: repositions.status,
       createdAt: repositions.createdAt,
       isPaused: repositionMaterials.isPaused,
-      pauseReason: repositionMaterials.pauseReason
+      pauseReason: repositionMaterials.pauseReason,
+      observaciones: repositions.observaciones
     })
     .from(repositions)
     .leftJoin(repositionMaterials, eq(repositions.id, repositionMaterials.repositionId))
@@ -2678,7 +2681,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
     return Buffer.from(buffer);
   }
 
-  async clearEntireDatabase(): Promise<void> {
+  async clearEntireDatabase(deleteUsers: boolean = false): Promise<void> {
     console.log('Starting complete database clear...');
 
     try {
@@ -2702,8 +2705,11 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
       await db.delete(orderPieces);
       await db.delete(orders);
 
-      // Mantener solo el usuario admin
-      await db.delete(users).where(ne(users.area, 'admin'));
+      // Solo eliminar usuarios si está marcada la opción
+      if (deleteUsers) {
+        console.log('Deleting users (except admin)...');
+        await db.delete(users).where(ne(users.area, 'admin'));
+      }
 
       console.log('Database cleared successfully');
     } catch (error) {
@@ -2712,6 +2718,91 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
     }
   }
 
+  async backupUsers(): Promise<any> {
+    try {
+      const allUsers = await db.select().from(users).orderBy(asc(users.id));
+
+      const backup = {
+        version: "1.0",
+        timestamp: new Date().toISOString(),
+        users: allUsers.map(user => ({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          area: user.area,
+          password: user.password, // Incluir password hasheado para restauración completa
+          active: user.active,
+          createdAt: user.createdAt
+        }))
+      };
+
+      console.log(`Backup created with ${backup.users.length} users`);
+      return backup;
+    } catch (error) {
+      console.error('Error creating backup:', error);
+      throw new Error('Error al crear respaldo de usuarios: ' + error.message);
+    }
+  }
+
+  async restoreUsers(backupData: any): Promise<any> {
+    try {
+      if (!backupData.users || !Array.isArray(backupData.users)) {
+        throw new Error('Formato de respaldo inválido');
+      }
+
+      let created = 0;
+      let updated = 0;
+      let errors = 0;
+
+      for (const userData of backupData.users) {
+        try {
+          // Verificar si el usuario ya existe
+          const existingUser = await this.getUserByUsername(userData.username);
+
+          if (existingUser) {
+            // Actualizar usuario existente
+            await db.update(users)
+              .set({
+                name: userData.name,
+                area: userData.area,
+                password: userData.password,
+                active: userData.active !== undefined ? userData.active : true,
+                updatedAt: new Date()
+              })
+              .where(eq(users.id, existingUser.id));
+            updated++;
+          } else {
+            // Crear nuevo usuario
+            await db.insert(users).values({
+              username: userData.username,
+              name: userData.name,
+              area: userData.area,
+              password: userData.password,
+              active: userData.active !== undefined ? userData.active : true,
+              createdAt: userData.createdAt ? new Date(userData.createdAt) : new Date()
+            });
+            created++;
+          }
+        } catch (userError) {
+          console.error(`Error processing user ${userData.username}:`, userError);
+          errors++;
+        }
+      }
+
+      const result = {
+        message: `Restauración completada: ${created} usuarios creados, ${updated} usuarios actualizados`,
+        created,
+        updated,
+        errors
+      };
+
+      console.log('Restore completed:', result);
+      return result;
+    } catch (error) {
+      console.error('Error restoring users:', error);
+      throw new Error('Error al restaurar usuarios: ' + error.message);
+    }
+  }
   async resetUserSequence(): Promise<void> {
     try {
       await db.execute(sql`ALTER SEQUENCE users_id_seq RESTART WITH 1;`);

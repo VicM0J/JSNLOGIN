@@ -74,18 +74,20 @@ import { useEffect } from 'react';
   ];
 
   const commonAccidents = [
-    'Daño por máquina',
-    'Costuras en mal estado',
-    'Bordado mal posicionado',
-    'Defecto de tela',
-    'Error en la fabricación',
-    'Tela sucia o manchada',
-    'Error de diseño',
     'Accidente por operario',
-    'Falla en el proceso de corte',
+    'Bordado mal posicionado',
+    'Costuras en mal estado',
+    'Daño por maquilero',
+    'Daño por máquina',
+    'Defecto de tela',
     'Defecto en el ensamble',
-    'Error en plancha',
+    'Error de diseño',
+    'Error de información',
+    'Error de plancha',
+    'Error en la fabricación',
+    'Falla en el proceso de corte',
     'Problema de calidad',
+    'Tela sucia o manchada',
     'Otro'
   ];
 

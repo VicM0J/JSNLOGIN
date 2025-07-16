@@ -11,7 +11,7 @@ import { eq, desc, and, or, ne, isNotNull, isNull, count } from 'drizzle-orm';
 import { authenticateToken } from './auth';
 import path from 'path';
 import fs from 'fs';
-import { upload, handleMulterError } from './upload';
+import { upload, uploadBackup, handleMulterError } from './upload';
 
 
 export function registerRoutes(app: Express): Server {
@@ -593,7 +593,9 @@ function registerAdminRoutes(app: Express) {
 
   router.post("/clear-database", async (req, res) => {
     try {
-      await storage.clearEntireDatabase();
+      const { deleteUsers } = req.body;
+      console.log('Clear database request with deleteUsers:', deleteUsers);
+      await storage.clearEntireDatabase(deleteUsers);
       res.json({ message: "Base de datos limpiada correctamente" });
     } catch (error) {
       console.error('Clear database error:', error);
@@ -608,6 +610,39 @@ function registerAdminRoutes(app: Express) {
     } catch (error) {
       console.error('Reset user sequence error:', error);
       res.status(500).json({ message: "Error al reiniciar secuencia de usuarios" });
+    }
+  });
+
+  router.get("/backup-users", async (req, res) => {
+    try {
+      const backup = await storage.backupUsers();
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="backup-usuarios-${new Date().toISOString().split('T')[0]}.json"`);
+      res.json(backup);
+    } catch (error) {
+      console.error('Backup users error:', error);
+      res.status(500).json({ message: "Error al generar respaldo de usuarios" });
+    }
+  });
+
+  router.post("/restore-users", uploadBackup.single('backup'), handleMulterError, async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No se proporcionó archivo de respaldo" });
+      }
+
+      // Verificar que sea un archivo .json
+      const fileExtension = req.file.originalname.toLowerCase().split('.').pop();
+      if (fileExtension !== 'json') {
+        return res.status(400).json({ message: "Solo se permiten archivos .json para restaurar usuarios" });
+      }
+
+      const backupData = JSON.parse(req.file.buffer.toString('utf8'));
+      const result = await storage.restoreUsers(backupData);
+      res.json(result);
+    } catch (error) {
+      console.error('Restore users error:', error);
+      res.status(500).json({ message: "Error al restaurar usuarios: " + error.message });
     }
   });
 
