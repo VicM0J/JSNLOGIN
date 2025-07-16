@@ -1,42 +1,42 @@
-@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Animaciones personalizadas para el login */
-@keyframes spin-in {
-  0% {
-    transform: rotateY(-90deg) scale(0.8);
+/* Reset y configuración base */
+* {
+  box-sizing: border-box;
+}
+
+/* Variables CSS para temas */
+:root {
+  --auth-bg-light: #f8fafc;
+  --auth-bg-dark: #0f172a;
+  --auth-card-light: rgba(255, 255, 255, 0.9);
+  --auth-card-dark: rgba(30, 41, 59, 0.9);
+  --auth-text-light: #334155;
+  --auth-text-dark: #f1f5f9;
+  --auth-border-light: #e2e8f0;
+  --auth-border-dark: #475569;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
     opacity: 0;
+    transform: translateY(30px);
   }
-  50% {
-    transform: rotateY(-45deg) scale(0.9);
-    opacity: 0.5;
-  }
-  100% {
-    transform: rotateY(0deg) scale(1);
+  to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@keyframes rotate-flip {
-  0% {
-    transform: rotateX(0deg);
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
   }
-  50% {
-    transform: rotateX(90deg) scale(0.9);
-  }
-  100% {
-    transform: rotateX(0deg);
-  }
-}
-
-@keyframes flip-horizontal {
-  0% {
-    transform: rotateY(0deg);
-  }
-  50% {
-    transform: rotateY(180deg) scale(0.8);
-  }
-  100% {
-    transform: rotateY(360deg);
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -49,1083 +49,356 @@
   }
 }
 
-@keyframes float-delayed {
+@keyframes pulse-slow {
   0%, 100% {
-    transform: translateY(0px);
+    opacity: 0.4;
   }
   50% {
-    transform: translateY(-15px);
+    opacity: 0.8;
   }
 }
 
-@keyframes float-slow {
-  0%, 100% {
-    transform: translateY(0px);
+@keyframes fade-in-slide {
+  0% {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+    filter: blur(8px);
   }
   50% {
-    transform: translateY(-10px);
+    opacity: 0.6;
+    transform: translateX(15px) scale(0.98);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
   }
 }
 
-.auth-page .animate-spin-in {
-  animation: spin-in 0.8s ease-out;
+@keyframes spin-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.auth-page .animate-rotate-flip {
-  animation: rotate-flip 0.6s ease-in-out;
+@keyframes drift {
+  0%, 100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(10px) translateY(-15px) rotate(90deg);
+  }
+  50% {
+    transform: translateX(-5px) translateY(-25px) rotate(180deg);
+  }
+  75% {
+    transform: translateX(-15px) translateY(-10px) rotate(270deg);
+  }
 }
 
-.auth-page .animate-flip-horizontal {
-  animation: flip-horizontal 0.7s ease-in-out;
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0) scaleX(1);
+  }
+  50% {
+    transform: translateY(-5px) scaleX(1.05);
+  }
 }
 
-.auth-page .animate-float {
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    filter: blur(20px);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    filter: blur(25px);
+    transform: scale(1.1);
+  }
+}
+
+/* Aplicar animaciones */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.8s ease-out;
+}
+
+.animate-float {
   animation: float 6s ease-in-out infinite;
 }
 
-.auth-page .animate-float-delayed {
-  animation: float-delayed 8s ease-in-out infinite;
-  animation-delay: 2s;
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
 }
 
-.auth-page .animate-float-slow {
-  animation: float-slow 10s ease-in-out infinite;
-  animation-delay: 4s;
+.animate-fade-in-slide {
+  animation: fade-in-slide 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* Contenedor principal del login */
-.auth-page .auth-container {
-  backdrop-filter: blur(16px);
-  background: rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-  border: 1px solid rgba(147, 51, 234, 0.2) !important;
-  border-radius: 1rem !important;
-  overflow: hidden !important;
-  position: relative !important;
-  transition: all 0.7s ease-in-out !important;
-  width: 100% !important;
-  max-width: 1024px !important;
-  height: 480px !important;
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
 }
 
-/* Estilos para el logo en el login */
-.auth-page .auth-form img {
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2)) 
-          drop-shadow(0 0 20px rgba(139, 92, 246, 0.3)) !important;
-  background: radial-gradient(circle at center, 
-              rgba(255, 255, 255, 0.9) 0%, 
-              rgba(255, 255, 255, 0.7) 50%, 
-              transparent 100%) !important;
-  border-radius: 50% !important;
-  padding: 0.5rem !important;
-  transition: all 0.3s ease !important;
+.animate-drift {
+  animation: drift 15s ease-in-out infinite;
 }
 
-.auth-page .auth-form img:hover {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3)) 
-          drop-shadow(0 0 30px rgba(139, 92, 246, 0.5)) !important;
-  transform: scale(1.05) !important;
+.animate-wave {
+  animation: wave 8s ease-in-out infinite;
 }
 
-/* Estados del contenedor */
-.auth-page .auth-container.register-active .form-container.login-container {
-  transform: translateX(100%) !important;
+.animate-glow-pulse {
+  animation: glow-pulse 6s ease-in-out infinite;
 }
 
-.auth-page .auth-container.register-active .form-container.register-container {
-  transform: translateX(100%) !important;
-  opacity: 1 !important;
-  z-index: 5 !important;
-  animation: mostrar 0.6s !important;
+/* Estilos base para el contenedor de autenticación */
+.auth-page {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.auth-page .auth-container.register-active .overlay-container {
-  transform: translateX(-100%) !important;
+/* Efectos de glassmorphism mejorados */
+.auth-page .glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.auth-page .auth-container.register-active .overlay {
-  transform: translateX(50%) !important;
+.dark .auth-page .glass-effect {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-.auth-page .auth-container.register-active .overlay-panel.overlay-left {
-  transform: translateX(0) !important;
+/* Inputs personalizados */
+.auth-page input:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #8b5cf6;
+  ring-offset: 2px;
 }
 
-.auth-page .auth-container.register-active .overlay-panel.overlay-right {
-  transform: translateX(20%) !important;
+.dark .auth-page input:focus {
+  ring-color: #a855f7;
 }
 
-@keyframes mostrar {
-  0%, 49.99% {
-    opacity: 0;
-    z-index: 1;
-  }
-  50%, 100% {
-    opacity: 1;
-    z-index: 5;
-  }
+/* Botones con efectos mejorados */
+.auth-page button {
+  transition: all 0.2s ease-in-out;
 }
 
-/* Contenedores de formulario */
-.auth-page .form-container {
-  position: absolute !important;
-  top: 0 !important;
-  height: 100% !important;
-  transition: all 0.6s ease-in-out !important;
+.auth-page button:hover {
+  transform: translateY(-1px);
 }
 
-.auth-page .form-container.login-container {
-  left: 0 !important;
-  width: 50% !important;
-  z-index: 2 !important;
+.auth-page button:active {
+  transform: translateY(0);
 }
 
-.auth-page .form-container.register-container {
-  left: 0 !important;
-  width: 50% !important;
-  opacity: 0 !important;
-  z-index: 1 !important;
-}
-
-/* Formularios */
-.auth-page .auth-form {
-  background-color: #ffffff !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-direction: column !important;
-  padding: 1rem 2.5rem !important;
-  height: 100% !important;
-  text-align: center !important;
-  overflow-y: auto !important;
-  transition: background-color 0.3s ease !important;
-}
-
-/* Títulos y texto - modo claro */
-.auth-page h1,
-.auth-page h2,
-.auth-page h3,
-.auth-page h4,
-.auth-page h5,
-.auth-page h6,
-.auth-page p,
-.auth-page span,
-.auth-page div,
-.auth-page label,
-.auth-page a {
-  color: #0f172a !important;
-  font-family: 'Montserrat', sans-serif !important;
-  transition: color 0.3s ease !important;
-}
-
-.auth-page h1 {
-  font-weight: bold !important;
-  margin: 0 !important;
-  font-size: 1.5rem !important;
-}
-
-.auth-page h2 {
-  text-align: center !important;
-}
-
-.auth-page p {
-  font-size: 14px !important;
-  font-weight: 100 !important;
-  line-height: 20px !important;
-  letter-spacing: 0.5px !important;
-  margin: 20px 0 30px !important;
-}
-
-.auth-page span {
-  font-size: 12px !important;
-}
-
-.auth-page a {
-  font-size: 14px !important;
-  text-decoration: none !important;
-  margin: 15px 0 !important;
-}
-
-/* Texto específico para elementos con color gris */
-.auth-page .text-gray-600 {
-  color: #64748b !important;
-}
-
-.auth-page .text-gray-800 {
-  color: #0f172a !important;
-}
-
-/* Contenedores de input */
-.auth-page .input-container {
-  position: relative !important;
-  margin: 0.75rem 0 !important;
-  width: 100% !important;
-}
-
-/* Espaciado específico para el select de área */
-.auth-page .input-container:has([data-radix-select-trigger]),
-.auth-page .input-container:has([role="combobox"]) {
-  margin-bottom: 1.25rem !important;
-  margin-top: 0.75rem !important;
-  position: relative !important;
-  z-index: 10 !important;
-}
-
-/* Grid de inputs en el registro */
-.auth-page .grid {
-  gap: 1rem !important;
-}
-
-.auth-page .grid .input-container {
-  margin: 0.5rem 0 !important;
-}
-
-/* Inputs del login - siempre en modo claro */
-.auth-page .auth-input,
-.auth-page input[class*="auth-input"],
-.auth-page input[type="text"],
-.auth-page input[type="password"],
-.auth-page input[type="email"] {
-  width: 100% !important;
-  padding: 0.75rem !important;
-  font-size: 14px !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  outline: none !important;
-  background: #ffffff !important;
-  transition: all 0.3s ease !important;
-  color: #0f172a !important;
-  font-family: 'Montserrat', sans-serif !important;
-}
-
-.auth-page .auth-input:focus,
-.auth-page input[class*="auth-input"]:focus,
-.auth-page input[type="text"]:focus,
-.auth-page input[type="password"]:focus,
-.auth-page input[type="email"]:focus {
-  border-color: #8c69a5 !important;
-  box-shadow: 0 0 0 3px rgba(140, 105, 165, 0.1) !important;
-  background: #ffffff !important;
-  color: #0f172a !important;
-}
-
-.auth-page .auth-input::placeholder,
-.auth-page input[class*="auth-input"]::placeholder,
-.auth-page input[type="text"]::placeholder,
-.auth-page input[type="password"]::placeholder,
-.auth-page input[type="email"]::placeholder {
-  color: #64748b !important;
-  opacity: 1 !important;
-}
-
-/* Contenedor principal en modo oscuro */
-.dark .auth-page .auth-container,
-html.dark .auth-page .auth-container {
-  background: rgba(15, 23, 42, 0.4) !important;
-  border: 1px solid rgba(71, 85, 105, 0.6) !important;
-  backdrop-filter: blur(20px) !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Logo en modo oscuro */
-.dark .auth-page .auth-form img,
-html.dark .auth-page .auth-form img {
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4)) 
-          drop-shadow(0 0 25px rgba(168, 85, 247, 0.4)) 
-          drop-shadow(0 0 40px rgba(255, 255, 255, 0.1)) !important;
-  background: radial-gradient(circle at center, 
-              rgba(30, 41, 59, 0.9) 0%, 
-              rgba(51, 65, 85, 0.8) 50%, 
-              transparent 100%) !important;
-  border: 1px solid rgba(168, 85, 247, 0.3) !important;
-}
-
-.dark .auth-page .auth-form img:hover,
-html.dark .auth-page .auth-form img:hover {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5)) 
-          drop-shadow(0 0 35px rgba(168, 85, 247, 0.6)) 
-          drop-shadow(0 0 50px rgba(255, 255, 255, 0.2)) !important;
-  border: 1px solid rgba(168, 85, 247, 0.5) !important;
-}
-
-/* Botones del formulario en modo oscuro */
-.dark .auth-page .auth-button,
-html.dark .auth-page .auth-button {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
-  color: #ffffff !important;
-  border: none !important;
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
-}
-
-.dark .auth-page .auth-button:hover,
-html.dark .auth-page .auth-button:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
-  color: #ffffff !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
-}
-
-/* Botones del overlay en modo oscuro */
-.dark .auth-page .overlay-button,
-html.dark .auth-page .overlay-button {
-  background: transparent !important;
-  color: #ffffff !important;
-  border: 2px solid rgba(255, 255, 255, 0.8) !important;
-}
-
-.dark .auth-page .overlay-button:hover,
-html.dark .auth-page .overlay-button:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-  border: 2px solid #ffffff !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2) !important;
-}
-
-/* Select en modo oscuro */
-.dark .auth-page [data-radix-select-trigger] {
-  background: #334155 !important;
-  color: #f1f5f9 !important;
-  border-color: #475569 !important;
+/* Select dropdown personalizado */
+.auth-page [data-radix-select-content] {
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 38px -10px rgba(22, 23, 24, 0.35), 0 10px 20px -15px rgba(22, 23, 24, 0.2);
+  animation: fadeInUp 0.2s ease-out;
 }
 
 .dark .auth-page [data-radix-select-content] {
-  background: #334155 !important;
-  border-color: #475569 !important;
+  border-color: #475569;
+  background: #334155;
+  box-shadow: 0 10px 38px -10px rgba(0, 0, 0, 0.5), 0 10px 20px -15px rgba(0, 0, 0, 0.4);
 }
 
-.dark .auth-page [data-radix-select-item] {
-  color: #f1f5f9 !important;
-}
-
-.dark .auth-page [data-radix-select-item][data-highlighted] {
-  background: #475569 !important;
-  color: #f1f5f9 !important;
-}
-
-/* Password toggle en modo oscuro */
-.dark .auth-page .password-toggle {
-  color: #94a3b8 !important;
-}
-
-.dark .auth-page .password-toggle:hover {
-  color: #a855f7 !important;
-}
-
-/* Dialogo en modo oscuro */
-.dark .auth-page .dialog-content {
-  background: rgba(30, 41, 59, 0.95) !important;
-  border-color: #475569 !important;
-}
-
-.dark .auth-page .dialog-content * {
-  color: #f1f5f9 !important;
-}
-
-/* Labels de los inputs */
-.auth-page .auth-label,
-.auth-page label[class*="auth-label"] {
-  position: absolute !important;
-  top: 50% !important;
-  left: 0.75rem !important;
-  color: #64748b !important;
-  font-size: 14px !important;
-  transition: all 0.3s ease !important;
-  pointer-events: none !important;
-  transform: translateY(-50%) !important;
-  background: transparent !important;
-  padding: 0 !important;
-  font-family: 'Montserrat', sans-serif !important;
-}
-
-.auth-page .auth-input:focus + .auth-label,
-.auth-page .auth-input:not(:placeholder-shown) + .auth-label,
-.auth-page input[class*="auth-input"]:focus + .auth-label,
-.auth-page input[class*="auth-input"]:not(:placeholder-shown) + .auth-label {
-  top: -8px !important;
-  left: 8px !important;
-  font-size: 12px !important;
-  color: #8c69a5 !important;
-  background: #ffffff !important;
-  padding: 0 4px !important;
-  border-radius: 4px !important;
-}
-
-/* Botón toggle de contraseña */
-.auth-page .password-toggle,
-.auth-page button[class*="password-toggle"],
-.auth-page .input-container button[type="button"] {
-  position: absolute !important;
-  right: 12px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  color: #1f2937 !important;
-  transition: color 0.3s ease !important;
-  z-index: 10 !important;
-}
-
-.auth-page .password-toggle:hover,
-.auth-page button[class*="password-toggle"]:hover,
-.auth-page .input-container button[type="button"]:hover {
-  color: #8c69a5 !important;
-}
-
-/* Asegurar que los iconos dentro del botón también tengan el color correcto */
-.auth-page .input-container button svg,
-.auth-page .input-container button[type="button"] svg,
-.auth-page .password-toggle svg,
-.auth-page button[class*="password-toggle"] svg {
-  color: inherit !important;
-  fill: currentColor !important;
-}
-
-/* Botones del login */
-.auth-page .auth-button {
-  border-radius: 20px !important;
-  border: 1px solid #8c69a5 !important;
-  background: linear-gradient(135deg, #8c69a5, #6b5b95) !important;
-  color: #ffffff !important;
-  font-size: 12px !important;
-  font-weight: bold !important;
-  padding: 12px 45px !important;
-  letter-spacing: 1px !important;
-  text-transform: uppercase !important;
-  transition: transform 80ms ease-in !important;
-  cursor: pointer !important;
-  width: 100% !important;
-  font-family: 'Montserrat', sans-serif !important;
-  margin-top: 1rem !important;
-  position: relative !important;
-  z-index: 5 !important;
-}
-
-.auth-page .auth-button:active {
-  transform: scale(0.95) !important;
-}
-
-.auth-page .auth-button:focus {
-  outline: none !important;
-}
-
-.auth-page .auth-button:hover {
-  background: linear-gradient(135deg, #6b5b95, #8c69a5) !important;
-}
-
-/* Select component en login */
-.auth-page [role="combobox"],
-.auth-page [data-radix-select-trigger] {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  width: 100% !important;
-  padding: 0.75rem !important;
-  font-size: 14px !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  outline: none !important;
-  transition: all 0.3s ease !important;
-  position: relative !important;
-  z-index: 10 !important;
-  min-height: 42px !important;
-  display: flex !important;
-  align-items: center !important;
-}
-
-.auth-page [role="combobox"]:focus,
-.auth-page [data-radix-select-trigger]:focus {
-  border-color: #8c69a5 !important;
-  box-shadow: 0 0 0 3px rgba(140, 105, 165, 0.1) !important;
-}
-
-/* Select dropdown content en login */
-.auth-page [role="listbox"],
-.auth-page [data-radix-select-content] {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  z-index: 999 !important;
-  position: relative !important;
-  max-height: 200px !important;
-  overflow-y: auto !important;
-}
-
-/* Select items en login */
-.auth-page [role="option"],
 .auth-page [data-radix-select-item] {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  font-family: 'Montserrat', sans-serif !important;
-  padding: 0.5rem 0.75rem !important;
-  font-size: 14px !important;
-  cursor: pointer !important;
-  transition: background-color 0.2s ease !important;
+  border-radius: 8px;
+  margin: 2px 4px;
+  transition: all 0.2s ease;
 }
 
-.auth-page [role="option"]:hover,
 .auth-page [data-radix-select-item]:hover,
 .auth-page [data-radix-select-item][data-highlighted] {
-  background: #f8fafc !important;
-  color: #0f172a !important;
+  background: #f1f5f9;
+  transform: translateX(2px);
 }
 
-/* Select value text */
-.auth-page [data-radix-select-value] {
-  color: #0f172a !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-size: 14px !important;
-}
-
-/* Select trigger styling for light mode */
-.auth-page [role="combobox"],
-.auth-page [data-radix-select-trigger] {
-  background: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-  width: 100% !important;
-  padding: 0.75rem !important;
-  font-size: 14px !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  outline: none !important;
-  transition: all 0.3s ease !important;
-  min-height: 42px !important;
-  display: flex !important;
-  align-items: center !important;
-  font-family: 'Montserrat', sans-serif !important;
-}
-
-/* Select trigger placeholder text */
-.auth-page [data-radix-select-trigger] [data-placeholder] {
-  color: #64748b !important;
-  opacity: 1 !important;
-}
-
-/* Select trigger value text */
-.auth-page [data-radix-select-trigger] [data-radix-select-value] {
-  color: #0f172a !important;
-  font-weight: 500 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-size: 14px !important;
-}
-
-/* Select placeholder */
-.auth-page [data-placeholder] {
-  color: #64748b !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-size: 14px !important;
-}
-
-/* Force text color for SelectValue component in light mode */
-.auth-page [data-radix-select-trigger] span,
-.auth-page [data-radix-select-trigger] [data-radix-select-value],
-.auth-page [data-radix-select-trigger] [data-radix-select-value] span {
-  color: #000000 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-weight: 600 !important;
-}
-
-/* Ensure select trigger text is always visible in light mode */
-.auth-page [data-radix-select-trigger] {
-  color: #000000 !important;
-}
-
-.auth-page [data-radix-select-trigger] * {
-  color: #000000 !important;
-}
-
-/* Select label animation */
-.auth-page .input-container:has([data-radix-select-trigger]) .auth-label {
-  position: absolute !important;
-  top: 50% !important;
-  left: 0.75rem !important;
-  color: #64748b !important;
-  font-size: 14px !important;
-  transition: all 0.3s ease !important;
-  pointer-events: none !important;
-  transform: translateY(-50%) !important;
-  background: transparent !important;
-  padding: 0 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  z-index: 20 !important;
-}
-
-/* Label moves up when select is open */
-.auth-page .input-container:has([data-radix-select-trigger][data-state="open"]) .auth-label {
-  top: -8px !important;
-  left: 8px !important;
-  font-size: 12px !important;
-  color: #8c69a5 !important;
-  background: #ffffff !important;
-  padding: 0 4px !important;
-  border-radius: 4px !important;
-}
-
-/* Label shows selected value when select has a value */
-.auth-page .input-container:has([data-radix-select-trigger][data-has-value="true"]) .auth-label {
-  top: -8px !important;
-  left: 8px !important;
-  font-size: 12px !important;
-  color: #000000 !important;
-  background: #ffffff !important;
-  padding: 0 4px !important;
-  border-radius: 4px !important;
-}
-
-/* Panel superpuesto */
-.auth-page .overlay-container {
-  position: absolute !important;
-  top: 0 !important;
-  left: 50% !important;
-  width: 50% !important;
-  height: 100% !important;
-  overflow: hidden !important;
-  transition: transform 0.6s ease-in-out !important;
-  z-index: 100 !important;
-}
-
-.auth-page .overlay {
-  background: linear-gradient(to right, #8c69a5, #de8fd9) !important;
-  background-repeat: no-repeat !important;
-  background-size: cover !important;
-  background-position: 0 0 !important;
-  color: #ffffff !important;
-  position: relative !important;
-  left: -100% !important;
-  height: 100% !important;
-  width: 200% !important;
-  transform: translateX(0) !important;
-  transition: transform 0.6s ease-in-out !important;
-}
-
-.auth-page .overlay-panel {
-  position: absolute !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-direction: column !important;
-  padding: 0 40px !important;
-  text-align: center !important;
-  top: 0 !important;
-  height: 100% !important;
-  width: 50% !important;
-  transition: transform 0.6s ease-in-out !important;
-}
-
-.auth-page .overlay-panel h1,
-.auth-page .overlay-panel p {
-  color: #ffffff !important;
-  font-family: 'Montserrat', sans-serif !important;
-}
-
-.auth-page .overlay-panel.overlay-left {
-  transform: translateX(-20%) !important;
-}
-
-.auth-page .overlay-panel.overlay-right {
-  right: 0 !important;
-  transform: translateX(0) !important;
-}
-
-/* Botones del overlay */
-.auth-page .overlay-button,
-.auth-page .overlay-container button,
-.auth-page .overlay-panel button,
-.auth-page .overlay button[type="button"] {
-  border-radius: 20px !important;
-  border: 1px solid #ffffff !important;
-  background-color: transparent !important;
-  color: #ffffff !important;
-  font-size: 12px !important;
-  font-weight: bold !important;
-  padding: 12px 45px !important;
-  letter-spacing: 1px !important;
-  text-transform: uppercase !important;
-  transition: transform 80ms ease-in !important;
-  cursor: pointer !important;
-  font-family: 'Montserrat', sans-serif !important;
-}
-
-.auth-page .overlay-button:active,
-.auth-page .overlay-container button:active,
-.auth-page .overlay-panel button:active,
-.auth-page .overlay button[type="button"]:active {
-  transform: scale(0.95) !important;
-}
-
-.auth-page .overlay-button:focus,
-.auth-page .overlay-container button:focus,
-.auth-page .overlay-panel button:focus,
-.auth-page .overlay button[type="button"]:focus {
-  outline: none !important;
-}
-
-.auth-page .overlay-button:hover,
-.auth-page .overlay-container button:hover,
-.auth-page .overlay-panel button:hover,
-.auth-page .overlay button[type="button"]:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-}
-
-/* Forzar modo claro en todo el contenedor de autenticación */
-.auth-page *,
-.auth-page *:before,
-.auth-page *:after {
-  color: inherit !important;
-}
-
-/* Soporte para tema oscuro en el login */
-.auth-page {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.dark .auth-page {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%) !important;
-}
-
-.dark .auth-page *,
-.dark .auth-page *:before,
-.dark .auth-page *:after {
-  color: #f1f5f9 !important;
-}
-
-.dark .auth-page .auth-input,
-.dark .auth-page input[class*="auth-input"],
-.dark .auth-page input[type="text"],
-.dark .auth-page input[type="password"],
-.dark .auth-page input[type="email"],
-html.dark .auth-page .auth-input,
-html.dark .auth-page input[class*="auth-input"],
-html.dark .auth-page input[type="text"],
-html.dark .auth-page input[type="password"],
-html.dark .auth-page input[type="email"] {
-  background: #334155 !important;
-  color: #f1f5f9 !important;
-  border-color: #475569 !important;
-}
-
-.dark .auth-page .auth-input::placeholder,
-.dark .auth-page input[class*="auth-input"]::placeholder,
-.dark .auth-page input[type="text"]::placeholder,
-.dark .auth-page input[type="password"]::placeholder,
-.dark .auth-page input[type="email"]::placeholder,
-html.dark .auth-page .auth-input::placeholder,
-html.dark .auth-page input[class*="auth-input"]::placeholder,
-html.dark .auth-page input[type="text"]::placeholder,
-html.dark .auth-page input[type="password"]::placeholder,
-html.dark .auth-page input[type="email"]::placeholder {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
-}
-
-.dark .auth-page .auth-input:focus,
-.dark .auth-page input[class*="auth-input"]:focus,
-.dark .auth-page input[type="text"]:focus,
-.dark .auth-page input[type="password"]:focus,
-.dark .auth-page input[type="email"]:focus,
-html.dark .auth-page .auth-input:focus,
-html.dark .auth-page input[class*="auth-input"]:focus,
-html.dark .auth-page input[type="text"]:focus,
-html.dark .auth-page input[type="password"]:focus,
-html.dark .auth-page input[type="email"]:focus {
-  border-color: #a855f7 !important;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
-  background: #475569 !important;
-  color: #f1f5f9 !important;
-}
-
-.dark .auth-page .auth-label,
-.dark .auth-page label[class*="auth-label"],
-html.dark .auth-page .auth-label,
-html.dark .auth-page label[class*="auth-label"] {
-  color: #94a3b8 !important;
-}
-
-.dark .auth-page .auth-input:focus + .auth-label,
-.dark .auth-page .auth-input:not(:placeholder-shown) + .auth-label,
-.dark .auth-page input[class*="auth-input"]:focus + .auth-label,
-.dark .auth-page input[class*="auth-input"]:not(:placeholder-shown) + .auth-label,
-html.dark .auth-page .auth-input:focus + .auth-label,
-html.dark .auth-page .auth-input:not(:placeholder-shown) + .auth-label,
-html.dark .auth-page input[class*="auth-input"]:focus + .auth-label,
-html.dark .auth-page input[class*="auth-input"]:not(:placeholder-shown) + .auth-label {
-  color: #a855f7 !important;
-  background: #1e293b !important;
-}
-
-.dark .auth-page .password-toggle,
-.dark .auth-page button[class*="password-toggle"],
-.dark .auth-page .input-container button[type="button"],
-html.dark .auth-page .password-toggle,
-html.dark .auth-page button[class*="password-toggle"],
-html.dark .auth-page .input-container button[type="button"] {
-  color: #94a3b8 !important;
-  background: transparent !important;
-}
-
-.dark .auth-page .password-toggle:hover,
-.dark .auth-page button[class*="password-toggle"]:hover,
-.dark .auth-page .input-container button[type="button"]:hover,
-html.dark .auth-page .password-toggle:hover,
-html.dark .auth-page button[class*="password-toggle"]:hover,
-html.dark .auth-page .input-container button[type="button"]:hover {
-  color: #a855f7 !important;
-}
-
-/* Botones del overlay en modo oscuro - mantener blanco */
-.dark .auth-page .overlay-button,
-.dark .auth-page .overlay-container button,
-.dark .auth-page .overlay-panel button,
-.dark .auth-page .overlay button[type="button"],
-html.dark .auth-page .overlay-button,
-html.dark .auth-page .overlay-container button,
-html.dark .auth-page .overlay-panel button,
-html.dark .auth-page .overlay button[type="button"] {
-  color: #ffffff !important;
-  background-color: transparent !important;
-  border-color: #ffffff !important;
-}
-
-.dark .auth-page .overlay-button:hover,
-.dark .auth-page .overlay-container button:hover,
-.dark .auth-page .overlay-panel button:hover,
-.dark .auth-page .overlay button[type="button"]:hover,
-html.dark .auth-page .overlay-button:hover,
-html.dark .auth-page .overlay-container button:hover,
-html.dark .auth-page .overlay-panel button:hover,
-html.dark .auth-page .overlay button[type="button"]:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Iconos dentro de botones en modo oscuro */
-.dark .auth-page .input-container button svg,
-.dark .auth-page .input-container button[type="button"] svg,
-.dark .auth-page .password-toggle svg,
-.dark .auth-page button[class*="password-toggle"] svg,
-html.dark .auth-page .input-container button svg,
-html.dark .auth-page .input-container button[type="button"] svg,
-html.dark .auth-page .password-toggle svg,
-html.dark .auth-page button[class*="password-toggle"] svg {
-  color: inherit !important;
-}
-
-.dark .auth-page .auth-button {
-  background: linear-gradient(135deg, #8c69a5, #6b5b95) !important;
-  color: #ffffff !important;
-  border: none !important;
-}
-
-.dark .auth-page .auth-button:hover {
-  background: linear-gradient(135deg, #6b5b95, #8c69a5) !important;
-}
-
-.dark .auth-page [role="combobox"],
-.dark .auth-page [data-radix-select-trigger],
-html.dark .auth-page [role="combobox"],
-html.dark .auth-page [data-radix-select-trigger] {
-  background: #334155 !important;
-  color: #f1f5f9 !important;
-  border-color: #475569 !important;
-  width: 100% !important;
-  padding: 0.75rem !important;
-  font-size: 14px !important;
-  border: 1px solid #475569 !important;
-  border-radius: 8px !important;
-  outline: none !important;
-  transition: all 0.3s ease !important;
-  min-height: 42px !important;
-  display: flex !important;
-  align-items: center !important;
-}
-
-.dark .auth-page [role="combobox"]:focus,
-.dark .auth-page [data-radix-select-trigger]:focus,
-html.dark .auth-page [role="combobox"]:focus,
-html.dark .auth-page [data-radix-select-trigger]:focus {
-  border-color: #a855f7 !important;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
-}
-
-.dark .auth-page [role="listbox"],
-.dark .auth-page [data-radix-select-content],
-html.dark .auth-page [role="listbox"],
-html.dark .auth-page [data-radix-select-content] {
-  background: #334155 !important;
-  color: #f1f5f9 !important;
-  border-color: #475569 !important;
-  border: 1px solid #475569 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
-  z-index: 999 !important;
-}
-
-.dark .auth-page [role="option"],
-.dark .auth-page [data-radix-select-item],
-html.dark .auth-page [role="option"],
-html.dark .auth-page [data-radix-select-item] {
-  background: #334155 !important;
-  color: #f1f5f9 !important;
-  padding: 0.5rem 0.75rem !important;
-  font-size: 14px !important;
-  cursor: pointer !important;
-  transition: background-color 0.2s ease !important;
-}
-
-.dark .auth-page [role="option"]:hover,
 .dark .auth-page [data-radix-select-item]:hover,
-.dark .auth-page [data-radix-select-item][data-highlighted],
-html.dark .auth-page [role="option"]:hover,
-html.dark .auth-page [data-radix-select-item]:hover,
-html.dark .auth-page [data-radix-select-item][data-highlighted] {
-  background: #475569 !important;
-  color: #f1f5f9 !important;
+.dark .auth-page [data-radix-select-item][data-highlighted] {
+  background: #475569;
 }
 
-.dark .auth-page [data-radix-select-value],
-html.dark .auth-page [data-radix-select-value] {
-  color: #f1f5f9 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-size: 14px !important;
+/* Dialog personalizado */
+.auth-page [data-radix-dialog-content] {
+  animation: fadeInUp 0.3s ease-out;
 }
 
-/* Dark mode select trigger placeholder */
-.dark .auth-page [data-radix-select-trigger] [data-placeholder],
-html.dark .auth-page [data-radix-select-trigger] [data-placeholder] {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
+/* Estilos responsivos mejorados */
+@media (max-width: 1024px) {
+  .auth-page .lg\:grid-cols-2 {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .auth-page .lg\:text-left {
+    text-align: center;
+  }
 }
 
-/* Dark mode select trigger value */
-.dark .auth-page [data-radix-select-trigger] [data-radix-select-value],
-html.dark .auth-page [data-radix-select-trigger] [data-radix-select-value] {
-  color: #f1f5f9 !important;
-  font-weight: 500 !important;
+@media (max-width: 640px) {
+  .auth-page .rounded-3xl {
+    border-radius: 24px;
+  }
+
+  .auth-page .p-8 {
+    padding: 1.5rem;
+  }
+
+  .auth-page .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+
+  .auth-page .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-page .gap-4 {
+    gap: 0.75rem;
+  }
 }
 
-.dark .auth-page [data-placeholder],
-html.dark .auth-page [data-placeholder] {
-  color: #94a3b8 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-size: 14px !important;
+/* Mejoras de accesibilidad */
+.auth-page *:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
-/* Dark mode select label animation */
-.dark .auth-page .input-container:has([data-radix-select-trigger]) .auth-label,
-html.dark .auth-page .input-container:has([data-radix-select-trigger]) .auth-label {
-  color: #94a3b8 !important;
+.dark .auth-page *:focus-visible {
+  outline-color: #a855f7;
 }
 
-.dark .auth-page .input-container:has([data-radix-select-trigger][data-state="open"]) .auth-label,
-html.dark .auth-page .input-container:has([data-radix-select-trigger][data-state="open"]) .auth-label {
-  color: #a855f7 !important;
-  background: #1e293b !important;
+/* Efectos de hover mejorados */
+.auth-page .hover\:scale-\[1\.02\]:hover {
+  transform: scale(1.02);
 }
 
-/* Dark mode label shows selected value when select has a value */
-.dark .auth-page .input-container:has([data-radix-select-trigger][data-has-value="true"]) .auth-label,
-html.dark .auth-page .input-container:has([data-radix-select-trigger][data-has-value="true"]) .auth-label {
-  top: -8px !important;
-  left: 8px !important;
-  font-size: 12px !important;
-  color: #f1f5f9 !important;
-  background: #1e293b !important;
-  padding: 0 4px !important;
-  border-radius: 4px !important;
+.auth-page .hover\:shadow-xl:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Dark mode select text color */
-.dark .auth-page [data-radix-select-trigger] span,
-.dark .auth-page [data-radix-select-trigger] [data-radix-select-value],
-.dark .auth-page [data-radix-select-trigger] [data-radix-select-value] span,
-html.dark .auth-page [data-radix-select-trigger] span,
-html.dark .auth-page [data-radix-select-trigger] [data-radix-select-value],
-html.dark .auth-page [data-radix-select-trigger] [data-radix-select-value] span {
-  color: #f1f5f9 !important;
-  font-family: 'Montserrat', sans-serif !important;
-  font-weight: 500 !important;
+.dark .auth-page .hover\:shadow-xl:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
-.dark .auth-page [data-radix-select-trigger],
-html.dark .auth-page [data-radix-select-trigger] {
-  color: #f1f5f9 !important;
+/* Transiciones suaves para el cambio de tema */
+.auth-page * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-.dark .auth-page [data-radix-select-trigger] *,
-html.dark .auth-page [data-radix-select-trigger] * {
-  color: #f1f5f9 !important;
+/* Gradientes personalizados */
+.auth-page .bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
 
-/* Colores específicos de texto en modo oscuro */
-.dark .auth-page .text-gray-600,
-html.dark .auth-page .text-gray-600 {
-  color: #94a3b8 !important;
+.auth-page .from-purple-600 {
+  --tw-gradient-from: #9333ea;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(147, 51, 234, 0));
 }
 
-.dark .auth-page .text-gray-800,
-html.dark .auth-page .text-gray-800 {
-  color: #f1f5f9 !important;
+.auth-page .to-blue-600 {
+  --tw-gradient-to: #2563eb;
 }
 
-/* Enlaces y texto de ayuda en modo oscuro */
-.dark .auth-page a,
-html.dark .auth-page a {
-  color: #c4b5fd !important;
+/* Estados de loading mejorados */
+.auth-page .animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-.dark .auth-page a:hover,
-html.dark .auth-page a:hover {
-  color: #a855f7 !important;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Formulario en modo oscuro */
-.dark .auth-page .auth-form,
-html.dark .auth-page .auth-form {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%) !important;
-  backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(71, 85, 105, 0.3) !important;
+/* Iconos con transiciones suaves */
+.auth-page svg {
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-/* Títulos y texto en modo oscuro */
-.dark .auth-page h1,
-.dark .auth-page h2,
-.dark .auth-page h3,
-.dark .auth-page h4,
-.dark .auth-page h5,
-.dark .auth-page h6,
-.dark .auth-page p,
-.dark .auth-page span,
-.dark .auth-page div,
-.dark .auth-page label,
-.dark .auth-page a,
-html.dark .auth-page h1,
-html.dark .auth-page h2,
-html.dark .auth-page h3,
-html.dark .auth-page h4,
-html.dark .auth-page h5,
-html.dark .auth-page h6,
-html.dark .auth-page p,
-html.dark .auth-page span,
-html.dark .auth-page div,
-html.dark .auth-page label,
-html.dark .auth-page a {
-  color: #f1f5f9 !important;
+.auth-page button:hover svg {
+  transform: scale(1.1);
 }
 
-/* Overlay en modo oscuro */
-.dark .auth-page .overlay {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%) !important;
+/* Mejoras para pantallas de alta densidad */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .auth-page {
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
 }
 
-.dark .auth-page .overlay-panel h1,
-.dark .auth-page .overlay-panel p {
-  color: #ffffff !important;
+/* Estados de error y éxito */
+.auth-page .border-red-500 {
+  border-color: #ef4444;
+}
+
+.auth-page .border-green-500 {
+  border-color: #22c55e;
+}
+
+.auth-page .text-red-500 {
+  color: #ef4444;
+}
+
+.auth-page .text-green-500 {
+  color: #22c55e;
+}
+
+/* Efectos de partículas de fondo */
+.auth-page .particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.1;
+  animation: float 8s ease-in-out infinite;
+}
+
+.auth-page .particle:nth-child(2n) {
+  animation-delay: -2s;
+  animation-duration: 10s;
+}
+
+.auth-page .particle:nth-child(3n) {
+  animation-delay: -4s;
+  animation-duration: 12s;
+}
+
+/* Overlay mejorado para modo oscuro */
+.dark .auth-page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Contenedor principal con z-index adecuado */
+.auth-page > .relative {
+  position: relative;
+  z-index: 10;
 }

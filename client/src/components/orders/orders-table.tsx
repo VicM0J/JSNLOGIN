@@ -44,8 +44,11 @@ export function OrdersTable({
   const { data: orders = [], isLoading, error, refetch } = useQuery({
     queryKey: ["/api/orders"],
     queryFn: async () => {
+      console.log(`[${user?.area}] Fetching orders...`);
       const response = await apiRequest('GET', '/api/orders');
-      return response.json();
+      const data = await response.json();
+      console.log(`[${user?.area}] Received ${data.length} orders:`, data);
+      return data;
     },
     refetchInterval: 5000, // Refetch every 5 seconds
     refetchOnMount: true,
@@ -209,6 +212,7 @@ export function OrdersTable({
 
   const getAreaBadgeColor = (area: Area) => {
     const colors: Record<Area, string> = {
+      patronaje: "bg-amber-100 text-amber-800",
       corte: "badge-corte",
       bordado: "badge-bordado", 
       ensamble: "badge-ensamble",
@@ -217,6 +221,8 @@ export function OrdersTable({
       envios: "badge-envios",
       almacen: "bg-indigo-100 text-indigo-800",
       admin: "badge-admin",
+      diseño: "bg-cyan-100 text-cyan-800",
+      operaciones: "bg-teal-100 text-teal-800",
     };
     return colors[area] || "bg-gray-100 text-gray-800";
   };
@@ -229,6 +235,7 @@ export function OrdersTable({
 
   const getAreaDisplayName = (area: Area) => {
     const names: Record<Area, string> = {
+      patronaje: 'Patronaje',
       corte: 'Corte',
       bordado: 'Bordado',
       ensamble: 'Ensamble',
@@ -236,7 +243,9 @@ export function OrdersTable({
       calidad: 'Calidad',
       envios: 'Envíos',
       almacen: 'Almacén',
-      admin: 'Admin'
+      admin: 'Admin',
+      diseño: 'Diseño',
+      operaciones: 'Operaciones'
     };
     return names[area] || area;
   };
@@ -251,6 +260,18 @@ export function OrdersTable({
 
     return matchesSearch && matchesArea && matchesStatus;
   });
+
+  // Enhanced logging for bordado area
+  if (user?.area === 'bordado') {
+    console.log(`[BORDADO] Total orders received: ${orders.length}`);
+    console.log(`[BORDADO] Filtered orders: ${filteredOrders.length}`);
+    console.log(`[BORDADO] Active filters:`, { areaFilter, statusFilter, searchTerm });
+    console.log(`[BORDADO] Sample orders:`, orders.slice(0, 5).map(o => ({
+      folio: o.folio,
+      currentArea: o.currentArea,
+      status: o.status
+    })));
+  }
 
   if (isLoading) {
     return (
@@ -278,12 +299,16 @@ export function OrdersTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las Áreas</SelectItem>
+                <SelectItem value="patronaje">Patronaje</SelectItem>
                 <SelectItem value="corte">Corte</SelectItem>
                 <SelectItem value="bordado">Bordado</SelectItem>
                 <SelectItem value="ensamble">Ensamble</SelectItem>
                 <SelectItem value="plancha">Plancha/Empaque</SelectItem>
                 <SelectItem value="calidad">Calidad</SelectItem>
                 <SelectItem value="envios">Envíos</SelectItem>
+                <SelectItem value="almacen">Almacén</SelectItem>
+                <SelectItem value="diseño">Diseño</SelectItem>
+                <SelectItem value="operaciones">Operaciones</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>

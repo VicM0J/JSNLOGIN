@@ -25,13 +25,21 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const {
-    data: user,
-    error,
-    isLoading,
-  } = useQuery<SelectUser | undefined, Error>({
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    queryFn: async () => {
+      console.log('[AUTH] Checking user authentication...');
+      const res = await fetch("/api/user", { credentials: "include" });
+      if (!res.ok) {
+        console.log('[AUTH] User not authenticated, status:', res.status);
+        throw new Error("Not authenticated");
+      }
+      const userData = await res.json();
+      console.log('[AUTH] User authenticated:', userData.username, userData.area);
+      return userData;
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const loginMutation = useMutation({

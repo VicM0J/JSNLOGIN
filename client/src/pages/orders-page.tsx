@@ -38,6 +38,34 @@ export default function OrdersPage() {
 
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
+    queryFn: async () => {
+      console.log(`[ORDERS PAGE - ${user?.area}] Fetching orders...`);
+      const response = await fetch('/api/orders', {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        console.error(`[ORDERS PAGE - ${user?.area}] Failed to fetch orders:`, response.status, response.statusText);
+        throw new Error(`Failed to fetch orders: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`[ORDERS PAGE - ${user?.area}] Received ${data.length} orders`);
+      
+      // Enhanced logging for bordado
+      if (user?.area === 'bordado') {
+        console.log(`[BORDADO PAGE] Successfully fetched ${data.length} orders`);
+        console.log(`[BORDADO PAGE] Orders by area:`, data.reduce((acc: any, order: any) => {
+          acc[order.currentArea] = (acc[order.currentArea] || 0) + 1;
+          return acc;
+        }, {}));
+      }
+      
+      return data;
+    },
+    enabled: !!user, // Only fetch when user is authenticated
+    retry: 1,
+    refetchInterval: 10000 // Refresh every 10 seconds
   });
 
   const completeOrderMutation = useMutation({
@@ -273,6 +301,9 @@ export default function OrdersPage() {
                 <SelectItem value="plancha">Plancha/Empaque</SelectItem>
                 <SelectItem value="calidad">Calidad</SelectItem>
                 <SelectItem value="envios">Envíos</SelectItem>
+                <SelectItem value="almacen">Almacén</SelectItem>
+                <SelectItem value="diseño">Diseño</SelectItem>
+                <SelectItem value="operaciones">Operaciones</SelectItem>
               </SelectContent>
             </Select>
 

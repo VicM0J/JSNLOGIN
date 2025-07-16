@@ -149,9 +149,9 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-[95vw] max-h-[95vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50 border-2 border-blue-100 shadow-2xl mx-2">
+      <DialogContent className="max-w-lg w-[95vw] max-h-[95vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50 dark:from-slate-900 dark:to-slate-800 border-2 border-blue-100 dark:border-slate-700 shadow-2xl mx-2">
         <DialogHeader className="pb-4 sm:pb-6">
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center space-x-2 sm:space-x-3">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white flex items-center space-x-2 sm:space-x-3">
             <div className="p-1.5 sm:p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full">
               <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
@@ -160,9 +160,9 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
         </DialogHeader>
 
         {isLoadingPieces && (
-          <div className="flex items-center justify-center p-4 sm:p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+          <div className="flex items-center justify-center p-4 sm:p-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 rounded-xl">
             <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-blue-500" />
-            <span className="ml-2 sm:ml-3 text-sm sm:text-lg text-gray-700">Cargando información...</span>
+            <span className="ml-2 sm:ml-3 text-sm sm:text-lg text-gray-700 dark:text-gray-200">Cargando información...</span>
           </div>
         )}
         
@@ -170,46 +170,46 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
               {/* Header del pedido */}
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 sm:p-4 rounded-xl shadow-lg">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white p-3 sm:p-4 rounded-xl shadow-lg">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
                   <div>
-                    <h3 className="text-base sm:text-lg font-semibold">Folio: {order?.folio || "Cargando..."}</h3>
-                    <p className="text-blue-100 text-xs sm:text-sm">ID: #{orderId}</p>
+                    <h3 className="text-base sm:text-lg font-semibold text-white">Folio: {order?.folio || "Cargando..."}</h3>
+                    <p className="text-blue-100 dark:text-blue-200 text-xs sm:text-sm">ID: #{orderId}</p>
                   </div>
                   <div className="sm:text-right">
-                    <p className="text-blue-100 text-xs sm:text-sm">Cliente</p>
-                    <p className="font-medium text-sm sm:text-base truncate max-w-[200px] sm:max-w-none">{order?.clienteHotel || "Cargando..."}</p>
+                    <p className="text-blue-100 dark:text-blue-200 text-xs sm:text-sm">Cliente</p>
+                    <p className="font-medium text-sm sm:text-base truncate max-w-[200px] sm:max-w-none text-white">{order?.clienteHotel || "Cargando..."}</p>
                   </div>
                 </div>
               </div>
             
               {/* Información de piezas */}
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 sm:p-4 shadow-sm">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-2 border-green-200 dark:border-green-700 rounded-xl p-3 sm:p-4 shadow-sm">
                 <div className="flex items-center space-x-2 sm:space-x-3 mb-3">
                   <div className="p-1.5 sm:p-2 bg-green-500 rounded-full">
                     <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                   </div>
-                  <h4 className="font-semibold text-green-800 text-sm sm:text-base">Resumen de Piezas</h4>
+                  <h4 className="font-semibold text-green-800 dark:text-green-200 text-sm sm:text-base">Resumen de Piezas</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-xs sm:text-sm text-green-700 mb-1">Disponibles en {user?.area ? getAreaDisplayName(user.area) : 'tu área'}</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-800">{getCurrentAreaPieces()}</p>
+                    <p className="text-xs sm:text-sm text-green-700 dark:text-green-300 mb-1">Disponibles en {user?.area ? getAreaDisplayName(user.area) : 'tu área'}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-200">{getCurrentAreaPieces()}</p>
                   </div>
                   <div>
-                    <p className="text-xs sm:text-sm text-green-700 mb-1">Total del pedido</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-800">{order?.totalPiezas || 0}</p>
+                    <p className="text-xs sm:text-sm text-green-700 dark:text-green-300 mb-1">Total del pedido</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-200">{order?.totalPiezas || 0}</p>
                   </div>
                 </div>
               </div>
 
               {getCurrentAreaPieces() === 0 && (
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-3 sm:p-4 shadow-sm">
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 border-2 border-yellow-300 dark:border-yellow-600 rounded-xl p-3 sm:p-4 shadow-sm">
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="p-1.5 sm:p-2 bg-yellow-500 rounded-full flex-shrink-0">
                       <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                     </div>
-                    <p className="text-yellow-800 font-medium text-sm sm:text-base">
+                    <p className="text-yellow-800 dark:text-yellow-200 font-medium text-sm sm:text-base">
                       No tienes piezas disponibles en tu área para este pedido.
                     </p>
                   </div>
@@ -218,7 +218,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
             
               {/* Selector de área destino */}
               <div className="space-y-2">
-                <Label className="text-gray-700 font-medium flex items-center space-x-2 text-sm sm:text-base">
+                <Label className="text-gray-700 dark:text-gray-200 font-medium flex items-center space-x-2 text-sm sm:text-base">
                   <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                   <span>Transferir a</span>
                 </Label>
@@ -226,12 +226,12 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                   value={transferData.toArea} 
                   onValueChange={(value: Area) => setTransferData(prev => ({ ...prev, toArea: value }))}
                 >
-                  <SelectTrigger className="border-2 border-purple-200 focus:border-purple-500 h-10 sm:h-12 text-sm sm:text-base">
+                  <SelectTrigger className="border-2 border-purple-200 dark:border-purple-600 focus:border-purple-500 dark:focus:border-purple-400 h-10 sm:h-12 text-sm sm:text-base bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">
                     <SelectValue placeholder="Seleccionar área destino..." />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-600">
                     {nextAreas.map(area => (
-                      <SelectItem key={area} value={area} className="text-sm sm:text-base py-2 sm:py-3">
+                      <SelectItem key={area} value={area} className="text-sm sm:text-base py-2 sm:py-3 text-gray-900 dark:text-gray-100 hover:bg-purple-50 dark:hover:bg-slate-700">
                         {getAreaDisplayName(area)}
                       </SelectItem>
                     ))}
@@ -241,11 +241,11 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
             
               {/* Cantidad a transferir */}
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-gray-700 font-medium flex items-center space-x-2 text-sm sm:text-base">
+                <Label className="text-gray-700 dark:text-gray-200 font-medium flex items-center space-x-2 text-sm sm:text-base">
                   <Package className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
                   <span>Cantidad a transferir</span>
                 </Label>
-                <div className="bg-white border-2 border-blue-200 rounded-xl p-3 sm:p-4 shadow-sm">
+                <div className="bg-white dark:bg-slate-800 border-2 border-blue-200 dark:border-blue-600 rounded-xl p-3 sm:p-4 shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                     <div className="flex-1">
                       <Input
@@ -255,13 +255,13 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                         value={transferData.pieces}
                         onChange={(e) => setTransferData(prev => ({ ...prev, pieces: e.target.value }))}
                         required
-                        className="text-base sm:text-lg font-semibold text-center border-2 border-blue-300 focus:border-blue-500 h-10 sm:h-12"
+                        className="text-base sm:text-lg font-semibold text-center border-2 border-blue-300 dark:border-blue-600 focus:border-blue-500 dark:focus:border-blue-400 h-10 sm:h-12 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                         placeholder="0"
                       />
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 text-center sm:text-left">
                       <span className="block">de <strong>{getCurrentAreaPieces()}</strong> disponibles</span>
-                      <span className="text-xs text-gray-500">en {user?.area ? getAreaDisplayName(user.area) : ''}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">en {user?.area ? getAreaDisplayName(user.area) : ''}</span>
                     </div>
                   </div>
                 </div>
@@ -269,8 +269,8 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
             
               {/* Notas */}
               <div className="space-y-2">
-                <Label className="text-gray-700 font-medium flex items-center space-x-2 text-sm sm:text-base">
-                  <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                <Label className="text-gray-700 dark:text-gray-200 font-medium flex items-center space-x-2 text-sm sm:text-base">
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 dark:text-gray-400" />
                   <span>Notas adicionales (opcional)</span>
                 </Label>
                 <Textarea
@@ -278,25 +278,25 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                   placeholder="Agregar comentarios sobre la transferencia..."
                   value={transferData.notes}
                   onChange={(e) => setTransferData(prev => ({ ...prev, notes: e.target.value }))}
-                  className="border-2 border-gray-200 focus:border-blue-500 resize-none text-sm sm:text-base"
+                  className="border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 resize-none text-sm sm:text-base bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 />
               </div>
             </div>
           
             {/* Botones de acción */}
-            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-gray-300 hover:bg-gray-50 text-sm sm:text-base order-2 sm:order-1"
+                className="px-4 sm:px-6 py-2 sm:py-3 border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-sm sm:text-base order-2 sm:order-1 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100"
               >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
                 disabled={createTransferMutation.isPending || getCurrentAreaPieces() === 0}
-                className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold shadow-lg text-sm sm:text-base order-1 sm:order-2"
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold shadow-lg text-sm sm:text-base order-1 sm:order-2"
               >
                 {createTransferMutation.isPending && <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />}
                 <span className="hidden sm:inline">Confirmar Transferencia</span>

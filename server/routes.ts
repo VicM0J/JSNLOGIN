@@ -141,15 +141,38 @@ function registerOrderRoutes(app: Express) {
   });
 
   router.get("/", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+    if (!req.isAuthenticated()) {
+      console.log('Unauthenticated request to /api/orders');
+      return res.status(401).json({ message: "Autenticación requerida" });
+    }
 
     try {
-      const area = req.query.area as Area;
-      const orders = await storage.getOrders(area);
+      const user = req.user!;
+      console.log(`[ORDERS API] User ${user.username} (${user.area}) requesting orders`);
+      
+      // All areas can see all orders - no restrictions
+      const orders = await storage.getOrders();
+      
+      console.log(`[ORDERS API] Returning ${orders.length} orders to user ${user.username} (${user.area})`);
+      
+      // Specific logging for bordado area to debug
+      if (user.area === 'bordado') {
+        console.log(`[BORDADO DEBUG] User ${user.username} from bordado area received ${orders.length} orders`);
+        if (orders.length > 0) {
+          console.log(`[BORDADO DEBUG] Sample orders:`, orders.slice(0, 3).map(o => ({ 
+            id: o.id,
+            folio: o.folio, 
+            currentArea: o.currentArea, 
+            status: o.status,
+            clienteHotel: o.clienteHotel
+          })));
+        }
+      }
+      
       res.json(orders);
     } catch (error) {
-      console.error('Get orders error:', error);
-      res.status(500).json({ message: "Error al cargar órdenes" });
+      console.error(`[ORDERS API] Get orders error for user ${req.user?.username} (${req.user?.area}):`, error);
+      res.status(500).json({ message: "Error al cargar órdenes", error: error.message });
     }
   });
 

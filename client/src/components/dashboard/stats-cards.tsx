@@ -39,7 +39,7 @@ export function StatsCards() {
       title: "Pedidos Activos",
       value: stats?.activeOrders || 0,
       icon: Package,
-      bgColor: "bg-[#0d2a74]",
+      bgColor: "bg-purple-100",
       iconColor: "text-primary",
     },
     {

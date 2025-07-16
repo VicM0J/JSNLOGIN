@@ -300,12 +300,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrders(area?: Area): Promise<Order[]> {
+    console.log(`Getting orders, area filter: ${area || 'none'}`);
     if (area) {
-      return await db.select().from(orders)
+      const filteredOrders = await db.select().from(orders)
         .where(eq(orders.currentArea, area))
         .orderBy(desc(orders.createdAt));
+      console.log(`Found ${filteredOrders.length} orders for area ${area}`);
+      return filteredOrders;
     }
-    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+    const allOrders = await db.select().from(orders).orderBy(desc(orders.createdAt));
+    console.log(`Found ${allOrders.length} total orders`);
+    return allOrders;
   }
 
   async getOrderById(id: number): Promise<Order | undefined> {

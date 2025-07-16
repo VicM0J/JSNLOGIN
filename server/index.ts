@@ -112,7 +112,7 @@ if (!global.serverStarted) {
     }
 
     // Configuración Vite para desarrollo o archivos estáticos para producción
-    if (app.get("env") === "development") {
+    if (process.env.NODE_ENV === "development") {
       await setupVite(app, server);
     } else {
       serveStatic(app);
