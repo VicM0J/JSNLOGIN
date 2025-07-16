@@ -20,6 +20,11 @@ export default function HistoryPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [areaFilter, setAreaFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [sizeFilter, setSizeFilter] = useState<string>("all");
+  const [completionTimeFilter, setCompletionTimeFilter] = useState<string>("all");
+  const [includePaused, setIncludePaused] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<string>("desc");
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
@@ -101,13 +106,108 @@ export default function HistoryPage() {
     const matchesSearch = searchTerm === "" || 
       order.folio.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.clienteHotel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.modelo.toLowerCase().includes(searchTerm.toLowerCase());
+      order.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.noSolicitud?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.tipoPrenda?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.color?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.tela?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesArea = areaFilter === "all" || order.currentArea === areaFilter;
+    
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    const matchesDate = filterOrdersByDate(order);
+    
+    const matchesDate = (() => {
+      if (dateFilter === "all") return true;
+      
+      const orderDate = new Date(order.createdAt);
+      const now = new Date();
+      
+      switch (dateFilter) {
+        case "today":
+          return orderDate.toDateString() === now.toDateString();
+        case "week":
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return orderDate >= weekAgo;
+        case "month":
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return orderDate >= monthAgo;
+        case "quarter":
+          const quarterAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          return orderDate >= quarterAgo;
+        case "semester":
+          const semesterAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+          return orderDate >= semesterAgo;
+        case "year":
+          const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          return orderDate >= yearAgo;
+        default:
+          return true;
+      }
+    })();
 
-    return matchesSearch && matchesArea && matchesStatus && matchesDate;
+    const matchesSize = (() => {
+      if (sizeFilter === "all") return true;
+      const pieces = order.totalPiezas;
+      switch (sizeFilter) {
+        case "small": return pieces >= 1 && pieces <= 49;
+        case "medium": return pieces >= 50 && pieces <= 99;
+        case "large": return pieces >= 100;
+        default: return true;
+      }
+    })();
+
+    const matchesCompletionTime = (() => {
+      if (completionTimeFilter === "all" || !order.completedAt) return true;
+      
+      const created = new Date(order.createdAt);
+      const completed = new Date(order.completedAt);
+      const diffDays = (completed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
+      
+      switch (completionTimeFilter) {
+        case "fast": return diffDays < 1;
+        case "normal": return diffDays >= 1 && diffDays <= 3;
+        case "slow": return diffDays > 3;
+        default: return true;
+      }
+    })();
+
+    const matchesPausedFilter = includePaused || order.status !== 'paused';
+
+    return matchesSearch && matchesArea && matchesStatus && matchesDate && matchesSize && matchesCompletionTime && matchesPausedFilter;
+  }).sort((a, b) => {
+    let aValue: any, bValue: any;
+    
+    switch (sortBy) {
+      case "createdAt":
+        aValue = new Date(a.createdAt);
+        bValue = new Date(b.createdAt);
+        break;
+      case "completedAt":
+        aValue = a.completedAt ? new Date(a.completedAt) : new Date(0);
+        bValue = b.completedAt ? new Date(b.completedAt) : new Date(0);
+        break;
+      case "folio":
+        aValue = a.folio;
+        bValue = b.folio;
+        break;
+      case "clienteHotel":
+        aValue = a.clienteHotel;
+        bValue = b.clienteHotel;
+        break;
+      case "totalPiezas":
+        aValue = a.totalPiezas;
+        bValue = b.totalPiezas;
+        break;
+      default:
+        aValue = new Date(a.createdAt);
+        bValue = new Date(b.createdAt);
+    }
+
+    if (sortOrder === "asc") {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
   });
 
   const completedOrders = filteredOrders.filter(order => order.status === 'completed');
@@ -272,24 +372,34 @@ export default function HistoryPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-gradient-to-r from-green-50 to-teal-50 border-green-200">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 text-green-800">
             <Filter className="h-5 w-5" />
-            <span>Filtros</span>
+            <span>Búsqueda y Filtros Avanzados</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="relative col-span-1 md:col-span-2">
               <Input
                 type="text"
-                placeholder="Buscar pedidos..."
+                placeholder="Buscar por folio, cliente, modelo, No. solicitud, tipo, color, tela..."
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
             </div>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -300,6 +410,7 @@ export default function HistoryPage() {
                 <SelectItem value="all">Todos los Estados</SelectItem>
                 <SelectItem value="active">En Proceso</SelectItem>
                 <SelectItem value="completed">Finalizados</SelectItem>
+                <SelectItem value="paused">Pausados</SelectItem>
               </SelectContent>
             </Select>
 
@@ -309,15 +420,21 @@ export default function HistoryPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las Áreas</SelectItem>
+                <SelectItem value="patronaje">Patronaje</SelectItem>
                 <SelectItem value="corte">Corte</SelectItem>
                 <SelectItem value="bordado">Bordado</SelectItem>
                 <SelectItem value="ensamble">Ensamble</SelectItem>
                 <SelectItem value="plancha">Plancha/Empaque</SelectItem>
                 <SelectItem value="calidad">Calidad</SelectItem>
                 <SelectItem value="envios">Envíos</SelectItem>
+                <SelectItem value="almacen">Almacén</SelectItem>
+                <SelectItem value="diseño">Diseño</SelectItem>
+                <SelectItem value="operaciones">Operaciones</SelectItem>
               </SelectContent>
             </Select>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
             <Select value={dateFilter} onValueChange={setDateFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Período" />
@@ -327,8 +444,123 @@ export default function HistoryPage() {
                 <SelectItem value="today">Hoy</SelectItem>
                 <SelectItem value="week">Última semana</SelectItem>
                 <SelectItem value="month">Último mes</SelectItem>
+                <SelectItem value="quarter">Último trimestre</SelectItem>
+                <SelectItem value="semester">Último semestre</SelectItem>
+                <SelectItem value="year">Último año</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={sizeFilter} onValueChange={setSizeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tamaño pedido" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tamaños</SelectItem>
+                <SelectItem value="small">Pequeño (1-49 piezas)</SelectItem>
+                <SelectItem value="medium">Mediano (50-99 piezas)</SelectItem>
+                <SelectItem value="large">Grande (100+ piezas)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={completionTimeFilter} onValueChange={setCompletionTimeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tiempo completado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tiempos</SelectItem>
+                <SelectItem value="fast">Rápido (&lt; 1 día)</SelectItem>
+                <SelectItem value="normal">Normal (1-3 días)</SelectItem>
+                <SelectItem value="slow">Lento (&gt; 3 días)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="include-paused"
+                checked={includePaused}
+                onChange={(e) => setIncludePaused(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="include-paused" className="text-sm font-medium">
+                Incluir pausados
+              </label>
+            </div>
+          </div>
+
+          {/* Controles de ordenamiento */}
+          <div className="flex flex-wrap gap-4 mt-4 items-center">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-600">Ordenar por:</label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="createdAt">Fecha creación</SelectItem>
+                  <SelectItem value="completedAt">Fecha finalización</SelectItem>
+                  <SelectItem value="folio">Folio</SelectItem>
+                  <SelectItem value="clienteHotel">Cliente</SelectItem>
+                  <SelectItem value="totalPiezas">Cantidad piezas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-600">Orden:</label>
+              <Select value={sortOrder} onValueChange={setSortOrder}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">Descendente</SelectItem>
+                  <SelectItem value="asc">Ascendente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Resumen de filtros activos */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {(searchTerm || statusFilter !== 'all' || areaFilter !== 'all' || dateFilter !== 'all' || sizeFilter !== 'all' || completionTimeFilter !== 'all' || includePaused) && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Filtros activos:</span>
+                {searchTerm && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    Búsqueda: "{searchTerm.substring(0, 20)}{searchTerm.length > 20 ? '...' : ''}"
+                    <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchTerm('')} />
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                    setAreaFilter('all');
+                    setDateFilter('all');
+                    setSizeFilter('all');
+                    setCompletionTimeFilter('all');
+                    setIncludePaused(false);
+                  }}
+                  className="h-6 text-xs"
+                >
+                  Limpiar todo
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Estadísticas de resultados */}
+          <div className="mt-4 p-3 bg-white rounded-lg border">
+            <div className="text-sm text-gray-600">
+              Mostrando <span className="font-semibold">{filteredOrders.length}</span> de <span className="font-semibold">{orders.length}</span> pedidos
+              {filteredOrders.length !== orders.length && (
+                <span className="ml-2 text-blue-600">
+                  ({Math.round((filteredOrders.length / orders.length) * 100)}% del total)
+                </span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

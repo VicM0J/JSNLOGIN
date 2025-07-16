@@ -3,12 +3,106 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#8b5cf6" />
+    <meta name="description" content="Sistema de gestión de órdenes y reposiciones para JASANA" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="EasyTrack" />
+    <meta name="application-name" content="EasyTrack" />
+    <meta name="msapplication-TileColor" content="#8b5cf6" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Additional PWA meta tags for better compatibility -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="full-screen" content="yes" />
+    <meta name="browsermode" content="application" />
+    
+    <!-- Icons -->
     <link rel="icon" href="./public/icono_pestaña.png" />
+    <link rel="manifest" href="./public/manifest.json" />
+    <link rel="apple-touch-icon" href="./public/icono_pestaña.png" />
+    
     <title>EasyTrack</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // PWA Install prompt handling
+      let deferredPrompt;
+      
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA install prompt available');
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Show install button or notification
+        const installButton = document.createElement('button');
+        installButton.textContent = 'Instalar App';
+        installButton.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 1000;
+          background: #8b5cf6;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: bold;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        `;
+        
+        installButton.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install prompt: ${outcome}`);
+            deferredPrompt = null;
+            installButton.remove();
+          }
+        });
+        
+        document.body.appendChild(installButton);
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+          if (installButton.parentNode) {
+            installButton.remove();
+          }
+        }, 10000);
+      });
+      
+      // Service Worker registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then((registration) => {
+              console.log('SW registered successfully:', registration.scope);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                console.log('SW update found');
+              });
+            })
+            .catch((error) => {
+              console.error('SW registration failed:', error);
+            });
+        });
+      } else {
+        console.log('Service Worker not supported');
+      }
+      
+      // Handle app installation
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('PWA was installed successfully');
+      });
+    </script>
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>
 </html>

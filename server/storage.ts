@@ -99,6 +99,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getAdminUser(): Promise<User | undefined>;
   resetUserPassword(userId: number, hashedPassword: string): Promise<void>;
+  getAllAdminUsers(): Promise<User[]>;
 
 
   createOrder(order: InsertOrder, createdBy: number): Promise<Order>;
@@ -266,9 +267,13 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getAdminUser(): Promise<User | undefined> {
-    const [admin] = await db.select().from(users).where(eq(users.area, 'admin')).limit(1);
-    return admin || undefined;
+  async getAdminUser(): Promise<User | null> {
+    const adminUsers = await db.select().from(users).where(eq(users.area, 'admin')).limit(1);
+    return adminUsers[0] || null;
+  }
+
+  async getAllAdminUsers(): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.area, 'admin'));
   }
 
   async resetUserPassword(userId: number, hashedPassword: string): Promise<void> {

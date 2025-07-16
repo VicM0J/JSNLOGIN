@@ -95,12 +95,21 @@ export function setupAuth(app: Express) {
       }
 
       if (area !== 'admin') {
-        const adminUser = await storage.getAdminUser();
-        if (!adminUser || !adminPassword) {
+        const adminUsers = await storage.getAllAdminUsers();
+        if (!adminUsers || adminUsers.length === 0 || !adminPassword) {
           return res.status(400).json({ message: "Se requiere clave de admin" });
         }
         
-        const isAdminPasswordValid = await comparePasswords(adminPassword, adminUser.password);
+        // Verificar si la contraseña coincide con algún admin
+        let isAdminPasswordValid = false;
+        for (const adminUser of adminUsers) {
+          const isValid = await comparePasswords(adminPassword, adminUser.password);
+          if (isValid) {
+            isAdminPasswordValid = true;
+            break;
+          }
+        }
+        
         if (!isAdminPasswordValid) {
           return res.status(400).json({ message: "Contraseña no valida" });
         }

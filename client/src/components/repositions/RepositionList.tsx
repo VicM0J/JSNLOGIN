@@ -74,6 +74,10 @@ export function RepositionList({ userArea }: { userArea: string }) {
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAccident, setFilterAccident] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [urgencyFilter, setUrgencyFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>('all');
   const [activeTimers, setActiveTimers] = useState<Record<number, boolean>>({});
   const [completionNotes, setCompletionNotes] = useState<Record<number, string>>({});
   const [transferModalId, setTransferModalId] = useState<number | null>(null);
@@ -637,18 +641,50 @@ export function RepositionList({ userArea }: { userArea: string }) {
     startTimerMutation.mutate(repositionId);
   };
 
-  // Filter repositions based on search term and accident type
+  // Filter repositions based on all criteria
   const filteredRepositions = repositions.filter((reposition: any) => {
     const matchesSearch = searchTerm === '' || 
       reposition.folio.toLowerCase().includes(searchTerm.toLowerCase()) ||
       reposition.solicitanteNombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       reposition.modeloPrenda.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reposition.tipoAccidente?.toLowerCase().includes(searchTerm.toLowerCase());
+      reposition.noSolicitud?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reposition.tipoAccidente?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reposition.solicitanteArea?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reposition.currentArea?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesAccident = filterAccident === 'all' || 
       reposition.tipoAccidente?.toLowerCase().includes(filterAccident.replace('_', ' '));
 
-    return matchesSearch && matchesAccident;
+    const matchesStatus = statusFilter === 'all' || reposition.status === statusFilter;
+
+    const matchesUrgency = urgencyFilter === 'all' || reposition.urgencia === urgencyFilter;
+
+    const matchesType = typeFilter === 'all' || reposition.type === typeFilter;
+
+    const matchesDateRange = (() => {
+      if (dateRangeFilter === 'all') return true;
+
+      const createdDate = new Date(reposition.createdAt);
+      const now = new Date();
+
+      switch (dateRangeFilter) {
+        case 'today':
+          return createdDate.toDateString() === now.toDateString();
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return createdDate >= weekAgo;
+        case 'month':
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return createdDate >= monthAgo;
+        case 'quarter':
+          const quarterAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          return createdDate >= quarterAgo;
+        default:
+          return true;
+      }
+    })();
+
+    return matchesSearch && matchesAccident && matchesStatus && matchesUrgency && matchesType && matchesDateRange;
   });
 
   const getRepositionNextAreas = (currentArea: string) => {
@@ -695,31 +731,152 @@ export function RepositionList({ userArea }: { userArea: string }) {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-4 items-center">
-        {/* Búsqueda */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Buscar por folio, solicitante, modelo..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 w-64"
-          />
-        </div>
+      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-purple-800">
+            <Search className="w-5 h-5" />
+            Búsqueda y Filtros Avanzados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Búsqueda principal */}
+            <div className="relative col-span-1 md:col-span-2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Buscar por folio, solicitante, modelo, No. solicitud..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
 
-        {/* Filtro por tipo de accidente */}
-        <Select value={filterAccident} onValueChange={setFilterAccident}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por accidente" />
-          </SelectTrigger>
-          <SelectContent>
-            {accidentFilters.map(filter => (
-              <SelectItem key={filter.value} value={filter.value}>
-                {filter.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            {/* Filtro por estado */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="pendiente">Pendiente</SelectItem>
+                <SelectItem value="aprobado">Aprobado</SelectItem>
+                <SelectItem value="rechazado">Rechazado</SelectItem>
+                <SelectItem value="en_proceso">En proceso</SelectItem>
+                <SelectItem value="completado">Completado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+                <SelectItem value="eliminado">Eliminado</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filtro por urgencia */}
+            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Urgencia" />
+                            </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las urgencias</SelectItem>
+                <SelectItem value="urgente">Urgente</SelectItem>
+                <SelectItem value="intermedio">Intermedio</SelectItem>
+                <SelectItem value="poco_urgente">Poco urgente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+            {/* Filtro por tipo de accidente */}
+            <Select value={filterAccident} onValueChange={setFilterAccident}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de accidente" />
+              </SelectTrigger>
+              <SelectContent>
+                {accidentFilters.map(filter => (
+                  <SelectItem key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filtro por tipo de reposición */}
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                <SelectItem value="repocision">Reposición</SelectItem>
+                <SelectItem value="reproceso">Reproceso</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filtro por rango de fechas */}
+            <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las fechas</SelectItem>
+                <SelectItem value="today">Hoy</SelectItem>
+                <SelectItem value="week">Última semana</SelectItem>
+                <SelectItem value="month">Último mes</SelectItem>
+                <SelectItem value="quarter">Último trimestre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Resumen de filtros activos */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {(searchTerm || statusFilter !== 'all' || urgencyFilter !== 'all' || filterAccident !== 'all' || typeFilter !== 'all' || dateRangeFilter !== 'all') && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Filtros activos:</span>
+                {searchTerm && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    Búsqueda: "{searchTerm.substring(0, 20)}{searchTerm.length > 20 ? '...' : ''}"
+                    <X className="w-3 h-3 cursor-pointer" onClick={() => setSearchTerm('')} />
+                  </Badge>
+                )}
+                {statusFilter !== 'all' && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    Estado: {statusFilter}
+                    <X className="w-3 h-3 cursor-pointer" onClick={() => setStatusFilter('all')} />
+                  </Badge>
+                )}
+                {urgencyFilter !== 'all' && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    Urgencia: {urgencyFilter}
+                    <X className="w-3 h-3 cursor-pointer" onClick={() => setUrgencyFilter('all')} />
+                  </Badge>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                    setUrgencyFilter('all');
+                    setFilterAccident('all');
+                    setTypeFilter('all');
+                    setDateRangeFilter('all');
+                  }}
+                  className="h-6 text-xs"
+                >
+                  Limpiar todo
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
         {(userArea === 'admin' || userArea === 'envios' || userArea === 'diseño' || userArea === 'almacen') && (
           <>
@@ -998,7 +1155,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
                                       />
                                     </div>
                                   </div>
-                                  
+
                                   {/* Fecha y hora de fin */}
                                   <div className="grid grid-cols-2 gap-2">
                                     <div>
