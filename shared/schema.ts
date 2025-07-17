@@ -105,43 +105,44 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const repositions = pgTable("repositions", {
-  id: serial("id").primaryKey(),
-  folio: text("folio").notNull().unique(),
-  type: repositionTypeEnum("type").notNull(),
+export const repositions = pgTable('repositions', {
+  id: serial('id').primaryKey(),
+  folio: text('folio').notNull().unique(),
+  type: repositionTypeEnum('type').notNull(),
 
-  solicitanteNombre: text("solicitante_nombre").notNull(),
-  solicitanteArea: areaEnum("solicitante_area").notNull(),
-  fechaSolicitud: timestamp("fecha_solicitud").defaultNow().notNull(),
+  solicitanteNombre: text('solicitante_nombre').notNull(),
+  solicitanteArea: areaEnum('solicitante_area').notNull(),
+  fechaSolicitud: timestamp('fecha_solicitud').defaultNow().notNull(),
 
-  noSolicitud: text("no_solicitud").notNull(),
-  noHoja: text("no_hoja"),
-  fechaCorte: text("fecha_corte"),
+  noSolicitud: text('no_solicitud').notNull(),
+  noHoja: text('no_hoja'),
+  fechaCorte: text('fecha_corte'),
 
-  causanteDano: text("causante_dano").notNull(),
-  tipoAccidente: text("tipo_accidente").notNull(),
-  otroAccidente: text("otro_accidente"),
-  descripcionSuceso: text("descripcion_suceso").notNull(),
+  causanteDano: text('causante_dano').notNull(),
+  tipoAccidente: text('tipo_accidente').notNull(),
+  otroAccidente: text('otro_accidente'),
+  descripcionSuceso: text('descripcion_suceso').notNull(),
 
-  modeloPrenda: text("modelo_prenda").notNull(),
-  tela: text("tela").notNull(),
-  color: text("color").notNull(),
-  tipoPieza: text("tipo_pieza").notNull(),
-  consumoTela: real("consumo_tela"),
+  modeloPrenda: text('modelo_prenda').notNull(),
+  tela: text('tela').notNull(),
+  color: text('color').notNull(),
+  tipoPieza: text('tipo_pieza').notNull(),
+  consumoTela: real('consumo_tela'),
 
-  urgencia: urgencyEnum("urgencia").notNull(),
-  observaciones: text("observaciones"),
-  volverHacer: text("volver_hacer"),
-  materialesImplicados: text("materiales_implicados"),
+  urgencia: urgencyEnum('urgencia').notNull(),
+  observaciones: text('observaciones'),
+  volverHacer: text('volver_hacer'),
+  materialesImplicados: text('materiales_implicados'),
 
-  currentArea: areaEnum("current_area").notNull(),
-  status: repositionStatusEnum("status").notNull().default("pendiente"),
+  currentArea: areaEnum('current_area').notNull(),
+  status: repositionStatusEnum('status').notNull().default('pendiente'),
 
-  createdBy: integer("created_by").notNull(),
-  approvedBy: integer("approved_by"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  approvedAt: timestamp("approved_at"),
-  completedAt: timestamp("completed_at"),
+  createdBy: integer('created_by').notNull(),
+  approvedBy: integer('approved_by'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  approvedAt: timestamp('approved_at'),
+  completedAt: timestamp('completed_at'),
+  rejectionReason: text('rejection_reason'),
 });
 
 export const repositionPieces = pgTable("reposition_pieces", {

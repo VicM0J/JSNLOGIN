@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Eye, ArrowRight, CheckCircle, XCircle, Clock, MapPin, Activity, Trash2, Flag, Bell, Search, Play, Square, Printer, CalendarIcon, X } from 'lucide-react';
+import { Plus, Eye, ArrowRight, CheckCircle, XCircle, Clock, MapPin, Activity, Trash2, Flag, Bell, Search, Play, Square, Printer, CalendarIcon, X, Edit } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { RepositionForm } from './RepositionForm';
 import { RepositionDetail } from './RepositionDetail';
@@ -84,6 +84,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
   const [transferModalId, setTransferModalId] = useState<number | null>(null);
   const [manualTimes, setManualTimes] = useState<Record<number, { startTime: string; endTime: string; startDate: Date | undefined; endDate: Date | undefined }>>({});
   const [completionRequests, setCompletionRequests] = useState<Record<number, number>>({});
+  const [editingReposition, setEditingReposition] = useState<number | null>(null);
   const queryClient = useQueryClient();
   
   // Add authentication check
@@ -154,9 +155,9 @@ export function RepositionList({ userArea }: { userArea: string }) {
       return data;
     },
     enabled: !!user, // Only run query when user is authenticated
-    refetchInterval: 5000,
+    refetchInterval: showForm || editingReposition || selectedReposition || trackedReposition ? false : 30000, // 30 seconds, disabled when forms are open
     refetchOnMount: true,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: showForm || editingReposition || selectedReposition || trackedReposition ? false : true // Disable when forms are open
   });
 
   const { data: notifications = [] } = useQuery({
@@ -180,7 +181,9 @@ export function RepositionList({ userArea }: { userArea: string }) {
         )
       );
     },
-    enabled: !!user
+    enabled: !!user,
+    refetchInterval: showForm || editingReposition || selectedReposition || trackedReposition ? false : 60000, // 60 seconds, disabled when forms are open
+    refetchOnWindowFocus: showForm || editingReposition || selectedReposition || trackedReposition ? false : true
   });
 
   const { data: pendingTransfers = [] } = useQuery({
@@ -197,7 +200,8 @@ export function RepositionList({ userArea }: { userArea: string }) {
       }
       return response.json();
     },
-    refetchInterval: 5000,
+    refetchInterval: showForm || editingReposition || selectedReposition || trackedReposition ? false : 30000, // 30 seconds, disabled when forms are open
+    refetchOnWindowFocus: showForm || editingReposition || selectedReposition || trackedReposition ? false : true,
     enabled: !!user
   });
 
@@ -639,16 +643,41 @@ export function RepositionList({ userArea }: { userArea: string }) {
   };
 
   const handleApproval = async (repositionId: number, action: 'aprobado' | 'rechazado') => {
-    const { value: notes } = await Swal.fire({
-      title: `${action === 'aprobado' ? 'Aprobar' : 'Rechazar'} Solicitud`,
-      input: 'textarea',
-      inputPlaceholder: 'Comentarios (opcional)',
-      showCancelButton: true,
-      confirmButtonColor: '#8B5CF6'
-    });
+    if (action === 'rechazado') {
+      const { value: notes } = await Swal.fire({
+        title: 'Rechazar Solicitud',
+        text: 'Debe proporcionar un motivo para el rechazo',
+        input: 'textarea',
+        inputPlaceholder: 'Describe el motivo del rechazo (mínimo 10 caracteres) *',
+        showCancelButton: true,
+        confirmButtonColor: '#EF4444',
+        confirmButtonText: 'Rechazar',
+        inputValidator: (value) => {
+          if (!value || value.trim().length === 0) {
+            return 'El motivo del rechazo es obligatorio';
+          }
+          if (value.trim().length < 10) {
+            return 'El motivo debe tener al menos 10 caracteres';
+          }
+        }
+      });
 
-    if (notes !== undefined) {
-      approveMutation.mutate({ repositionId, action, notes });
+      if (notes !== undefined) {
+        approveMutation.mutate({ repositionId, action, notes: notes.trim() });
+      }
+    } else {
+      const { value: notes } = await Swal.fire({
+        title: 'Aprobar Solicitud',
+        input: 'textarea',
+        inputPlaceholder: 'Comentarios (opcional)',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        confirmButtonText: 'Aprobar'
+      });
+
+      if (notes !== undefined) {
+        approveMutation.mutate({ repositionId, action, notes });
+      }
     }
   };
 
@@ -882,7 +911,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
     return 'Solicitar Finalización';
   };
 
-  if (isLoading) {
+  if (isLoading && !showForm && !editingReposition && !selectedReposition && !trackedReposition) {
     return <div className="text-center py-8">Cargando solicitudes...</div>;
   }
 
@@ -1198,6 +1227,18 @@ export function RepositionList({ userArea }: { userArea: string }) {
                       Ver Detalles
                     </Button>
 
+                    {reposition.status === 'rechazado' && reposition.solicitanteArea === userArea && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 hover:bg-blue-50"
+                        onClick={() => setEditingReposition(reposition.id)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar y Reenviar
+                      </Button>
+                    )}
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -1502,6 +1543,12 @@ export function RepositionList({ userArea }: { userArea: string }) {
       </div>
 
       {showForm && <RepositionForm onClose={() => setShowForm(false)} />}
+      {editingReposition && (
+        <RepositionForm
+          repositionId={editingReposition}
+          onClose={() => setEditingReposition(null)}
+        />
+      )}
       {selectedReposition && (
         <RepositionDetail
           repositionId={selectedReposition}

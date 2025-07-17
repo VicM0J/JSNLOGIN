@@ -826,6 +826,14 @@ export function RepositionDetail({
                   })}</p>
                 </div>
               )}
+              {reposition.status === 'rechazado' && reposition.rejectionReason && (
+                <div className="md:col-span-2">
+                  <p className="font-semibold text-red-700 dark:text-red-300">Motivo del Rechazo</p>
+                  <p className="text-red-600 dark:text-red-400 whitespace-pre-wrap bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+                    {reposition.rejectionReason}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

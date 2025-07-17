@@ -303,6 +303,7 @@ CREATE TABLE IF NOT EXISTS repositions (
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     approved_at TIMESTAMP,
     completed_at TIMESTAMP,
+    rejection_reason TEXT,
     CONSTRAINT repositions_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT repositions_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES users(id)
 );

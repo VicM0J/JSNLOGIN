@@ -1046,11 +1046,122 @@ function registerRepositionRoutes(app: Express) {
       }
       const { action, notes } = req.body;
 
+      // Require rejection reason for rejections
+      if (action === 'rechazado') {
+        if (!notes || notes.trim().length === 0) {
+          return res.status(400).json({ message: "El motivo del rechazo es obligatorio" });
+        }
+        if (notes.trim().length < 10) {
+          return res.status(400).json({ message: "El motivo del rechazo debe tener al menos 10 caracteres" });
+        }
+      }
+
       const result = await storage.approveReposition(repositionId, action, user.id, notes);
       res.json(result);
     } catch (error) {
       console.error('Approve reposition error:', error);
       res.status(400).json({ message: "Error al procesar la aprobación" });
+    }
+  });
+
+  router.put("/:id", authenticateToken, upload.array('documents', 5), handleMulterError, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const repositionId = parseInt(req.params.id);
+      
+      console.log('Edit reposition request:', { repositionId, userId: user?.id, hasUser: !!user });
+      
+      if (isNaN(repositionId)) {
+        return res.status(400).json({ message: "ID de reposición inválido" });
+      }
+
+      if (!user) {
+        return res.status(401).json({ message: "Usuario no autenticado" });
+      }
+
+      // Check if the reposition exists and is rejected
+      const existingReposition = await storage.getRepositionById(repositionId);
+      if (!existingReposition) {
+        return res.status(404).json({ message: "Reposición no encontrada" });
+      }
+
+      console.log('Existing reposition:', { 
+        id: existingReposition.id, 
+        status: existingReposition.status, 
+        createdBy: existingReposition.createdBy 
+      });
+
+      if (existingReposition.status !== 'rechazado') {
+        return res.status(400).json({ message: "Solo se pueden editar reposiciones rechazadas" });
+      }
+
+      if (existingReposition.createdBy !== user.id) {
+        return res.status(403).json({ message: "Solo el creador puede editar esta reposición" });
+      }
+
+      let repositionData;
+      try {
+        if (req.body.repositionData) {
+          repositionData = JSON.parse(req.body.repositionData);
+        } else {
+          repositionData = req.body;
+        }
+      } catch (parseError) {
+        console.error('Error parsing repository data:', parseError);
+        return res.status(400).json({ message: "Datos de reposición inválidos" });
+      }
+
+      console.log('Parsed reposition data:', { 
+        type: repositionData.type, 
+        hasProductos: !!repositionData.productos,
+        hasPieces: !!repositionData.pieces 
+      });
+
+      const { pieces, productos, telaContraste, ...mainData } = repositionData;
+
+      // Collect all pieces from all products for reposiciones, or use direct pieces for reprocesos
+      let allPieces = [];
+      if (repositionData.type === 'repocision' && productos && productos.length > 0) {
+        allPieces = productos.flatMap((producto: any) => producto.pieces || []);
+      } else if (pieces && pieces.length > 0) {
+        allPieces = pieces;
+      }
+
+      console.log('All pieces to update:', allPieces.length);
+
+      const updatedReposition = await storage.updateReposition(
+        repositionId, 
+        {
+          ...mainData,
+          productos,
+          telaContraste: mainData.tieneTelaContraste ? telaContraste : undefined
+        }, 
+        allPieces, 
+        user.id
+      );
+
+      // Save new documents if any
+      const files = req.files as Express.Multer.File[];
+      if (files && files.length > 0) {
+        console.log('Saving documents:', files.length);
+        for (const file of files) {
+          await storage.saveRepositionDocument({
+            repositionId: repositionId,
+            filename: file.filename,
+            originalName: file.originalname,
+            size: file.size,
+            path: file.path,
+            uploadedBy: user.id
+          });
+        }
+      }
+
+      console.log('Reposition updated successfully');
+      res.json(updatedReposition);
+    } catch (error) {
+      console.error('Update reposition error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Error al actualizar la reposición";
+      res.status(500).json({ message: errorMessage });
     }
   });
 
