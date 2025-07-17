@@ -21,7 +21,8 @@ import { NotificationService } from './lib/notifications';
 import MaintenanceScreen from './components/maintenance/MaintenanceScreen';
 
 // Toggle this to enable/disable maintenance mode
-const MAINTENANCE_MODE = true;
+//const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 function Router() {
   if (MAINTENANCE_MODE) {
