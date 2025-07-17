@@ -16,8 +16,18 @@ import AlmacenPage from "@/pages/almacen-page";
 import AuthPage from "@/pages/auth-page";
 import NotFound from "./pages/not-found";
 import MetricsPage from "./pages/metrics-page";
+import { useEffect } from 'react';
+import { NotificationService } from './lib/notifications';
+import MaintenanceScreen from './components/maintenance/MaintenanceScreen';
+
+// Toggle this to enable/disable maintenance mode
+const MAINTENANCE_MODE = true;
 
 function Router() {
+  if (MAINTENANCE_MODE) {
+    return <MaintenanceScreen />;
+  }
+
   return (
     <Switch>
       <ProtectedRoute path="/" component={Dashboard} />
@@ -35,6 +45,10 @@ function Router() {
 }
 
 function App() {
+  useEffect(() => {
+    NotificationService.getInstance();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

@@ -18,7 +18,7 @@ import { useEffect } from 'react';
 
   interface RepositionPiece {
     talla: string;
-    cantidad: number;
+    cantidad: number | string;
     folioOriginal?: string;
   }
 
@@ -490,6 +490,7 @@ import { useEffect } from 'react';
                     id="solicitanteNombre"
                     {...register('solicitanteNombre', { required: 'Campo requerido' })}
                     className={errors.solicitanteNombre ? 'border-red-500' : ''}
+                    uppercase={true}
                   />
                 </div>
                 <div>
@@ -511,11 +512,12 @@ import { useEffect } from 'react';
                     id="noSolicitud"
                     {...register('noSolicitud', { required: 'Campo requerido' })}
                     className={errors.noSolicitud ? 'border-red-500' : ''}
+                    uppercase={true}
                   />
                 </div>
                 <div>
                   <Label htmlFor="noHoja">Número de Hoja</Label>
-                  <Input id="noHoja" {...register('noHoja')} />
+                  <Input id="noHoja" {...register('noHoja')} uppercase={true} />
                 </div>
                 <div>
                   <Label htmlFor="fechaCorte">Fecha de Corte</Label>
@@ -540,6 +542,7 @@ import { useEffect } from 'react';
                     id="causanteDano"
                     {...register('causanteDano', { required: 'Campo requerido' })}
                     className={errors.causanteDano ? 'border-red-500' : ''}
+                    uppercase={true}
                   />
                 </div>
 
@@ -573,6 +576,7 @@ import { useEffect } from 'react';
                       })}
                       className={errors.otroAccidente ? 'border-red-500' : ''}
                       placeholder="Describe el tipo de accidente"
+                      uppercase={true}
                     />
                   </div>
                 )}
@@ -624,6 +628,7 @@ import { useEffect } from 'react';
                     {...register('descripcionSuceso', { required: 'Campo requerido' })}
                     className={errors.descripcionSuceso ? 'border-red-500' : ''}
                     rows={3}
+                    uppercase={true}
                   />
                 </div>
               </CardContent>
@@ -667,6 +672,7 @@ import { useEffect } from 'react';
                               value={producto.modeloPrenda}
                               onChange={(e) => updateProducto(productIndex, 'modeloPrenda', e.target.value)}
                               placeholder="Modelo de prenda"
+                              uppercase={true}
                             />
                           </div>
                           <div>
@@ -675,6 +681,7 @@ import { useEffect } from 'react';
                               value={producto.tela}
                               onChange={(e) => updateProducto(productIndex, 'tela', e.target.value)}
                               placeholder="Tipo de tela"
+                              uppercase={true}
                             />
                           </div>
                           <div>
@@ -683,6 +690,7 @@ import { useEffect } from 'react';
                               value={producto.color}
                               onChange={(e) => updateProducto(productIndex, 'color', e.target.value)}
                               placeholder="Color"
+                              uppercase={true}
                             />
                           </div>
                           <div>
@@ -691,6 +699,7 @@ import { useEffect } from 'react';
                               value={producto.tipoPieza}
                               onChange={(e) => updateProducto(productIndex, 'tipoPieza', e.target.value)}
                               placeholder="ej. Manga, Delantero, Cuello"
+                              uppercase={true}
                             />
                           </div>
                           {watch('currentArea') === 'corte' && (
@@ -731,6 +740,7 @@ import { useEffect } from 'react';
                                     value={piece.talla}
                                     onChange={(e) => updateProductPiece(productIndex, pieceIndex, 'talla', e.target.value)}
                                     placeholder="ej. S, M, L, XL"
+                                    uppercase={true}
                                   />
                                 </div>
                                 <div className="flex-1">
@@ -738,8 +748,26 @@ import { useEffect } from 'react';
                                   <Input
                                     type="number"
                                     min="1"
-                                    value={piece.cantidad}
-                                    onChange={(e) => updateProductPiece(productIndex, pieceIndex, 'cantidad', parseInt(e.target.value) || 1)}
+                                    value={piece.cantidad === 1 ? '' : piece.cantidad}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      if (value === '' || value === '0') {
+                                        updateProductPiece(productIndex, pieceIndex, 'cantidad', '');
+                                      } else {
+                                        const numValue = parseInt(value);
+                                        if (!isNaN(numValue) && numValue > 0) {
+                                          updateProductPiece(productIndex, pieceIndex, 'cantidad', numValue);
+                                        }
+                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      if (e.target.value === '' || e.target.value === '0') {
+                                        updateProductPiece(productIndex, pieceIndex, 'cantidad', 1);
+                                      }
+                                    }}
+                                    placeholder="1"
+                                    className="text-center"
+                                    uppercase={true}
                                   />
                                 </div>
                                 <div className="flex-1">
@@ -748,6 +776,7 @@ import { useEffect } from 'react';
                                     value={piece.folioOriginal || ''}
                                     onChange={(e) => updateProductPiece(productIndex, pieceIndex, 'folioOriginal', e.target.value)}
                                     placeholder="Opcional"
+                                    uppercase={true}
                                   />
                                 </div>
                                 {producto.pieces.length > 1 && (
@@ -789,6 +818,7 @@ import { useEffect } from 'react';
                       className={errors.volverHacer ? 'border-red-500' : ''}
                       rows={3}
                       placeholder="Describe detalladamente qué procesos deben repetirse..."
+                      uppercase={true}
                     />
                   </div>
                   <div>
@@ -801,6 +831,7 @@ import { useEffect } from 'react';
                       className={errors.materialesImplicados ? 'border-red-500' : ''}
                       rows={3}
                       placeholder="Lista los materiales que están involucrados en el reproceso..."
+                      uppercase={true}
                     />
                   </div>
                 </CardContent>
@@ -844,6 +875,7 @@ import { useEffect } from 'react';
                           value={contrastFabric.tela}
                           onChange={(e) => setContrastFabric(prev => ({ ...prev, tela: e.target.value }))}
                           placeholder="Tipo de segunda tela"
+                          uppercase={true}
                         />
                       </div>
                       <div>
@@ -852,6 +884,7 @@ import { useEffect } from 'react';
                           value={contrastFabric.color}
                           onChange={(e) => setContrastFabric(prev => ({ ...prev, color: e.target.value }))}
                           placeholder="Color"
+                          uppercase={true}
                         />
                       </div>
                       {watch('currentArea') === 'corte' && (
@@ -893,6 +926,7 @@ import { useEffect } from 'react';
                               value={tipoPieza.tipoPieza}
                               onChange={(e) => updateContrastPieceType(pieceTypeIndex, e.target.value)}
                               placeholder="ej. Manga, Delantero, Cuello"
+                              uppercase={true}
                             />
                           </div>
 
@@ -919,6 +953,7 @@ import { useEffect } from 'react';
                                       value={piece.talla}
                                       onChange={(e) => updateContrastPiece(pieceTypeIndex, pieceIndex, 'talla', e.target.value)}
                                       placeholder="ej. S, M, L, XL"
+                                      uppercase={true}
                                     />
                                   </div>
                                   <div className="flex-1">
@@ -926,8 +961,26 @@ import { useEffect } from 'react';
                                     <Input
                                       type="number"
                                       min="1"
-                                      value={piece.cantidad}
-                                      onChange={(e) => updateContrastPiece(pieceTypeIndex, pieceIndex, 'cantidad', parseInt(e.target.value) || 1)}
+                                      value={piece.cantidad === 1 ? '' : piece.cantidad}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === '' || value === '0') {
+                                          updateContrastPiece(pieceTypeIndex, pieceIndex, 'cantidad', '');
+                                        } else {
+                                          const numValue = parseInt(value);
+                                          if (!isNaN(numValue) && numValue > 0) {
+                                            updateContrastPiece(pieceTypeIndex, pieceIndex, 'cantidad', numValue);
+                                          }
+                                        }
+                                      }}
+                                      onBlur={(e) => {
+                                        if (e.target.value === '' || e.target.value === '0') {
+                                          updateContrastPiece(pieceTypeIndex, pieceIndex, 'cantidad', 1);
+                                        }
+                                      }}
+                                      placeholder="1"
+                                      className="text-center"
+                                      uppercase={true}
                                     />
                                   </div>
                                   <div className="flex-1">
@@ -936,6 +989,7 @@ import { useEffect } from 'react';
                                       value={piece.folioOriginal || ''}
                                       onChange={(e) => updateContrastPiece(pieceTypeIndex, pieceIndex, 'folioOriginal', e.target.value)}
                                       placeholder="Opcional"
+                                      uppercase={true}
                                     />
                                   </div>
                                   {tipoPieza.pieces.length > 1 && (
@@ -1025,6 +1079,7 @@ import { useEffect } from 'react';
                     {...register('observaciones')}
                     rows={3}
                     placeholder="Comentarios adicionales..."
+                    uppercase={true}
                   />
                 </div>
               </CardContent>

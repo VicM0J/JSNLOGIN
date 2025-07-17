@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, CheckCircle, Info, Clock, Bell, Package, RefreshCw, Plus, X, XCircle, Trash2, BellRing, Settings, AlertTriangle } from "lucide-react";
 import { type Transfer } from "@shared/schema";
 import { useState } from "react";
+import { NotificationPermission } from './notification-permission';
 
 interface NotificationsPanelProps {
   open: boolean;
@@ -278,6 +279,7 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto py-6 space-y-4">
+          <NotificationPermission />
           {repositionNotifications.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">

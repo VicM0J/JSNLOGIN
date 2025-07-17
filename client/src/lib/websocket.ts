@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { NotificationService, formatNotificationContent } from './notifications';
 
 class WebSocketManager {
   private ws: WebSocket | null = null;
@@ -99,68 +100,26 @@ export function useWebSocket() {
     const notificationListener = (notification: any) => {
       console.log('Nueva notificación recibida:', notification);
 
-      // Invalidar inmediatamente todas las queries relacionadas con historial
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/repositions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-      queryClient.invalidateQueries({ queryKey: ["repositions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/transfers/pending"] });
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/almacen/repositions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/agenda"] });
-      
-      // Invalidar historial específico si viene el ID
-      if (notification.orderId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/orders", notification.orderId, "history"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/orders", notification.orderId] });
-        // Forzar refetch inmediato del historial con delay para asegurar datos frescos
-        setTimeout(() => {
-          queryClient.refetchQueries({ queryKey: ["/api/orders", notification.orderId, "history"] });
-        }, 500);
-      }
-      if (notification.repositionId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/repositions", notification.repositionId, "history"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/repositions", notification.repositionId] });
-        queryClient.invalidateQueries({ queryKey: ["/api/repositions", notification.repositionId, "tracking"] });
-        // Forzar refetch inmediato del historial
-        queryClient.refetchQueries({ queryKey: ["/api/repositions", notification.repositionId, "history"] });
-        queryClient.refetchQueries({ queryKey: ["/api/repositions", notification.repositionId, "tracking"] });
-      }
-      
-      // Refetch global forzado para asegurar consistencia
-      queryClient.refetchQueries({ queryKey: ["repositions"] });
-      queryClient.refetchQueries({ queryKey: ["/api/orders"] });
-      queryClient.refetchQueries({ queryKey: ["/api/almacen/repositions"] });
-      queryClient.refetchQueries({ queryKey: ["/api/dashboard/stats"] });
-      
-      // Invalidar y refrescar todo después de invalidaciones específicas
-      setTimeout(() => {
-        queryClient.invalidateQueries();
-        queryClient.refetchQueries();
-      }, 100);
+      // Invalidar queries relacionadas para actualizar la UI
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
 
-      // Mostrar notificación visual para todos los tipos
-      if (notification && (
-        notification.type?.includes('reposition') ||
-        notification.type?.includes('completion') ||
-        notification.type?.includes('order') ||
-        notification.type?.includes('transfer') ||
-        notification.type?.includes('user') ||
-        notification.type === 'new_reposition' ||
-        notification.type === 'reposition_transfer' ||
-        notification.type === 'reposition_approved' ||
-        notification.type === 'reposition_rejected' ||
-        notification.type === 'reposition_completed' ||
-        notification.type === 'reposition_deleted' ||
-        notification.type === 'reposition_paused' ||
-        notification.type === 'reposition_resumed' ||
-        notification.type === 'completion_approval_needed'
-      )) {
-        console.log('Actualizando datos en tiempo real para todos los usuarios:', notification);
+      // También invalidar otras queries según el tipo de notificación
+      if (notification.type?.includes('order')) {
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
       }
+      if (notification.type?.includes('reposition')) {
+        queryClient.invalidateQueries({ queryKey: ['repositions'] });
+      }
+
+      // Mostrar notificación del navegador
+      const notificationService = NotificationService.getInstance();
+      const { title, body, data } = formatNotificationContent(notification);
+
+      notificationService.showNotification(title, {
+        body,
+        tag: `notification-${notification.id || Date.now()}`,
+        data
+      });
     };
 
     webSocketManager.addListener(notificationListener);
