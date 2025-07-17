@@ -922,13 +922,20 @@ export class DatabaseStorage implements IStorage {
     return repositionTransfer;
   }
 
-  async processRepositionTransfer(transferId: number, action: 'accepted' | 'rejected', userId: number): Promise<RepositionTransfer> {
+  async processRepositionTransfer(transferId: number, action: 'accepted' | 'rejected', userId: number, reason?: string): Promise<RepositionTransfer> {
+    const updateData: any = {
+      status: action,
+      processedBy: userId,
+      processedAt: new Date()
+    };
+
+    // Si es un rechazo, guardar la razón en las notas
+    if (action === 'rejected' && reason) {
+      updateData.notes = reason;
+    }
+
     const [transfer] = await db.update(repositionTransfers)
-      .set({
-        status: action,
-        processedBy: userId,
-        processedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(repositionTransfers.id, transferId))
       .returning();
 
@@ -938,10 +945,14 @@ export class DatabaseStorage implements IStorage {
         .where(eq(repositions.id, transfer.repositionId));
     }
 
+    const historyDescription = action === 'accepted' 
+      ? `Transfer ${action} from ${transfer.fromArea} to ${transfer.toArea}`
+      : `Transfer ${action} from ${transfer.fromArea} to ${transfer.toArea}${reason ? ` - Motivo: ${reason}` : ''}`;
+
     await this.addRepositionHistory(
       transfer.repositionId,
       `transfer_${action}`,
-      `Transfer ${action} from ${transfer.fromArea} to ${transfer.toArea}`,
+      historyDescription,
       userId,
       transfer.fromArea,
       transfer.toArea
@@ -1218,19 +1229,8 @@ async getRepositionTracking(repositionId: number): Promise<any> {
     const history = await this.getRepositionHistory(repositionId);
     console.log('History entries:', history.length);
 
-    // Obtener transferencias
-    const transfersFromDB = await db.select({
-      id: repositionTransfers.id,
-      fromArea: repositionTransfers.fromArea,
-      toArea: repositionTransfers.toArea,
-      status: repositionTransfers.status,
-      notes: repositionTransfers.notes,
-      consumoTela: repositionTransfers.consumoTela,
-      createdAt: repositionTransfers.createdAt,
-      processedAt: repositionTransfers.processedAt,
-      createdBy: repositionTransfers.createdBy,
-      processedBy: repositionTransfers.processedBy
-    })
+    // Obtener transferencias - usar select básico para evitar problemas con campos undefined
+    const transfersFromDB = await db.select()
     .from(repositionTransfers)
     .where(eq(repositionTransfers.repositionId, repositionId))
     .orderBy(desc(repositionTransfers.createdAt));
@@ -1392,11 +1392,11 @@ async getRepositionTracking(repositionId: number): Promise<any> {
         id: t.id,
         fromArea: t.fromArea,
         toArea: t.toArea,
-        status: t.status,
-        notes: t.notes,
-        consumoTela: t.consumoTela,
+        status: t.status || 'pending',
+        notes: t.notes || '',
+        consumoTela: t.consumoTela || null,
         createdAt: t.createdAt,
-        processedAt: t.processedAt,
+        processedAt: t.processedAt || null,
         transferredBy: 'Usuario',
         processedBy: t.processedBy ? 'Usuario' : null
       })),
@@ -1423,6 +1423,33 @@ async getRepositionTracking(repositionId: number): Promise<any> {
   }
 
   async hasRecentTransfer(repositionId: number, fromArea: Area): Promise<{ hasRecent: boolean, remainingTime?: number }> {
+    // Primero verificar si hay alguna transferencia pendiente de esta área para esta reposición
+    const pendingTransfer = await db.select().from(repositionTransfers)
+      .where(and(
+        eq(repositionTransfers.repositionId, repositionId),
+        eq(repositionTransfers.fromArea, fromArea),
+        eq(repositionTransfers.status, 'pending')
+      ))
+      .limit(1);
+
+    if (pendingTransfer.length > 0) {
+      // Si hay una transferencia pendiente, calcular el tiempo restante basado en cuando fue creada
+      const transferTime = new Date(pendingTransfer[0].createdAt);
+      const now = new Date();
+      const timeDiffMs = now.getTime() - transferTime.getTime();
+      const fiveMinutesMs = 5 * 60 * 1000;
+      const remainingMs = fiveMinutesMs - timeDiffMs;
+      
+      if (remainingMs > 0) {
+        const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
+        return {
+          hasRecent: true,
+          remainingTime: Math.max(1, remainingMinutes)
+        };
+      }
+    }
+
+    // También verificar transferencias recientes (últimos 5 minutos) independientemente del estado
     const fiveMinutesAgo = new Date();
     fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
 
@@ -1430,7 +1457,6 @@ async getRepositionTracking(repositionId: number): Promise<any> {
       .where(and(
         eq(repositionTransfers.repositionId, repositionId),
         eq(repositionTransfers.fromArea, fromArea),
-        eq(repositionTransfers.status, 'pending'),
         gte(repositionTransfers.createdAt, fiveMinutesAgo)
       ))
       .orderBy(desc(repositionTransfers.createdAt))
@@ -1441,12 +1467,14 @@ async getRepositionTracking(repositionId: number): Promise<any> {
       const now = new Date();
       const timeDiffMs = now.getTime() - transferTime.getTime();
       const remainingMs = (5 * 60 * 1000) - timeDiffMs;
-      const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
-
-      return {
-        hasRecent: true,
-        remainingTime: remainingMinutes
-      };
+      
+      if (remainingMs > 0) {
+        const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
+        return {
+          hasRecent: true,
+          remainingTime: Math.max(1, remainingMinutes)
+        };
+      }
     }
 
     return { hasRecent: false };

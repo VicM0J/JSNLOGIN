@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Eye, ArrowRight, CheckCircle, XCircle, Clock, MapPin, Activity, Trash2, Flag, Bell, Search, Play, Square, Printer, CalendarIcon } from 'lucide-react';
+import { Plus, Eye, ArrowRight, CheckCircle, XCircle, Clock, MapPin, Activity, Trash2, Flag, Bell, Search, Play, Square, Printer, CalendarIcon, X } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { RepositionForm } from './RepositionForm';
 import { RepositionDetail } from './RepositionDetail';
 import { RepositionTracker } from './RepositionTracker';
@@ -84,6 +85,25 @@ export function RepositionList({ userArea }: { userArea: string }) {
   const [manualTimes, setManualTimes] = useState<Record<number, { startTime: string; endTime: string; startDate: Date | undefined; endDate: Date | undefined }>>({});
   const [completionRequests, setCompletionRequests] = useState<Record<number, number>>({});
   const queryClient = useQueryClient();
+  
+  // Add authentication check
+  const { user } = useAuth();
+  
+  // Early return if no user is authenticated
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-lg font-semibold text-gray-600 mb-2">
+            No autenticado
+          </div>
+          <div className="text-sm text-gray-500">
+            Por favor, inicie sesión para acceder a las reposiciones
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Efecto para actualizar el contador del botón cada segundo
   useEffect(() => {
@@ -106,8 +126,15 @@ export function RepositionList({ userArea }: { userArea: string }) {
         url = `/api/repositions?area=${filterArea}`;
       }
 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Error al cargar las reposiciones');
+      const response = await fetch(url, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autenticado');
+        }
+        throw new Error('Error al cargar las reposiciones');
+      }
       const data = await response.json();
 
       // Para admin y envíos, cuando no están en modo historial, aplicar filtro por área si está seleccionado
@@ -126,7 +153,8 @@ export function RepositionList({ userArea }: { userArea: string }) {
 
       return data;
     },
-    refetchInterval: 5000, // Refetch every 5 seconds
+    enabled: !!user, // Only run query when user is authenticated
+    refetchInterval: 5000,
     refetchOnMount: true,
     refetchOnWindowFocus: true
   });
@@ -134,8 +162,15 @@ export function RepositionList({ userArea }: { userArea: string }) {
   const { data: notifications = [] } = useQuery({
     queryKey: ["/api/notifications"],
     queryFn: async () => {
-      const res = await fetch("/api/notifications");
-      if (!res.ok) throw new Error('Error al cargar notificaciones');
+      const res = await fetch("/api/notifications", {
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error('No autenticado');
+        }
+        throw new Error('Error al cargar notificaciones');
+      }
       const allNotifications = await res.json();
       return allNotifications.filter((n: any) => 
         !n.read && (
@@ -145,16 +180,35 @@ export function RepositionList({ userArea }: { userArea: string }) {
         )
       );
     },
+    enabled: !!user
   });
 
   const { data: pendingTransfers = [] } = useQuery({
     queryKey: ['transferencias-pendientes-reposicion'],
     queryFn: async () => {
-      const response = await fetch('/api/repositions/transfers/pending');
-      if (!response.ok) return [];
+      const response = await fetch('/api/repositions/transfers/pending', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autenticado');
+        }
+        throw new Error('Error al cargar transferencias pendientes');
+      }
       return response.json();
-    }
+    },
+    refetchInterval: 5000,
+    enabled: !!user
   });
+
+  // Función para verificar si una reposición tiene transferencia pendiente desde mi área
+  const hasPendingTransferFromMyArea = (repositionId: number) => {
+    return pendingTransfers.some((transfer: any) => 
+      transfer.repositionId === repositionId && 
+      transfer.fromArea === userArea &&
+      transfer.status === 'pending'
+    );
+  };
 
   const transferMutation = useMutation({
     mutationFn: async ({ repositionId, toArea, notes, consumoTela }: { repositionId: number, toArea: string, notes?: string, consumoTela?: number }) => {
@@ -163,34 +217,35 @@ export function RepositionList({ userArea }: { userArea: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ toArea, notes, consumoTela }),
       });
-      if (!response.ok) throw new Error('Error al transferir la reposición');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al crear la transferencia');
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['repositions'] });
       Swal.fire({
         title: '¡Éxito!',
-        text: 'Solicitud transferida correctamente',
+        text: 'Transferencia creada correctamente',
         icon: 'success',
         confirmButtonColor: '#8B5CF6'
       });
     },
-    onError: (error: any) => {
-      console.error('Transfer error:', error);
-
-      // Manejar error de transferencia reciente
-      if (error.message?.includes('Debes esperar')) {
+    onError: (error: Error) => {
+      // Check if it's a rate limit error (429 status)
+      if (error.message.includes('esperar') && error.message.includes('minuto')) {
         Swal.fire({
-          title: 'Transferencia Bloqueada',
+          title: '⏱️ Transferencia Reciente',
           text: error.message,
           icon: 'warning',
           confirmButtonColor: '#8B5CF6',
-          timer: 7000
+          confirmButtonText: 'Entendido'
         });
       } else {
         Swal.fire({
           title: 'Error',
-          text: error.message || 'Error al crear la transferencia',
+          text: error.message,
           icon: 'error',
           confirmButtonColor: '#8B5CF6'
         });
@@ -318,11 +373,11 @@ export function RepositionList({ userArea }: { userArea: string }) {
   });
 
   const processTransferMutation = useMutation({
-    mutationFn: async ({ transferId, action }: { transferId: number, action: 'accepted' | 'rejected' }) => {
+    mutationFn: async ({ transferId, action, reason }: { transferId: number, action: 'accepted' | 'rejected', reason?: string }) => {
       const response = await fetch(`/api/repositions/transfers/${transferId}/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, reason }),
       });
       if (!response.ok) throw new Error('Error al procesar la transferencia');
       return response.json();
@@ -668,18 +723,47 @@ export function RepositionList({ userArea }: { userArea: string }) {
   };
 
   const handleProcessTransfer = async (transferId: number, action: 'accepted' | 'rejected') => {
-    const result = await Swal.fire({
-      title: `¿${action === 'accepted' ? 'Aceptar' : 'Rechazar'} transferencia?`,
-      text: `Esta acción ${action === 'accepted' ? 'moverá la reposición a tu área' : 'rechazará la transferencia'}`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: action === 'accepted' ? '#10B981' : '#EF4444',
-      confirmButtonText: action === 'accepted' ? 'Aceptar' : 'Rechazar',
-      cancelButtonText: 'Cancelar'
-    });
+    if (action === 'rejected') {
+      // Para rechazos, pedir motivo obligatorio
+      const { value: reason } = await Swal.fire({
+        title: '¿Rechazar transferencia?',
+        text: 'Esta acción rechazará la transferencia',
+        input: 'textarea',
+        inputPlaceholder: 'Describe el motivo del rechazo (mínimo 5 caracteres) *',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#EF4444',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Rechazar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          if (!value || value.trim().length === 0) {
+            return 'Debes proporcionar un motivo para el rechazo';
+          }
+          if (value.trim().length < 5) {
+            return 'El motivo debe tener al menos 5 caracteres';
+          }
+        }
+      });
 
-    if (result.isConfirmed) {
-      processTransferMutation.mutate({ transferId, action });
+      if (reason !== undefined && reason.trim().length >= 5) {
+        processTransferMutation.mutate({ transferId, action, reason: reason.trim() });
+      }
+    } else {
+      // Para aceptaciones, solo mostrar confirmación
+      const result = await Swal.fire({
+        title: '¿Aceptar transferencia?',
+        text: 'Esta acción moverá la reposición a tu área',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (result.isConfirmed) {
+        processTransferMutation.mutate({ transferId, action });
+      }
     }
   };
 
@@ -1143,10 +1227,25 @@ export function RepositionList({ userArea }: { userArea: string }) {
                             <Button
                               size="sm"
                               variant="outline"
+                              className={`${
+                                hasPendingTransferFromMyArea(reposition.id)
+                                  ? "text-orange-600 border-orange-300 hover:bg-orange-50 cursor-not-allowed"
+                                  : "text-purple-600 hover:bg-purple-50"
+                              }`}
                               onClick={() => handleTransfer(reposition.id)}
+                              disabled={hasPendingTransferFromMyArea(reposition.id)}
                             >
-                              <ArrowRight className="w-4 h-4 mr-2" />
-                              Transferir
+                              {hasPendingTransferFromMyArea(reposition.id) ? (
+                                <>
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  Transferencia Pendiente
+                                </>
+                              ) : (
+                                <>
+                                  <ArrowRight className="w-4 h-4 mr-2" />
+                                  Transferir
+                                </>
+                              )}
                             </Button>
 
 

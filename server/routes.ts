@@ -1,3 +1,4 @@
+
 import type { Express } from "express";
 import { Router } from "express";
 import { createServer, type Server } from "http";
@@ -8,11 +9,12 @@ import { insertOrderSchema, insertTransferSchema, insertRepositionSchema, insert
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { eq, desc, and, or, ne, isNotNull, isNull, count } from 'drizzle-orm';
+import { db } from './db';
+import { repositionTransfers } from '@shared/schema';
 import { authenticateToken } from './auth';
 import path from 'path';
 import fs from 'fs';
 import { upload, uploadBackup, handleMulterError } from './upload';
-
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -708,7 +710,6 @@ function registerAdminRoutes(app: Express) {
   app.use("/api/admin", router);
 }
 
-
 function registerDashboardRoutes(app: Express) {
   app.get("/api/dashboard/stats", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
@@ -757,7 +758,6 @@ function registerDashboardRoutes(app: Express) {
     }
   });
 }
-
 
 function configureWebSocket(app: Express): Server {
   const httpServer = createServer(app);
@@ -819,7 +819,6 @@ function configureWebSocket(app: Express): Server {
   
   return httpServer;
 }
-
 
 function registerRepositionRoutes(app: Express) {
   const router = Router();
@@ -989,9 +988,27 @@ function registerRepositionRoutes(app: Express) {
       // Verificar si hay una transferencia reciente pendiente
       const recentTransferCheck = await storage.hasRecentTransfer(repositionId, user.area);
       if (recentTransferCheck.hasRecent) {
+        console.log(`Transfer blocked for reposition ${repositionId} from area ${user.area}, remaining time: ${recentTransferCheck.remainingTime} minutes`);
         return res.status(429).json({ 
-          message: `Debes esperar ${recentTransferCheck.remainingTime} minuto(s) antes de poder transferir nuevamente. Hay una transferencia pendiente de procesamiento.`,
-          remainingTime: recentTransferCheck.remainingTime
+          message: `⏱️ Debes esperar ${recentTransferCheck.remainingTime} minuto(s) antes de poder transferir nuevamente. Hay una transferencia pendiente de procesamiento desde tu área.`,
+          remainingTime: recentTransferCheck.remainingTime,
+          type: 'rate_limit'
+        });
+      }
+
+      // Verificación adicional: comprobar directamente en la base de datos si hay transferencias pendientes
+      const existingPendingTransfers = await db.select().from(repositionTransfers)
+        .where(and(
+          eq(repositionTransfers.repositionId, repositionId),
+          eq(repositionTransfers.fromArea, user.area),
+          eq(repositionTransfers.status, 'pending')
+        ));
+
+      if (existingPendingTransfers.length > 0) {
+        console.log(`Found existing pending transfer for reposition ${repositionId} from area ${user.area}`);
+        return res.status(429).json({ 
+          message: `Ya existe una transferencia pendiente desde tu área para esta reposición. Espera a que sea procesada antes de crear una nueva.`,
+          type: 'pending_exists'
         });
       }
 
@@ -1046,9 +1063,19 @@ function registerRepositionRoutes(app: Express) {
       if (isNaN(transferId)) {
         return res.status(400).json({ message: "ID de transferencia inválido" });
       }
-      const { action } = req.body;
+      const { action, reason } = req.body;
 
-      const result = await storage.processRepositionTransfer(transferId, action, user.id);
+      // Validar que se proporcione razón para rechazos
+      if (action === 'rejected') {
+        if (!reason || reason.trim().length === 0) {
+          return res.status(400).json({ message: "El motivo del rechazo es obligatorio" });
+        }
+        if (reason.trim().length < 5) {
+          return res.status(400).json({ message: "El motivo debe tener al menos 5 caracteres" });
+        }
+      }
+
+      const result = await storage.processRepositionTransfer(transferId, action, user.id, reason?.trim());
       res.json(result);
     } catch (error) {
       console.error('Process transfer error:', error);
@@ -1651,8 +1678,6 @@ function registerAlmacenRoutes(app: Express) {
       res.status(500).json({ message: "Error al obtener reposiciones" });
     }
   });
-
-
 
   // Pausar reposición
   router.post("/repositions/:id/pause", async (req, res) => {
