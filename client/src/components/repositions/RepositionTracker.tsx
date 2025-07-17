@@ -319,6 +319,87 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
             </CardContent>
           </Card>
 
+          {/* Transferencias Entre Áreas */}
+          {trackingData.transfers && trackingData.transfers.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowRight className="w-5 h-5" />
+                  Transferencias Entre Áreas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {trackingData.transfers.map((transfer: any) => (
+                    <div key={transfer.id} className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-purple-50">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                          <h4 className="font-semibold text-lg">
+                            {getAreaDisplayName(transfer.fromArea)} → {getAreaDisplayName(transfer.toArea)}
+                          </h4>
+                        </div>
+                        <Badge 
+                          variant={transfer.status === 'accepted' ? 'default' : 
+                                  transfer.status === 'rejected' ? 'destructive' : 'secondary'}
+                          className="capitalize"
+                        >
+                          {transfer.status === 'accepted' ? 'Aceptada' : 
+                           transfer.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-600">
+                            <Clock className="w-4 h-4 inline mr-1" />
+                            Solicitada: {formatDate(transfer.createdAt)}
+                          </p>
+                          {transfer.processedAt && (
+                            <p className="text-gray-600 mt-1">
+                              <CheckCircle className="w-4 h-4 inline mr-1" />
+                              Procesada: {formatDate(transfer.processedAt)}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div>
+                          {transfer.transferredBy && (
+                            <p className="text-gray-600">
+                              <User className="w-4 h-4 inline mr-1" />
+                              Solicitada por: {transfer.transferredBy}
+                            </p>
+                          )}
+                          {transfer.processedBy && (
+                            <p className="text-gray-600 mt-1">
+                              <User className="w-4 h-4 inline mr-1" />
+                              Procesada por: {transfer.processedBy}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {transfer.notes && (
+                        <div className="mt-3 p-3 bg-white rounded border">
+                          <p className="text-sm font-medium text-gray-700 mb-1">Notas de transferencia:</p>
+                          <p className="text-sm text-gray-600">{transfer.notes}</p>
+                        </div>
+                      )}
+
+                      {transfer.consumoTela && (
+                        <div className="mt-3">
+                          <Badge variant="outline" className="text-green-600 border-green-300">
+                            Consumo de tela: {transfer.consumoTela} metros
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Historial de Movimientos */}
           {trackingData.history && trackingData.history.length > 0 && (
             <Card>

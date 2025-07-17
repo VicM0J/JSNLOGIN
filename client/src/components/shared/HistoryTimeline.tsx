@@ -1,4 +1,3 @@
-
 import { type OrderHistory, type Area } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,15 +26,15 @@ export function HistoryTimeline({ events, title, type = 'order', showDetailedInf
 
   const getAreaBadgeColor = (area: Area) => {
     const colors: Record<Area, string> = {
-      corte: "bg-red-100 text-red-800",
-      bordado: "bg-blue-100 text-blue-800",
-      ensamble: "bg-green-100 text-green-800",
-      plancha: "bg-yellow-100 text-yellow-800",
-      calidad: "bg-purple-100 text-purple-800",
-      envios: "bg-indigo-100 text-indigo-800",
-      admin: "bg-gray-100 text-gray-800",
+      corte: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+      bordado: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+      ensamble: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+      plancha: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+      calidad: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+      envios: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+      admin: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
     };
-    return colors[area] || "bg-gray-100 text-gray-800";
+    return colors[area] || "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
   };
 
   const formatDate = (date: string | Date) => {
@@ -62,15 +61,15 @@ export function HistoryTimeline({ events, title, type = 'order', showDetailedInf
 
   const getTimeDifference = (currentDate: string, previousDate?: string) => {
     if (!previousDate) return null;
-    
+
     const current = new Date(currentDate);
     const previous = new Date(previousDate);
     const diffMs = current.getTime() - previous.getTime();
-    
+
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (days > 0) return `+${days}d ${hours}h`;
     if (hours > 0) return `+${hours}h ${minutes}m`;
     return `+${minutes}m`;
@@ -98,19 +97,19 @@ export function HistoryTimeline({ events, title, type = 'order', showDetailedInf
   const getActionColor = (action: string) => {
     switch (action) {
       case 'created':
-        return 'bg-green-100 text-green-600 border-green-200';
+        return 'bg-green-100 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700';
       case 'transfer_accepted':
-        return 'bg-blue-100 text-blue-600 border-blue-200';
+        return 'bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-700';
       case 'transfer_requested':
-        return 'bg-yellow-100 text-yellow-600 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-600 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-700';
       case 'completed':
-        return 'bg-purple-100 text-purple-600 border-purple-200';
+        return 'bg-purple-100 text-purple-600 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700';
       case 'paused':
-        return 'bg-red-100 text-red-600 border-red-200';
+        return 'bg-red-100 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700';
       case 'resumed':
-        return 'bg-green-100 text-green-600 border-green-200';
+        return 'bg-green-100 text-green-600 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700';
       default:
-        return 'bg-gray-100 text-gray-600 border-gray-200';
+        return 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-700';
     }
   };
 
@@ -135,58 +134,58 @@ export function HistoryTimeline({ events, title, type = 'order', showDetailedInf
 
   if (events.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <p className="text-gray-500">No hay eventos en el historial</p>
-        </CardContent>
-      </Card>
-    );
+    <Card className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+      <CardContent className="p-8 text-center">
+        <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+        <p className="text-gray-500 dark:text-gray-400">No hay eventos en el historial</p>
+      </CardContent>
+    </Card>
+  );
   }
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
       <CardContent className="p-6">
         {title && (
-          <h3 className="font-semibold mb-4 flex items-center">
+          <h3 className="font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
             <Calendar className="h-4 w-4 mr-2" />
             {title}
           </h3>
         )}
-        
+
         <div className="space-y-6">
           {events.map((event, index) => {
             const isLast = index === events.length - 1;
             const timeDiff = index > 0 ? getTimeDifference(event.createdAt, events[index - 1].createdAt) : null;
-            
+
             return (
               <div key={event.id} className="relative">
                 {/* Línea conectora */}
                 {!isLast && (
-                  <div className="absolute left-6 top-12 w-0.5 h-16 bg-gray-200"></div>
+                  <div className="absolute left-6 top-12 w-0.5 h-16 bg-gray-200 dark:bg-slate-600"></div>
                 )}
-                
+
                 <div className="flex items-start space-x-4">
                   {/* Icono de acción */}
                   <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${getActionColor(event.action)}`}>
                     {getActionIcon(event.action)}
                   </div>
-                  
+
                   {/* Contenido del evento */}
                   <div className="flex-1 min-w-0">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                       {/* Header del evento */}
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-gray-900">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                           {getActionLabel(event.action, event.fromArea, event.toArea)}
                         </h4>
                         <div className="flex items-center space-x-2">
                           {timeDiff && (
-                            <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                            <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded">
                               {timeDiff}
                             </span>
                           )}
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             {showDetailedInfo ? formatDate(event.createdAt) : formatDateShort(event.createdAt)}
                           </span>
                         </div>
@@ -208,12 +207,12 @@ export function HistoryTimeline({ events, title, type = 'order', showDetailedInf
 
                       {/* Descripción */}
                       {event.description && (
-                        <p className="text-sm text-gray-600 mb-2">{event.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{event.description}</p>
                       )}
 
                       {/* Información adicional */}
                       {showDetailedInfo && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-500 bg-gray-50 p-3 rounded">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-slate-800 p-3 rounded">
                           {event.userId && (
                             <div className="flex items-center">
                               <User className="h-3 w-3 mr-1" />
@@ -246,8 +245,8 @@ export function HistoryTimeline({ events, title, type = 'order', showDetailedInf
 
         {/* Resumen al final */}
         {showDetailedInfo && events.length > 0 && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>Total de eventos: {events.length}</span>
               <span>
                 Duración: {events.length > 1 ? getTimeDifference(

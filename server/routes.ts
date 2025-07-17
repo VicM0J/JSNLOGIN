@@ -395,6 +395,15 @@ function registerTransferRoutes(app: Express) {
         });
       }
 
+      // Verificar si hay una transferencia reciente pendiente
+      const recentTransferCheck = await storage.hasRecentOrderTransfer(orderId, user.area);
+      if (recentTransferCheck.hasRecent) {
+        return res.status(429).json({ 
+          message: `Debes esperar ${recentTransferCheck.remainingTime} minuto(s) antes de poder transferir nuevamente. Hay una transferencia pendiente de procesamiento.`,
+          remainingTime: recentTransferCheck.remainingTime
+        });
+      }
+
       const validatedData = insertTransferSchema.parse({
         orderId,
         fromArea: user.area,
@@ -975,6 +984,15 @@ function registerRepositionRoutes(app: Express) {
 
       if (reposition.status === 'eliminado') {
         return res.status(400).json({ message: "No se puede transferir una reposición eliminada" });
+      }
+
+      // Verificar si hay una transferencia reciente pendiente
+      const recentTransferCheck = await storage.hasRecentTransfer(repositionId, user.area);
+      if (recentTransferCheck.hasRecent) {
+        return res.status(429).json({ 
+          message: `Debes esperar ${recentTransferCheck.remainingTime} minuto(s) antes de poder transferir nuevamente. Hay una transferencia pendiente de procesamiento.`,
+          remainingTime: recentTransferCheck.remainingTime
+        });
       }
 
       // Si viene desde Corte y hay consumo de tela, actualizar la reposición

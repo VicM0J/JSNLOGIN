@@ -32,50 +32,11 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // PWA Install prompt handling
-      let deferredPrompt;
-      
+      // PWA Install prompt handling - DISABLED
       window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('PWA install prompt available');
+        console.log('PWA install prompt available - but disabled');
         e.preventDefault();
-        deferredPrompt = e;
-        
-        // Show install button or notification
-        const installButton = document.createElement('button');
-        installButton.textContent = 'Instalar App';
-        installButton.style.cssText = `
-          position: fixed;
-          bottom: 20px;
-          right: 20px;
-          z-index: 1000;
-          background: #8b5cf6;
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-weight: bold;
-          cursor: pointer;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        `;
-        
-        installButton.addEventListener('click', async () => {
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to install prompt: ${outcome}`);
-            deferredPrompt = null;
-            installButton.remove();
-          }
-        });
-        
-        document.body.appendChild(installButton);
-        
-        // Auto-hide after 10 seconds
-        setTimeout(() => {
-          if (installButton.parentNode) {
-            installButton.remove();
-          }
-        }, 10000);
+        // Install prompt is disabled
       });
       
       // Service Worker registration

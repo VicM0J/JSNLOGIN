@@ -1218,14 +1218,39 @@ async getRepositionTracking(repositionId: number): Promise<any> {
     const history = await this.getRepositionHistory(repositionId);
     console.log('History entries:', history.length);
 
-    // Obtener tiempos por área
-    const timers = await db.select().from(repositionTimers)
-      .where(eq(repositionTimers.repositionId, repositionId));
+    // Obtener transferencias
+    const transfersFromDB = await db.select({
+      id: repositionTransfers.id,
+      fromArea: repositionTransfers.fromArea,
+      toArea: repositionTransfers.toArea,
+      status: repositionTransfers.status,
+      notes: repositionTransfers.notes,
+      consumoTela: repositionTransfers.consumoTela,
+      createdAt: repositionTransfers.createdAt,
+      processedAt: repositionTransfers.processedAt,
+      createdBy: repositionTransfers.createdBy,
+      processedBy: repositionTransfers.processedBy
+    })
+    .from(repositionTransfers)
+    .where(eq(repositionTransfers.repositionId, repositionId))
+    .orderBy(desc(repositionTransfers.createdAt));
 
-    console.log('Timers found:', timers.length);
+    console.log('Transfers found:', transfersFromDB.length);
+
+    // Obtener tiempos por área - query básico sin select específico
+    let timersFromDB: any[] = [];
+    try {
+      timersFromDB = await db.select().from(repositionTimers)
+        .where(eq(repositionTimers.repositionId, repositionId));
+    } catch (timerError) {
+      console.error('Error fetching timers:', timerError);
+      timersFromDB = [];
+    }
+
+    console.log('Timers found:', timersFromDB.length);
 
     // Solo mostrar áreas que tienen tiempos registrados o el área actual
-    const areasWithTimers = timers.map(t => t.area);
+    const areasWithTimers = timersFromDB.map(t => t.area);
     const allRelevantAreas = [...new Set([...areasWithTimers, reposition.currentArea])];
 
     // Ordenar las áreas según el flujo estándar
@@ -1239,8 +1264,8 @@ async getRepositionTracking(repositionId: number): Promise<any> {
     console.log('Relevant areas for this reposition:', sortedAreas);
 
     // Crear pasos del proceso solo para áreas relevantes
-    const steps = sortedAreas.map((area, index) => {
-      const areaTimer = timers.find(t => t.area === area);
+    const stepsFromAreas = sortedAreas.map((area, index) => {
+      const areaTimer = timersFromDB.find(t => t.area === area);
       let status: 'completed' | 'current' | 'pending' = 'pending';
 
       // Determinar status basado en si hay timer registrado y área actual
@@ -1305,9 +1330,9 @@ async getRepositionTracking(repositionId: number): Promise<any> {
     });
 
     // Calcular tiempos por área - solo para áreas con tiempos registrados
-    const areaTimes: Record<string, number> = {};
+    const areaTimesCalculated: Record<string, number> = {};
 
-    timers.forEach(timer => {
+    timersFromDB.forEach(timer => {
       let elapsedMinutes = 0;
 
       // Solo calcular si tenemos tanto tiempo de inicio como de fin
@@ -1334,24 +1359,24 @@ async getRepositionTracking(repositionId: number): Promise<any> {
 
         // Solo asignar si tenemos un valor válido
         if (!isNaN(elapsedMinutes) && elapsedMinutes > 0) {
-          areaTimes[timer.area] = elapsedMinutes;
+          areaTimesCalculated[timer.area] = elapsedMinutes;
         }
       }
     });
 
-    console.log('Area times calculated:', areaTimes);
+    console.log('Area times calculated:', areaTimesCalculated);
 
     // Calcular tiempo total
-    const validTimes = Object.values(areaTimes).filter(minutes => !isNaN(minutes) && minutes > 0);
-    const totalMinutes = validTimes.reduce((sum, minutes) => sum + minutes, 0);
-    const totalHours = Math.floor(totalMinutes / 60);
-    const remainingMinutes = Math.round(totalMinutes % 60);
-    const totalTimeFormatted = totalMinutes > 0 ? 
+    const validTimes = Object.values(areaTimesCalculated).filter(minutes => !isNaN(minutes) && minutes > 0);
+    const totalMinutesCalculated = validTimes.reduce((sum, minutes) => sum + minutes, 0);
+    const totalHours = Math.floor(totalMinutesCalculated / 60);
+    const remainingMinutes = Math.round(totalMinutesCalculated % 60);
+    const totalTimeFormatted = totalMinutesCalculated > 0 ? 
       (totalHours > 0 ? `${totalHours}h ${remainingMinutes}m` : `${remainingMinutes}m`) : 
       "0m";
 
     // Calcular progreso basado en áreas completadas vs áreas relevantes
-    const completedSteps = steps.filter(s => s.status === 'completed').length;
+    const completedSteps = stepsFromAreas.filter(s => s.status === 'completed').length;
     const progress = sortedAreas.length > 0 ? Math.round((completedSteps / sortedAreas.length) * 100) : 0;
 
     const result = {
@@ -1361,13 +1386,25 @@ async getRepositionTracking(repositionId: number): Promise<any> {
         currentArea: reposition.currentArea,
         progress
       },
-      steps,
+      steps: stepsFromAreas,
       history,
+      transfers: transfersFromDB.map(t => ({
+        id: t.id,
+        fromArea: t.fromArea,
+        toArea: t.toArea,
+        status: t.status,
+        notes: t.notes,
+        consumoTela: t.consumoTela,
+        createdAt: t.createdAt,
+        processedAt: t.processedAt,
+        transferredBy: 'Usuario',
+        processedBy: t.processedBy ? 'Usuario' : null
+      })),
       totalTime: {
         formatted: totalTimeFormatted,
-        minutes: totalMinutes
+        minutes: totalMinutesCalculated
       },
-      areaTimes
+      areaTimes: areaTimesCalculated
     };
 
     console.log('Returning tracking data:', JSON.stringify(result, null, 2));
@@ -1383,6 +1420,66 @@ async getRepositionTracking(repositionId: number): Promise<any> {
         eq(repositionTransfers.status, 'pending')
       ))
       .orderBy(desc(repositionTransfers.createdAt));
+  }
+
+  async hasRecentTransfer(repositionId: number, fromArea: Area): Promise<{ hasRecent: boolean, remainingTime?: number }> {
+    const fiveMinutesAgo = new Date();
+    fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+
+    const recentTransfer = await db.select().from(repositionTransfers)
+      .where(and(
+        eq(repositionTransfers.repositionId, repositionId),
+        eq(repositionTransfers.fromArea, fromArea),
+        eq(repositionTransfers.status, 'pending'),
+        gte(repositionTransfers.createdAt, fiveMinutesAgo)
+      ))
+      .orderBy(desc(repositionTransfers.createdAt))
+      .limit(1);
+
+    if (recentTransfer.length > 0) {
+      const transferTime = new Date(recentTransfer[0].createdAt);
+      const now = new Date();
+      const timeDiffMs = now.getTime() - transferTime.getTime();
+      const remainingMs = (5 * 60 * 1000) - timeDiffMs;
+      const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
+
+      return {
+        hasRecent: true,
+        remainingTime: remainingMinutes
+      };
+    }
+
+    return { hasRecent: false };
+  }
+
+  async hasRecentOrderTransfer(orderId: number, fromArea: Area): Promise<{ hasRecent: boolean, remainingTime?: number }> {
+    const fiveMinutesAgo = new Date();
+    fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+
+    const recentTransfer = await db.select().from(transfers)
+      .where(and(
+        eq(transfers.orderId, orderId),
+        eq(transfers.fromArea, fromArea),
+        eq(transfers.status, 'pending'),
+        gte(transfers.createdAt, fiveMinutesAgo)
+      ))
+      .orderBy(desc(transfers.createdAt))
+      .limit(1);
+
+    if (recentTransfer.length > 0) {
+      const transferTime = new Date(recentTransfer[0].createdAt);
+      const now = new Date();
+      const timeDiffMs = now.getTime() - transferTime.getTime();
+      const remainingMs = (5 * 60 * 1000) - timeDiffMs;
+      const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
+
+      return {
+        hasRecent: true,
+        remainingTime: remainingMinutes
+      };
+    }
+
+    return { hasRecent: false };
   }
 
   // Agenda Events

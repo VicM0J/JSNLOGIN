@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Eye, ArrowRight, History, Plus, CheckCircle, Trash2, Pause, Play } from "lucide-react";
+import { Search, Eye, ArrowRight, History, Plus, CheckCircle, Trash2, Pause, Play, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -46,15 +46,15 @@ export default function OrdersPage() {
       const response = await fetch('/api/orders', {
         credentials: 'include'
       });
-      
+
       if (!response.ok) {
         console.error(`[ORDERS PAGE - ${user?.area}] Failed to fetch orders:`, response.status, response.statusText);
         throw new Error(`Failed to fetch orders: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log(`[ORDERS PAGE - ${user?.area}] Received ${data.length} orders`);
-      
+
       // Enhanced logging for bordado
       if (user?.area === 'bordado') {
         console.log(`[BORDADO PAGE] Successfully fetched ${data.length} orders`);
@@ -63,7 +63,7 @@ export default function OrdersPage() {
           return acc;
         }, {}));
       }
-      
+
       return data;
     },
     enabled: !!user, // Only fetch when user is authenticated
@@ -215,13 +215,13 @@ export default function OrdersPage() {
 
     const matchesArea = areaFilter === "all" || order.currentArea === areaFilter;
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    
+
     const matchesDateRange = (() => {
       if (dateRangeFilter === "all") return true;
-      
+
       const orderDate = new Date(order.createdAt);
       const now = new Date();
-      
+
       switch (dateRangeFilter) {
         case "today":
           return orderDate.toDateString() === now.toDateString();
@@ -308,9 +308,9 @@ export default function OrdersPage() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 border-blue-200 dark:border-slate-600">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-800">
+          <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
             <Search className="w-5 h-5" />
             Búsqueda y Filtros Avanzados
           </CardTitle>
@@ -321,11 +321,11 @@ export default function OrdersPage() {
               <Input
                 type="text"
                 placeholder="Buscar por folio, cliente, modelo, No. solicitud, tipo de prenda..."
-                className="pl-10"
+                className="pl-10 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-gray-100"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-300" />
               {searchTerm && (
                 <Button
                   variant="ghost"

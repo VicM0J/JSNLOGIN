@@ -23,7 +23,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  
+
   const [transferData, setTransferData] = useState({
     toArea: "" as Area,
     pieces: "",
@@ -84,12 +84,24 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
         notes: "",
       });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error al transferir",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      console.error('Transfer error:', error);
+
+      // Manejar error de transferencia reciente
+      if (error.message?.includes('Debes esperar')) {
+        toast({
+          title: "Transferencia Bloqueada",
+          description: error.message,
+          variant: "destructive",
+          duration: 7000, // Mostrar por más tiempo
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Error al crear la transferencia",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -97,7 +109,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
     e.preventDefault();
     const availablePieces = getCurrentAreaPieces();
     const requestedPieces = parseInt(transferData.pieces);
-    
+
     if (requestedPieces > availablePieces) {
       toast({
         title: "Error en transferencia",
@@ -106,16 +118,16 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
       });
       return;
     }
-    
+
     createTransferMutation.mutate(transferData);
   };
 
   const getNextAreas = (): Area[] => {
     if (!user) return [];
-    
+
     // Todas las áreas disponibles para transferencia (incluye todas las áreas del sistema)
     const allAreas: Area[] = ['patronaje', 'corte', 'bordado', 'ensamble', 'plancha', 'calidad', 'envios', 'operaciones', 'admin', 'almacen', 'diseño'];
-    
+
     // Filtrar el área actual del usuario para evitar auto-transferencias
     return allAreas.filter(area => area !== user.area);
   };
@@ -165,7 +177,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
             <span className="ml-2 sm:ml-3 text-sm sm:text-lg text-gray-700 dark:text-gray-200">Cargando información...</span>
           </div>
         )}
-        
+
         {!isLoadingPieces && (
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
@@ -182,7 +194,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                   </div>
                 </div>
               </div>
-            
+
               {/* Información de piezas */}
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-2 border-green-200 dark:border-green-700 rounded-xl p-3 sm:p-4 shadow-sm">
                 <div className="flex items-center space-x-2 sm:space-x-3 mb-3">
@@ -215,7 +227,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                   </div>
                 </div>
               )}
-            
+
               {/* Selector de área destino */}
               <div className="space-y-2">
                 <Label className="text-gray-700 dark:text-gray-200 font-medium flex items-center space-x-2 text-sm sm:text-base">
@@ -238,7 +250,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                   </SelectContent>
                 </Select>
               </div>
-            
+
               {/* Cantidad a transferir */}
               <div className="space-y-2 sm:space-y-3">
                 <Label className="text-gray-700 dark:text-gray-200 font-medium flex items-center space-x-2 text-sm sm:text-base">
@@ -266,7 +278,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                   </div>
                 </div>
               </div>
-            
+
               {/* Notas */}
               <div className="space-y-2">
                 <Label className="text-gray-700 dark:text-gray-200 font-medium flex items-center space-x-2 text-sm sm:text-base">
@@ -282,7 +294,7 @@ export function TransferModal({ open, onClose, orderId }: TransferModalProps) {
                 />
               </div>
             </div>
-          
+
             {/* Botones de acción */}
             <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-600">
               <Button 

@@ -182,24 +182,24 @@ export function OrderHistoryModal({ open, onClose, orderId }: OrderHistoryModalP
         </DialogHeader>
 
         {/* Información del Pedido */}
-        <Card className="mb-4">
+        <Card className="mb-4 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
           <CardContent className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="font-medium text-gray-600">Cliente:</span>
-                <p className="font-semibold">{order?.clienteHotel}</p>
+                <span className="font-medium text-gray-600 dark:text-gray-300">Cliente:</span>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{order?.clienteHotel}</p>
               </div>
               <div>
-                <span className="font-medium text-gray-600">Modelo:</span>
-                <p className="font-semibold">{order?.modelo}</p>
+                <span className="font-medium text-gray-600 dark:text-gray-300">Modelo:</span>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{order?.modelo}</p>
               </div>
               <div>
-                <span className="font-medium text-gray-600">Piezas:</span>
-                <p className="font-semibold">{order?.totalPiezas}</p>
+                <span className="font-medium text-gray-600 dark:text-gray-300">Piezas:</span>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">{order?.totalPiezas}</p>
               </div>
               <div>
-                <span className="font-medium text-gray-600">Estado:</span>
-                <Badge className={order?.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                <span className="font-medium text-gray-600 dark:text-gray-300">Estado:</span>
+                <Badge className={order?.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'}>
                   {order?.status === 'completed' ? 'Finalizado' : 'En Proceso'}
                 </Badge>
               </div>
@@ -209,44 +209,44 @@ export function OrderHistoryModal({ open, onClose, orderId }: OrderHistoryModalP
 
         {/* Estadísticas */}
         {showStats && stats && (
-          <Card className="mb-4">
+          <Card className="mb-4 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
             <CardContent className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center">
+              <h3 className="font-semibold mb-3 flex items-center text-gray-900 dark:text-gray-100">
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Estadísticas del Pedido
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <Clock className="h-6 w-6 mx-auto mb-1 text-blue-600" />
-                  <p className="text-sm text-gray-600">Tiempo Total</p>
-                  <p className="font-bold text-blue-600">{stats.totalTime} días</p>
+                <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border dark:border-blue-900/30">
+                  <Clock className="h-6 w-6 mx-auto mb-1 text-blue-600 dark:text-blue-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Tiempo Total</p>
+                  <p className="font-bold text-blue-600 dark:text-blue-400">{stats.totalTime} días</p>
                 </div>
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <MapPin className="h-6 w-6 mx-auto mb-1 text-green-600" />
-                  <p className="text-sm text-gray-600">Cambios de Área</p>
-                  <p className="font-bold text-green-600">{stats.areaChanges}</p>
+                <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border dark:border-green-900/30">
+                  <MapPin className="h-6 w-6 mx-auto mb-1 text-green-600 dark:text-green-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Cambios de Área</p>
+                  <p className="font-bold text-green-600 dark:text-green-400">{stats.areaChanges}</p>
                 </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg">
-                  <Activity className="h-6 w-6 mx-auto mb-1 text-purple-600" />
-                  <p className="text-sm text-gray-600">Total Eventos</p>
-                  <p className="font-bold text-purple-600">{stats.totalSteps}</p>
+                <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border dark:border-purple-900/30">
+                  <Activity className="h-6 w-6 mx-auto mb-1 text-purple-600 dark:text-purple-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Total Eventos</p>
+                  <p className="font-bold text-purple-600 dark:text-purple-400">{stats.totalSteps}</p>
                 </div>
-                <div className="text-center p-3 bg-orange-50 rounded-lg">
-                  <BarChart3 className="h-6 w-6 mx-auto mb-1 text-orange-600" />
-                  <p className="text-sm text-gray-600">Promedio/Área</p>
-                  <p className="font-bold text-orange-600">{stats.averageTimePerArea}d</p>
+                <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border dark:border-orange-900/30">
+                  <BarChart3 className="h-6 w-6 mx-auto mb-1 text-orange-600 dark:text-orange-400" />
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Promedio/Área</p>
+                  <p className="font-bold text-orange-600 dark:text-orange-400">{stats.averageTimePerArea}d</p>
                 </div>
               </div>
 
               {/* Tiempo por área */}
               {Object.keys(stats.areaTimes).length > 0 && (
                 <div className="mt-4">
-                  <h4 className="font-medium mb-2">Tiempo por Área:</h4>
+                  <h4 className="font-medium mb-2 text-gray-900 dark:text-gray-100">Tiempo por Área:</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {Object.entries(stats.areaTimes).map(([area, time]) => (
-                      <div key={area} className="text-sm p-2 bg-gray-50 rounded">
-                        <span className="font-medium">{getAreaDisplayName(area as Area)}:</span>
-                        <span className="ml-2 text-gray-600">
+                      <div key={area} className="text-sm p-2 bg-gray-50 dark:bg-slate-700 rounded border dark:border-slate-600">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{getAreaDisplayName(area as Area)}:</span>
+                        <span className="ml-2 text-gray-600 dark:text-gray-300">
                           {formatDuration(new Date(Date.now() - time).toISOString())}
                         </span>
                       </div>
@@ -259,37 +259,42 @@ export function OrderHistoryModal({ open, onClose, orderId }: OrderHistoryModalP
         )}
 
         {/* Filtros */}
-        <Card className="mb-4">
+        <Card className="mb-4 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
           <CardContent className="p-4">
             <div className="flex items-center space-x-4">
-              <Filter className="h-4 w-4 text-gray-500" />
+              <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-48 bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-gray-100">
                   <SelectValue placeholder="Filtrar eventos" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los eventos</SelectItem>
-                  <SelectItem value="created">Creación</SelectItem>
-                  <SelectItem value="transfer_requested">Transferencias solicitadas</SelectItem>
-                  <SelectItem value="transfer_accepted">Transferencias aceptadas</SelectItem>
-                  <SelectItem value="completed">Finalizaciones</SelectItem>
-                  <SelectItem value="paused">Pausas</SelectItem>
-                  <SelectItem value="resumed">Reanudaciones</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-700">
+                  <SelectItem value="all" className="text-gray-900 dark:text-gray-100">Todos los eventos</SelectItem>
+                  <SelectItem value="created" className="text-gray-900 dark:text-gray-100">Creación</SelectItem>
+                  <SelectItem value="transfer_requested" className="text-gray-900 dark:text-gray-100">Transferencias solicitadas</SelectItem>
+                  <SelectItem value="transfer_accepted" className="text-gray-900 dark:text-gray-100">Transferencias aceptadas</SelectItem>
+                  <SelectItem value="completed" className="text-gray-900 dark:text-gray-100">Finalizaciones</SelectItem>
+                  <SelectItem value="paused" className="text-gray-900 dark:text-gray-100">Pausas</SelectItem>
+                  <SelectItem value="resumed" className="text-gray-900 dark:text-gray-100">Reanudaciones</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
                 Mostrando {filteredHistory.length} de {history.length} eventos
               </span>
             </div>
           </CardContent>
         </Card>
         
-        <HistoryTimeline 
-          events={filteredHistory} 
-          title={`Historial del Pedido #${order?.orderId}`}
-          type="order"
-          showDetailedInfo={true}
-        />
+        {/* Contenedor del Historial */}
+        <Card className="bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <HistoryTimeline 
+              events={filteredHistory} 
+              title={`Historial del Pedido #${order?.orderId}`}
+              type="order"
+              showDetailedInfo={true}
+            />
+          </CardContent>
+        </Card>
       </DialogContent>
     </Dialog>
   );

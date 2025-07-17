@@ -294,32 +294,32 @@ export function OrdersTable({
           <CardTitle>Pedidos Recientes</CardTitle>
           <div className="flex space-x-2">
             <Select value={areaFilter} onValueChange={setAreaFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-gray-100">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las Áreas</SelectItem>
-                <SelectItem value="patronaje">Patronaje</SelectItem>
-                <SelectItem value="corte">Corte</SelectItem>
-                <SelectItem value="bordado">Bordado</SelectItem>
-                <SelectItem value="ensamble">Ensamble</SelectItem>
-                <SelectItem value="plancha">Plancha/Empaque</SelectItem>
-                <SelectItem value="calidad">Calidad</SelectItem>
-                <SelectItem value="envios">Envíos</SelectItem>
-                <SelectItem value="almacen">Almacén</SelectItem>
-                <SelectItem value="diseño">Diseño</SelectItem>
-                <SelectItem value="operaciones">Operaciones</SelectItem>
+              <SelectContent className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-700">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-100">Todas las Áreas</SelectItem>
+                <SelectItem value="patronaje" className="text-gray-900 dark:text-gray-100">Patronaje</SelectItem>
+                <SelectItem value="corte" className="text-gray-900 dark:text-gray-100">Corte</SelectItem>
+                <SelectItem value="bordado" className="text-gray-900 dark:text-gray-100">Bordado</SelectItem>
+                <SelectItem value="ensamble" className="text-gray-900 dark:text-gray-100">Ensamble</SelectItem>
+                <SelectItem value="plancha" className="text-gray-900 dark:text-gray-100">Plancha/Empaque</SelectItem>
+                <SelectItem value="calidad" className="text-gray-900 dark:text-gray-100">Calidad</SelectItem>
+                <SelectItem value="envios" className="text-gray-900 dark:text-gray-100">Envíos</SelectItem>
+                <SelectItem value="almacen" className="text-gray-900 dark:text-gray-100">Almacén</SelectItem>
+                <SelectItem value="diseño" className="text-gray-900 dark:text-gray-100">Diseño</SelectItem>
+                <SelectItem value="operaciones" className="text-gray-900 dark:text-gray-100">Operaciones</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-gray-100">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los Estados</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="completed">Finalizados</SelectItem>
-                <SelectItem value="paused">Pausados</SelectItem>
+              <SelectContent className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-700">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-100">Todos los Estados</SelectItem>
+                <SelectItem value="active" className="text-gray-900 dark:text-gray-100">Activos</SelectItem>
+                <SelectItem value="completed" className="text-gray-900 dark:text-gray-100">Finalizados</SelectItem>
+                <SelectItem value="paused" className="text-gray-900 dark:text-gray-100">Pausados</SelectItem>
               </SelectContent>
             </Select>
           </div>

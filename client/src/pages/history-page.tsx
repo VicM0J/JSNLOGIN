@@ -113,15 +113,15 @@ export default function HistoryPage() {
       order.tela?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesArea = areaFilter === "all" || order.currentArea === areaFilter;
-    
+
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    
+
     const matchesDate = (() => {
       if (dateFilter === "all") return true;
-      
+
       const orderDate = new Date(order.createdAt);
       const now = new Date();
-      
+
       switch (dateFilter) {
         case "today":
           return orderDate.toDateString() === now.toDateString();
@@ -158,11 +158,11 @@ export default function HistoryPage() {
 
     const matchesCompletionTime = (() => {
       if (completionTimeFilter === "all" || !order.completedAt) return true;
-      
+
       const created = new Date(order.createdAt);
       const completed = new Date(order.completedAt);
       const diffDays = (completed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
-      
+
       switch (completionTimeFilter) {
         case "fast": return diffDays < 1;
         case "normal": return diffDays >= 1 && diffDays <= 3;
@@ -176,7 +176,7 @@ export default function HistoryPage() {
     return matchesSearch && matchesArea && matchesStatus && matchesDate && matchesSize && matchesCompletionTime && matchesPausedFilter;
   }).sort((a, b) => {
     let aValue: any, bValue: any;
-    
+
     switch (sortBy) {
       case "createdAt":
         aValue = new Date(a.createdAt);
@@ -372,11 +372,11 @@ export default function HistoryPage() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-gradient-to-r from-green-50 to-teal-50 border-green-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 border-blue-200 dark:border-slate-600">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-green-800">
-            <Filter className="h-5 w-5" />
-            <span>Búsqueda y Filtros Avanzados</span>
+          <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
+            <Search className="w-5 h-5" />
+            Búsqueda y Filtros Avanzados
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -385,11 +385,11 @@ export default function HistoryPage() {
               <Input
                 type="text"
                 placeholder="Buscar por folio, cliente, modelo, No. solicitud, tipo, color, tela..."
-                className="pl-10"
+                className="pl-10 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-gray-100"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-300" />
               {searchTerm && (
                 <Button
                   variant="ghost"
@@ -505,7 +505,7 @@ export default function HistoryPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-600">Orden:</label>
               <Select value={sortOrder} onValueChange={setSortOrder}>
@@ -552,11 +552,11 @@ export default function HistoryPage() {
           </div>
 
           {/* Estadísticas de resultados */}
-          <div className="mt-4 p-3 bg-white rounded-lg border">
-            <div className="text-sm text-gray-600">
-              Mostrando <span className="font-semibold">{filteredOrders.length}</span> de <span className="font-semibold">{orders.length}</span> pedidos
+          <div className="mt-4 p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-600">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Mostrando <span className="font-semibold text-gray-900 dark:text-white">{filteredOrders.length}</span> de <span className="font-semibold text-gray-900 dark:text-white">{orders.length}</span> pedidos
               {filteredOrders.length !== orders.length && (
-                <span className="ml-2 text-blue-600">
+                <span className="ml-2 text-blue-600 dark:text-blue-400">
                   ({Math.round((filteredOrders.length / orders.length) * 100)}% del total)
                 </span>
               )}
