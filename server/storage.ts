@@ -212,7 +212,7 @@ export interface IStorage {
   async resetUserSequence(): Promise<void>;
   async backupUsers(): Promise<any>;
   async restoreUsers(backupData: any): Promise<any>;
-  updateReposition(repositionId: number, data: any[], pieces: any[], userId: number): Promise<any>;
+  updateReposition(repositionId: number, data: any, pieces: any[], userId: number): Promise<any>;
   getRepositionProducts(repositionId: number): Promise<any[]>;
 }
 
@@ -879,8 +879,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     await this.addRepositionHistory(
-      transfer.repositionId,
-      'transfer_requested',      `Transfer requested from ${transfer.fromArea} to ${transfer.toArea}`,
+      transfer.repositionId,      'transfer_requested',      `Transfer requested from ${transfer.fromArea} to ${transfer.toArea}`,
       createdBy,
       transfer.fromArea,
       transfer.toArea
@@ -1676,30 +1675,58 @@ async getRepositionTracking(repositionId: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
 
-async startRepositionTimer(repositionId: number, userId: number, area: Area): Promise<SharedRepositionTimer> {
-    // Check if there's already a running timer for this reposition and area
-    const existingTimer = await db.select().from(repositionTimers)
-      .where(and(
-        eq(repositionTimers.repositionId, repositionId),
-        eq(repositionTimers.area, area),
-        eq(repositionTimers.isRunning, true)
-      )).limit(1);
+async startRepositionTimer(repositionId: number, userId: number, area: string): Promise<any> {
+    console.log('Starting timer for reposition:', repositionId, 'user:', userId, 'area:', area);
 
-    if (existingTimer.length > 0) {
-      throw new Error('Ya existe un timer activo para esta reposición en esta área');
+    // Verificar que la reposición existe y está aprobada
+    const reposition = await this.getRepositionById(repositionId);
+    if (!reposition) {
+      throw new Error('Reposición no encontrada');
     }
 
-    const [timer] = await db.insert(repositionTimers)
+    if (reposition.status !== 'aprobado') {
+      throw new Error('Solo se puede iniciar el cronómetro en reposiciones aprobadas');
+    }
+
+    // Verificar si el usuario es el creador original de la reposición
+    if (reposition.createdBy === userId) {
+      throw new Error('El creador de la reposición no debe registrar tiempo');
+    }
+
+    // Verificar si ya hay un timer activo para esta reposición y área
+    const existingTimer = await db.select()
+      .from(repositionTimers)
+      .where(and(
+        eq(repositionTimers.repositionId, repositionId),
+        eq(repositionTimers.area, area as Area),
+        isNull(repositionTimers.endTime)
+      ))
+      .limit(1);
+
+    if (existingTimer.length > 0) {
+      throw new Error('Ya hay un cronómetro activo para esta área en esta reposición');
+    }
+
+    // Crear nuevo timer
+    const newTimer = await db.insert(repositionTimers)
       .values({
         repositionId,
-        area,
+        area: area as Area,
         userId,
-        startTime: new Date(),
-        isRunning: true,
+        startTime: new Date()
       })
       .returning();
 
-    return timer;
+    // Agregar entrada al historial
+    await this.addRepositionHistory(
+      repositionId,
+      'timer_started',
+      `Cronómetro iniciado en área ${area}`,
+      userId
+    );
+
+    console.log('Timer started successfully:', newTimer[0]);
+    return newTimer[0];
   }
 
   async stopRepositionTimer(repositionId: number, area: Area, userId: number): Promise<{ elapsedTime: string }> {
@@ -1792,109 +1819,88 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
     throw new Error("Method not implemented.");
   }
 
-  async setManualRepositionTime(repositionId: number, area: Area, userId: number, startTime: string, endTime: string, date: string, startDate: string, endDate: string): Promise<SharedRepositionTimer> {
-    // Validar formato de tiempo (HH:MM)
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
-      throw new Error('Formato de tiempo inválido. Use HH:MM');
+  async setManualRepositionTime(
+    repositionId: number, 
+    area: string, 
+    userId: number, 
+    startTime: string, 
+    endTime: string, 
+    startDate: string,
+    endDate: string
+  ): Promise<any> {
+    console.log('Setting manual time for reposition:', repositionId, 'area:', area, 'user:', userId);
+
+    // Verificar que la reposición existe
+    const reposition = await this.getRepositionById(repositionId);
+    if (!reposition) {
+      throw new Error('Reposición no encontrada');
     }
 
-    // Función para normalizar fechas
-    const normalizeDateString = (dateStr: string): string => {
-      if (!dateStr) throw new Error('Fecha requerida');
-
-      // Si viene en formato ISO, extraer solo la fecha
-      if (dateStr.includes('T')) {
-        return dateStr.split('T')[0];
-      }
-
-      // Si es un objeto Date serializado, intentar parsearlo
-      if (dateStr.includes('-') && dateStr.length >= 10) {
-        return dateStr.substring(0, 10);
-      }
-
-      return dateStr;
-    };
-
-    // Normalizar todas las fechas
-    const normalizedDate = normalizeDateString(date);
-    const normalizedStartDate = normalizeDateString(startDate);
-    const normalizedEndDate = normalizeDateString(endDate);
-
-    // Validar formato de fecha (YYYY-MM-DD)
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-    if (!dateRegex.test(normalizedDate)) {
-      console.log('Invalid date format received:', date, 'normalized:', normalizedDate);
-      throw new Error('Formato de fecha inválido. Use YYYY-MM-DD');
-    }
-    if (!dateRegex.test(normalizedStartDate) || !dateRegex.test(normalizedEndDate)) {
-      console.log('Invalid date formats received:', startDate, endDate, 'normalized:', normalizedStartDate, normalizedEndDate);
-      throw new Error('Formato de fecha inválido. Use YYYY-MM-DD');
+    // Verificar si el usuario es el creador original de la reposición
+    if (reposition.createdBy === userId) {
+      throw new Error('El creador de la reposición no debe registrar tiempo');
     }
 
-    // Usar las fechas normalizadas
-    date = normalizedDate;
-    startDate = normalizedStartDate;
-    endDate = normalizedEndDate;
-
-    // Verificar si ya existe un timer para esta reposición y área
-    const existingTimer = await db.select().from(repositionTimers)
-      .where(and(
-        eq(repositionTimers.repositionId, repositionId),
-        eq(repositionTimers.area, area)
-      )).limit(1);
-
-    if (existingTimer.length > 0) {
-      // No permitir cambios si ya existe un tiempo registrado
-      throw new Error('Ya existe un tiempo registrado para esta área. No se puede modificar.');
+    // Validar que las fechas y horas sean válidas
+    if (!startTime || !endTime || !startDate || !endDate) {
+      throw new Error('Todos los campos de fecha y hora son requeridos');
     }
 
-    // Calcular minutos transcurridos considerando fechas diferentes
+    // Convertir strings a Date objects
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${endDate}T${endTime}`);
 
-    const elapsedMilliseconds = endDateTime.getTime() - startDateTime.getTime();
-    const elapsedMinutes = Math.floor(elapsedMilliseconds / (1000 * 60));
-
-    // Asegurar que elapsedMinutes es un número válido
-    if (isNaN(elapsedMinutes) || elapsedMinutes < 0) {
-      throw new Error('Error al calcular el tiempo transcurrido');
+    if (startDateTime >= endDateTime) {
+      throw new Error('La hora de inicio debe ser anterior a la hora de fin');
     }
 
-    console.log(`Manual time calculation: ${startDate} ${startTime} to ${endDate} ${endTime} = ${elapsedMinutes} minutes`);
+    // Verificar si ya existe un timer para esta reposición y área
+    const existingTimer = await db.select()
+      .from(repositionTimers)
+      .where(and(
+        eq(repositionTimers.repositionId, repositionId),
+        eq(repositionTimers.area, area as Area)
+      ))
+      .limit(1);
 
-    // Crear nuevo timer
-    const [timer] = await db.insert(repositionTimers)
-      .values({
-        repositionId,
-        area,
-        userId,
-        manualStartTime: startTime,
-        manualEndTime: endTime,
-        manualDate: date,
-        manualStartDate: startDate,
-        manualEndDate: endDate,
-        elapsedMinutes: Math.round(elapsedMinutes), // Redondear para evitar decimales problemáticos
-        isRunning: false,
-      })
-      .returning();
+    let timer;
+    if (existingTimer.length > 0) {
+      // Actualizar timer existente
+      timer = await db.update(repositionTimers)
+        .set({
+          startTime: startDateTime,
+          endTime: endDateTime,
+          userId: userId
+        })
+        .where(eq(repositionTimers.id, existingTimer[0].id))
+        .returning();
+    } else {
+      // Crear nuevo timer
+      timer = await db.insert(repositionTimers)
+        .values({
+          repositionId,
+          area: area as Area,
+          userId,
+          startTime: startDateTime,
+          endTime: endDateTime
+        })
+        .returning();
+    }
 
-    console.log('Timer created with elapsed minutes:', timer.elapsedMinutes);
+    // Calcular duración en minutos
+    const durationMs = endDateTime.getTime() - startDateTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
 
-    // Registrar en historial con tiempo calculado
-    const hours = Math.floor(elapsedMinutes / 60);
-    const minutes = Math.round(elapsedMinutes % 60);
-    const timeFormatted = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-
-    await db.insert(repositionHistory).values({
+    // Agregar entrada al historial
+    await this.addRepositionHistory(
       repositionId,
-      action: 'manual_time_set',
-      description: `Tiempo registrado manualmente en área ${area}: ${startDate} ${startTime} - ${endDate} ${endTime} - Duración: ${timeFormatted}`,
+      'manual_time_set',
+      `Tiempo manual registrado: ${durationMinutes} minutos en área ${area}`,
       userId
-    });
+    );
 
-    return timer;
+    console.log('Manual time set successfully:', timer[0]);
+    return timer[0];
   }
 
   async getRepositionTimer(repositionId: number, area: Area): Promise<SharedRepositionTimer | null> {
@@ -1909,7 +1915,6 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
 
   async clearEntireDatabase(deleteUsers?: boolean): Promise<void> {
     try {
-      // Eliminar en orden correcto para evitar conflictos de foreign keys
       await db.delete(documents);
       await db.delete(repositionHistory);
       await db.delete(repositionTimers);
@@ -2116,32 +2121,72 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
     return material[0] || null;
   }
 
-  async updateReposition(repositionId: number, data: any[], pieces: any[], userId: number): Promise<any> {
-    // Update the main reposition record
+  async updateReposition(repositionId: number, data: any, pieces: any[], userId: number): Promise<any> {
+    console.log('Updating reposition:', repositionId, 'with data:', data);
+
+    const { productos, ...mainData } = data;
+
+    // Update the main reposition record - usar los datos del primer producto si es reposición
+    let updateData = { ...mainData };
+
+    if (data.type === 'repocision' && productos && productos.length > 0) {
+      const firstProduct = productos[0];
+      updateData = {
+        ...updateData,
+        modeloPrenda: firstProduct.modeloPrenda,
+        tela: firstProduct.tela,
+        color: firstProduct.color,
+        tipoPieza: firstProduct.tipoPieza,
+        consumoTela: firstProduct.consumoTela || 0
+      };
+    }
+
+    updateData.status = 'pendiente' as RepositionStatus;
+    updateData.approvedBy = null;
+    updateData.approvedAt = null;
+    updateData.rejectionReason = null;
+
     await db.update(repositions)
-      .set({
-        ...data,
-        status: 'pendiente' as RepositionStatus,
-        approvedBy: null,
-        approvedAt: null,
-        rejectionReason: null,
-      })
+      .set(updateData)
       .where(eq(repositions.id, repositionId));
 
-    // Delete existing pieces
+    console.log('Main reposition data updated');
+
+    // Delete existing pieces and products
     await db.delete(repositionPieces)
       .where(eq(repositionPieces.repositionId, repositionId));
 
+    await db.delete(repositionProducts)
+      .where(eq(repositionProducts.repositionId, repositionId));
+
+    console.log('Existing pieces and products deleted');
+
+    // Insert new products if they exist
+    if (productos && productos.length > 0) {
+      const productValues = productos.map((producto: any) => ({
+        repositionId,
+        modeloPrenda: producto.modeloPrenda,
+        tela: producto.tela,
+        color: producto.color,
+        tipoPieza: producto.tipoPieza,
+        consumoTela: producto.consumoTela || 0,
+      }));
+
+      await db.insert(repositionProducts).values(productValues);
+      console.log('New products inserted:', productValues.length);
+    }
+
     // Insert new pieces
     if (pieces && pieces.length > 0) {
-      await db.insert(repositionPieces).values(
-        pieces.map((piece: any) => ({
-          repositionId,
-          talla: piece.talla,
-          cantidad: piece.cantidad,
-          folioOriginal: piece.folioOriginal || null,
-        }))
-      );
+      const pieceValues = pieces.map((piece: any) => ({
+        repositionId,
+        talla: piece.talla,
+        cantidad: piece.cantidad,
+        folioOriginal: piece.folioOriginal || null,
+      }));
+
+      await db.insert(repositionPieces).values(pieceValues);
+      console.log('New pieces inserted:', pieceValues.length);
     }
 
     // Add history entry
@@ -2154,6 +2199,7 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
 
     // Get the updated reposition
     const reposition = await this.getRepositionById(repositionId);
+    console.log('Updated reposition retrieved:', reposition?.folio);
 
     // Notify approval users (admin, envios, operaciones)
     const approvalUsers = await db.select().from(users)
@@ -2173,6 +2219,7 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
       });
     }
 
+    console.log('Update reposition completed successfully');
     return reposition;
   }
 
@@ -2631,8 +2678,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
             percentage
           };
         } catch (error) {
-          console.error(`Error calculating pieces for area ${area}:`, error);
-          return {
+          console.error(`Error calculating pieces for area ${area}:`, error);          return {
             area,
             count: data.count,
             reposiciones: data.reposiciones,
@@ -3070,31 +3116,71 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
   }
 
    async updateReposition(repositionId: number, data: any, pieces: any[], userId: number): Promise<any> {
-    // Update the main reposition record
+    console.log('Updating reposition:', repositionId, 'with data:', data);
+
+    const { productos, ...mainData } = data;
+
+    // Update the main reposition record - usar los datos del primer producto si es reposición
+    let updateData = { ...mainData };
+
+    if (data.type === 'repocision' && productos && productos.length > 0) {
+      const firstProduct = productos[0];
+      updateData = {
+        ...updateData,
+        modeloPrenda: firstProduct.modeloPrenda,
+        tela: firstProduct.tela,
+        color: firstProduct.color,
+        tipoPieza: firstProduct.tipoPieza,
+        consumoTela: firstProduct.consumoTela || 0
+      };
+    }
+
+    updateData.status = 'pendiente' as RepositionStatus;
+    updateData.approvedBy = null;
+    updateData.approvedAt = null;
+    updateData.rejectionReason = null;
+
     await db.update(repositions)
-      .set({
-        ...data,
-        status: 'pendiente' as RepositionStatus,
-        approvedBy: null,
-        approvedAt: null,
-        rejectionReason: null,
-      })
+      .set(updateData)
       .where(eq(repositions.id, repositionId));
 
-    // Delete existing pieces
+    console.log('Main reposition data updated');
+
+    // Delete existing pieces and products
     await db.delete(repositionPieces)
       .where(eq(repositionPieces.repositionId, repositionId));
 
+    await db.delete(repositionProducts)
+      .where(eq(repositionProducts.repositionId, repositionId));
+
+    console.log('Existing pieces and products deleted');
+
+    // Insert new products if they exist
+    if (productos && productos.length > 0) {
+      const productValues = productos.map((producto: any) => ({
+        repositionId,
+        modeloPrenda: producto.modeloPrenda,
+        tela: producto.tela,
+        color: producto.color,
+        tipoPieza: producto.tipoPieza,
+        consumoTela: producto.consumoTela || 0,
+      }));
+
+      await db.insert(repositionProducts).values(productValues);
+      console.log('New products inserted:', productValues.length);
+    }
+
     // Insert new pieces
     if (pieces && pieces.length > 0) {
-      await db.insert(repositionPieces).values(
-        pieces.map((piece: any) => ({
-          repositionId,
-          talla: piece.talla,
-          cantidad: piece.cantidad,
-          folioOriginal: piece.folioOriginal || null,
-        }))
-      );
+      const pieceValues = pieces.map((piece: any) => ({
+        repositionId,
+        talla: piece.talla,
+        cantidad: piece.cantidad,
+        folioOriginal: piece.folioOriginal || null,
+      }));
+
+      await db.insert(repositionPieces).values(pieceValues);
+      console.log('New pieces inserted:', pieceValues.length);
     }
 
     // Add history entry
@@ -3107,6 +3193,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
 
     // Get the updated reposition
     const reposition = await this.getRepositionById(repositionId);
+    console.log('Updated reposition retrieved:', reposition?.folio);
 
     // Notify approval users (admin, envios, operaciones)
     const approvalUsers = await db.select().from(users)
@@ -3126,6 +3213,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
       });
     }
 
+    console.log('Update reposition completed successfully');
     return reposition;
   }
 

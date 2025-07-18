@@ -95,36 +95,42 @@ import { useEffect } from 'react';
 
     // Query to load existing reposition data if editing
     const { data: existingReposition } = useQuery({
-      queryKey: ['reposition', repositionId],
+      queryKey: ['reposition', repositionId, 'edit'],
       queryFn: async () => {
         if (!repositionId) return null;
-        const response = await fetch(`/api/repositions/${repositionId}`);
+        const response = await fetch(`/api/repositions/${repositionId}?t=${Date.now()}`);
         if (!response.ok) throw new Error('Failed to fetch reposition');
         return response.json();
       },
-      enabled: !!repositionId
+      enabled: !!repositionId,
+      staleTime: 0, // Always consider data stale
+      refetchOnMount: 'always' // Always refetch when component mounts
     });
 
     const { data: existingPieces = [] } = useQuery({
-      queryKey: ['reposition-pieces', repositionId],
+      queryKey: ['reposition-pieces', repositionId, 'edit'],
       queryFn: async () => {
         if (!repositionId) return [];
-        const response = await fetch(`/api/repositions/${repositionId}/pieces`);
+        const response = await fetch(`/api/repositions/${repositionId}/pieces?t=${Date.now()}`);
         if (!response.ok) return [];
         return response.json();
       },
-      enabled: !!repositionId
+      enabled: !!repositionId,
+      staleTime: 0, // Always consider data stale
+      refetchOnMount: 'always' // Always refetch when component mounts
     });
 
     const { data: existingProducts = [] } = useQuery({
-      queryKey: ['reposition-products', repositionId],
+      queryKey: ['reposition-products', repositionId, 'edit'],
       queryFn: async () => {
         if (!repositionId) return [];
-        const response = await fetch(`/api/repositions/${repositionId}/products`);
+        const response = await fetch(`/api/repositions/${repositionId}/products?t=${Date.now()}`);
         if (!response.ok) return [];
         return response.json();
       },
-      enabled: !!repositionId
+      enabled: !!repositionId,
+      staleTime: 0, // Always consider data stale
+      refetchOnMount: 'always' // Always refetch when component mounts
     });
 
     const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<RepositionFormData>({
@@ -242,10 +248,42 @@ import { useEffect } from 'react';
         return response.json();
       },
       onSuccess: () => {
+        // Invalidate all repositions queries
         queryClient.invalidateQueries({ queryKey: ['repositions'] });
+        
         if (repositionId) {
-          queryClient.invalidateQueries({ queryKey: ['reposition', repositionId] });
+          // Remove all cached data for this reposition to force fresh fetch
+          queryClient.removeQueries({ queryKey: ['reposition'] });
+          queryClient.removeQueries({ queryKey: ['reposition-pieces'] });
+          queryClient.removeQueries({ queryKey: ['reposition-products'] });
+          queryClient.removeQueries({ queryKey: ['reposition-documents'] });
+          queryClient.removeQueries({ queryKey: ['reposition-history'] });
+          
+          // Invalidate all related queries for this reposition with specific patterns
+          queryClient.invalidateQueries({ 
+            predicate: (query) => {
+              const key = query.queryKey;
+              return Array.isArray(key) && (
+                key.includes('reposition') || 
+                key.includes('reposition-pieces') || 
+                key.includes('reposition-products') ||
+                key.includes('reposition-documents') ||
+                key.includes('reposition-history')
+              );
+            }
+          });
+          
+          // Force immediate refetch for critical queries after a short delay
+          setTimeout(() => {
+            queryClient.refetchQueries({ 
+              predicate: (query) => {
+                const key = query.queryKey;
+                return Array.isArray(key) && key.includes(repositionId);
+              }
+            });
+          }, 200);
         }
+        
         Swal.fire({
           title: '¡Éxito!',
           text: repositionId ? 'Solicitud editada y reenviada para aprobación' : 'Solicitud de reposición creada correctamente',

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileUpload } from '@/components/ui/file-upload';
-import { X, Clock, User, Package, FileText, Upload, Download, Printer } from 'lucide-react';
+import { X, Clock, User, Package, FileText, Upload, Download, Printer, Activity } from 'lucide-react';
 import { RepositionPrintSummary } from './RepositionPrintSummary';
 import Swal from 'sweetalert2';
 import { HistoryTimeline } from "@/components/shared/HistoryTimeline";
@@ -83,18 +83,22 @@ export function RepositionDetail({
   const { data: reposition, isLoading } = useQuery({
     queryKey: ['reposition', repositionId],
     queryFn: async () => {
-      const response = await fetch(`/api/repositions/${repositionId}`);
+      const response = await fetch(`/api/repositions/${repositionId}?t=${Date.now()}`);
       if (!response.ok) throw new Error('Failed to fetch reposition');
       const data = await response.json();
       
       return data;
-    }
+    },
+    staleTime: 0, // Always consider data stale to force refetch
+    refetchOnWindowFocus: true,
+    refetchInterval: 3000, // Refetch every 3 seconds
+    refetchOnMount: 'always' // Always refetch when component mounts
   });
 
   const { data: pieces = [], isLoading: isPiecesLoading } = useQuery({
     queryKey: ['reposition-pieces', repositionId],
     queryFn: async () => {
-      const response = await fetch(`/api/repositions/${repositionId}/pieces`);
+      const response = await fetch(`/api/repositions/${repositionId}/pieces?t=${Date.now()}`);
       if (!response.ok) return [];
       const data = await response.json();
       console.log('Pieces data completa:', data);
@@ -109,7 +113,11 @@ export function RepositionDetail({
         });
       });
       return data;
-    }
+    },
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true,
+    refetchInterval: 3000, // Refetch every 3 seconds
+    refetchOnMount: 'always' // Always refetch when component mounts
   });
 
   const { data: history = [] } = useQuery({
@@ -126,10 +134,14 @@ export function RepositionDetail({
   const { data: productos = [] } = useQuery({
     queryKey: ['reposition-products', repositionId],
     queryFn: async () => {
-      const response = await fetch(`/api/repositions/${repositionId}/products`);
+      const response = await fetch(`/api/repositions/${repositionId}/products?t=${Date.now()}`);
       if (!response.ok) return [];
       return response.json();
-    }
+    },
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true,
+    refetchInterval: 3000, // Refetch every 3 seconds
+    refetchOnMount: 'always' // Always refetch when component mounts
   });
 
   const { data: documents = [] } = useQuery({
@@ -266,6 +278,22 @@ export function RepositionDetail({
                 </Badge>
               </div>
               <div className="flex gap-2">
+                <Button 
+                  onClick={() => {
+                    queryClient.removeQueries({ queryKey: ['reposition', repositionId] });
+                    queryClient.removeQueries({ queryKey: ['reposition-pieces', repositionId] });
+                    queryClient.removeQueries({ queryKey: ['reposition-products', repositionId] });
+                    queryClient.refetchQueries({ queryKey: ['reposition', repositionId] });
+                    queryClient.refetchQueries({ queryKey: ['reposition-pieces', repositionId] });
+                    queryClient.refetchQueries({ queryKey: ['reposition-products', repositionId] });
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="text-green-600 border-green-600 hover:bg-green-50"
+                >
+                  <Activity className="w-4 h-4 mr-2" />
+                  Actualizar
+                </Button>
                 <Button 
                   onClick={() => setShowPrintSummary(true)}
                   className="bg-blue-600 hover:bg-blue-700"
