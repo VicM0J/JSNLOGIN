@@ -250,7 +250,7 @@ import { useEffect } from 'react';
       onSuccess: () => {
         // Invalidate all repositions queries
         queryClient.invalidateQueries({ queryKey: ['repositions'] });
-        
+
         if (repositionId) {
           // Remove all cached data for this reposition to force fresh fetch
           queryClient.removeQueries({ queryKey: ['reposition'] });
@@ -258,7 +258,7 @@ import { useEffect } from 'react';
           queryClient.removeQueries({ queryKey: ['reposition-products'] });
           queryClient.removeQueries({ queryKey: ['reposition-documents'] });
           queryClient.removeQueries({ queryKey: ['reposition-history'] });
-          
+
           // Invalidate all related queries for this reposition with specific patterns
           queryClient.invalidateQueries({ 
             predicate: (query) => {
@@ -272,7 +272,7 @@ import { useEffect } from 'react';
               );
             }
           });
-          
+
           // Force immediate refetch for critical queries after a short delay
           setTimeout(() => {
             queryClient.refetchQueries({ 
@@ -283,7 +283,7 @@ import { useEffect } from 'react';
             });
           }, 200);
         }
-        
+
         Swal.fire({
           title: '¡Éxito!',
           text: repositionId ? 'Solicitud editada y reenviada para aprobación' : 'Solicitud de reposición creada correctamente',
@@ -370,7 +370,7 @@ import { useEffect } from 'react';
       return totalCost;
     };
 
-    const onSubmit = (data: RepositionFormData) => {
+    const onSubmit = async (data: RepositionFormData) => {
       // Validación específica para reposiciones
       if (data.type === 'repocision') {
         // Validate products and their pieces
@@ -394,6 +394,56 @@ import { useEffect } from 'react';
               confirmButtonColor: '#8B5CF6'
             });
             return;
+          }
+        }
+
+        // Validar fecha de corte para cualquier área
+        if (data.fechaCorte) {
+          const fechaCorte = new Date(data.fechaCorte);
+          const hoy = new Date();
+
+          // Primer día del mes anterior
+          const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+
+          console.log('Validando fecha de corte:', { 
+            fechaCorte: data.fechaCorte,
+            fechaCorteDate: fechaCorte.toDateString(), 
+            inicioMesAnterior: inicioMesAnterior.toDateString(),
+            fechaCorteEsAnterior: fechaCorte < inicioMesAnterior
+          });
+
+          // Si la fecha de corte es anterior al inicio del mes pasado
+          if (fechaCorte < inicioMesAnterior) {
+            console.log('Fecha fuera de rango, mostrando SweetAlert...');
+
+            const result = await Swal.fire({
+              title: 'Fecha de Corte Fuera de Rango',
+              html: `
+                <div style="text-align: left; margin: 20px 0;">
+                  <p><strong>LA FECHA DE CORTE SOBREPASA LOS DÍAS EN QUE EL ÁREA DE CORTE ALMACENA LOS TRAZOS, FAVOR DE PASAR LA REPOSICIÓN AL ÁREA DE PATRONAJE PRIMERO</strong></p>
+                  <br>
+                  <p><strong>PONTE EN CONTACTO CON EL SUP DE CORTE PARA SABER SI TIENE O NO EL TRAZO A SU DISPOSICIÓN</strong></p>
+                </div>
+              `,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Continuar de todos modos',
+              cancelButtonText: 'Cancelar',
+              confirmButtonColor: '#8B5CF6',
+              cancelButtonColor: '#6b7280',
+              width: '600px',
+              allowOutsideClick: false,
+              allowEscapeKey: false
+            });
+
+            console.log('Resultado del SweetAlert:', result);
+
+            if (!result.isConfirmed) {
+              console.log('Usuario canceló, deteniendo proceso');
+              return;
+            }
+
+            console.log('Usuario confirmó continuar');
           }
         }
       }
@@ -810,7 +860,7 @@ import { useEffect } from 'react';
                     <Textarea
                       id="volverHacer"
                       {...register('volverHacer', { 
-                        required: watch('type') === 'reproceso' ? 'Campo requerido' : false 
+                        required: watch('type') === 'reproceso' ? 'Campo requerido' : false
                       })}
                       className={errors.volverHacer ? 'border-red-500' : ''}
                       rows={3}
@@ -823,7 +873,7 @@ import { useEffect } from 'react';
                     <Textarea
                       id="materialesImplicados"
                       {...register('materialesImplicados', { 
-                        required: watch('type') === 'reproceso' ? 'Campo requerido' : false 
+                        required: watch('type') === 'reproceso' ? 'Campo requerido' : false
                       })}
                       className={errors.materialesImplicados ? 'border-red-500' : ''}
                       rows={3}
@@ -948,6 +998,7 @@ import { useEffect } from 'react';
               }
               return null;
             })()}
+            
 
             <div className="flex justify-end space-x-4">
               <Button type="button" variant="outline" onClick={onClose}>

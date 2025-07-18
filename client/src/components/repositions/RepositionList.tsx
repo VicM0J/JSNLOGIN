@@ -784,8 +784,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
         text: 'Esta acción moverá la reposición a tu área',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#10B981',
-        confirmButtonText: 'Aceptar',        cancelButtonText: 'Cancelar'
+        confirmButtonColor: '#10B981',        confirmButtonText: 'Aceptar',        cancelButtonText: 'Cancelar'
       });
 
       if (result.isConfirmed) {
@@ -1142,6 +1141,15 @@ export function RepositionList({ userArea }: { userArea: string }) {
                     </p>
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-blue-600 hover:bg-blue-50"
+                      onClick={() => setSelectedReposition(transfer.repositionId)}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Ver Detalles
+                    </Button>
                     <Button
                       size="sm"
                       className="bg-green-600 hover:bg-green-700"
