@@ -49,19 +49,7 @@ export function NotificationPermission() {
   }
 
   if (permission === 'granted') {
-    return (
-      <Card className="mb-4 border-green-200 bg-green-50">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Check className="w-5 h-5 text-green-600" />
-            <CardTitle className="text-sm text-green-800">Notificaciones activadas</CardTitle>
-          </div>
-          <CardDescription className="text-green-700">
-            Recibirás notificaciones cuando la página no esté visible
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
+    return null; // No mostrar nada cuando las notificaciones están activadas
   }
 
   if (permission === 'denied') {

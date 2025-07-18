@@ -12,12 +12,26 @@ import { Search, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [showTransfer, setShowTransfer] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Early return if no user is authenticated
+  if (!user) {
+    return null; // ProtectedRoute will handle the redirect
+  }
 
   const canCreateOrders = user?.area === 'corte' || user?.area === 'admin';
 

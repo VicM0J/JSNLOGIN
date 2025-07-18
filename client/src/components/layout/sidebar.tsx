@@ -178,11 +178,11 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setLocation('/'); // o lo que corresponda
+                      setLocation('/dashboard');
                     }}
-                  isActive={location === '/'}
+                  isActive={location === '/dashboard'}
                   className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
-                    location === '/' 
+                    location === '/dashboard' 
                       ? 'bg-gradient-to-r from-[#8c69a5]/20 to-[#504b78]/20 text-[#8c69a5] border-r-2 border-[#8c69a5] font-medium shadow-sm' 
                       : ''
                   }`}

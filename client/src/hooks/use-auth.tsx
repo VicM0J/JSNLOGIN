@@ -25,21 +25,50 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error } = useQuery<SelectUser | null>({
     queryKey: ["/api/user"],
     queryFn: async () => {
       console.log('[AUTH] Checking user authentication...');
-      const res = await fetch("/api/user", { credentials: "include" });
-      if (!res.ok) {
-        console.log('[AUTH] User not authenticated, status:', res.status);
-        throw new Error("Not authenticated");
+      
+      try {
+        const response = await fetch("/api/user", {
+          credentials: "include",
+        });
+
+        console.log('[AUTH] Response status:', response.status);
+
+        if (response.status === 401) {
+          console.log('[AUTH] User not authenticated, status:', response.status);
+          return null;
+        }
+
+        if (!response.ok) {
+          console.error('[AUTH] Authentication error:', response.status, response.statusText);
+          throw new Error(`Authentication failed: ${response.status}`);
+        }
+
+        const userData = await response.json();
+        console.log('[AUTH] User authenticated:', userData);
+        return userData;
+      } catch (error) {
+        console.error('[AUTH] Network error:', error);
+        throw error;
       }
-      const userData = await res.json();
-      console.log('[AUTH] User authenticated:', userData.username, userData.area);
-      return userData;
     },
-    retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on 401 errors or network errors
+      if (error instanceof Error) {
+        if (error.message.includes('401') || error.message.includes('Authentication failed')) {
+          return false;
+        }
+      }
+      return failureCount < 1; // Reduce retries to avoid spam
+    },
+    refetchInterval: false, // Disable automatic refetching
+    staleTime: 600000, // 10 minutes - increase cache time
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
+    refetchOnMount: false, // Disable refetch on mount if data exists
   });
 
   const loginMutation = useMutation({

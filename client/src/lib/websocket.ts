@@ -16,6 +16,13 @@ class WebSocketManager {
       const wsUrl = `${protocol}//${host}/ws`;
 
       console.log('Intentando conectar WebSocket a:', wsUrl);
+      
+      // Validar que la URL sea correcta antes de crear el WebSocket
+      if (!host || host === 'undefined' || !wsUrl.includes('://')) {
+        console.error('URL de WebSocket inválida:', wsUrl);
+        return;
+      }
+
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {

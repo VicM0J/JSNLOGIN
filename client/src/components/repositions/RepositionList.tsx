@@ -39,19 +39,18 @@ const areas = [
 ];
 
 const statusColors = {
-  pendiente: 'bg-yellow-100 text-yellow-800',
-  aprobado: 'bg-green-100 text-green-800',
-  rechazado: 'bg-red-100 text-red-800',
-  en_proceso: 'bg-blue-100 text-blue-800',
-  completado: 'bg-gray-100 text-gray-800',
-  eliminado: 'bg-red-100 text-red-800',
-  cancelado: 'bg-orange-100 text-orange-800'
+  pendiente: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+  aprobado: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400', 
+  rechazado: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  en_proceso: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  completado: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+  cancelado: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
 };
 
 const urgencyColors = {
-  urgente: 'bg-red-100 text-red-800',
-  intermedio: 'bg-yellow-100 text-yellow-800',
-  poco_urgente: 'bg-green-100 text-green-800'
+  urgente: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  intermedio: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+  poco_urgente: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
 };
 
 const accidentFilters = [
@@ -86,10 +85,10 @@ export function RepositionList({ userArea }: { userArea: string }) {
   const [completionRequests, setCompletionRequests] = useState<Record<number, number>>({});
   const [editingReposition, setEditingReposition] = useState<number | null>(null);
   const queryClient = useQueryClient();
-  
+
   // Add authentication check
   const { user } = useAuth();
-  
+
   // Early return if no user is authenticated
   if (!user) {
     return (
@@ -786,8 +785,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#10B981',
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: 'Aceptar',        cancelButtonText: 'Cancelar'
       });
 
       if (result.isConfirmed) {
@@ -1493,7 +1491,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
                     {reposition.status !== 'completado' && reposition.status !== 'eliminado' && reposition.status !== 'cancelado' && (
                       <>
                         {/* Botón de finalización solo para admin/envios o el creador de la solicitud */}
-                        {(userArea === 'admin' || userArea === 'envios' || reposition.solicitanteArea === userArea) && (
+                        {(userArea === 'admin' || userArea === 'envios' || reposition.solicitanteArea ===userArea) && (
                           <Button
                             variant="outline"
                             size="sm"

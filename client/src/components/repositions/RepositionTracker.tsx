@@ -102,13 +102,13 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
   const formatDate = (dateString: string) => {
     // Crear la fecha
     const date = new Date(dateString);
-    
+
     // Si la fecha parece estar en UTC (diferencia notable con hora local), ajustar
     const now = new Date();
     const localOffset = now.getTimezoneOffset() * 60000; // offset en milisegundos
     const utcTime = date.getTime() + localOffset;
     const mexicoOffset = -6 * 60 * 60 * 1000; // México es UTC-6
-    
+
     // Si la fecha original parece estar en UTC, aplicar ajuste para México
     if (dateString.includes('T') && dateString.includes('Z')) {
       const adjustedDate = new Date(utcTime + mexicoOffset);
@@ -120,7 +120,7 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
         minute: '2-digit'
       });
     }
-    
+
     // Si no tiene indicadores UTC, usar tal como está
     return date.toLocaleString('es-ES', {
       year: 'numeric',
@@ -340,9 +340,9 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
 
           {/* Transferencias Entre Áreas */}
           {trackingData.transfers && trackingData.transfers.length > 0 && (
-            <Card>
+            <Card className="border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                   <ArrowRight className="w-5 h-5" />
                   Transferencias Entre Áreas
                 </CardTitle>
@@ -350,11 +350,11 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
               <CardContent>
                 <div className="space-y-4">
                   {trackingData.transfers.map((transfer: any) => (
-                    <div key={transfer.id} className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-purple-50">
+                    <div key={transfer.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-700 dark:to-slate-600">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                          <h4 className="font-semibold text-lg">
+                          <div className="w-3 h-3 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                          <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100">
                             {getAreaDisplayName(transfer.fromArea)} → {getAreaDisplayName(transfer.toArea)}
                           </h4>
                         </div>
@@ -367,30 +367,30 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
                            transfer.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">
+                          <p className="text-gray-700 dark:text-gray-200">
                             <Clock className="w-4 h-4 inline mr-1" />
                             Solicitada: {formatDate(transfer.createdAt)}
                           </p>
                           {transfer.processedAt && (
-                            <p className="text-gray-600 mt-1">
+                            <p className="text-gray-700 dark:text-gray-200 mt-1">
                               <CheckCircle className="w-4 h-4 inline mr-1" />
                               Procesada: {formatDate(transfer.processedAt)}
                             </p>
                           )}
                         </div>
-                        
+
                         <div>
                           {transfer.transferredBy && (
-                            <p className="text-gray-600">
+                            <p className="text-gray-700 dark:text-gray-200">
                               <User className="w-4 h-4 inline mr-1" />
                               Solicitada por: {transfer.transferredBy}
                             </p>
                           )}
                           {transfer.processedBy && (
-                            <p className="text-gray-600 mt-1">
+                            <p className="text-gray-700 dark:text-gray-200 mt-1">
                               <User className="w-4 h-4 inline mr-1" />
                               Procesada por: {transfer.processedBy}
                             </p>
@@ -399,15 +399,15 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
                       </div>
 
                       {transfer.notes && (
-                        <div className="mt-3 p-3 bg-white rounded border">
-                          <p className="text-sm font-medium text-gray-700 mb-1">Notas de transferencia:</p>
-                          <p className="text-sm text-gray-600">{transfer.notes}</p>
+                        <div className="mt-3 p-3 bg-white dark:bg-slate-700 rounded border border-gray-200 dark:border-gray-600">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Notas de transferencia:</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{transfer.notes}</p>
                         </div>
                       )}
 
                       {transfer.consumoTela && (
                         <div className="mt-3">
-                          <Badge variant="outline" className="text-green-600 border-green-300">
+                          <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20">
                             Consumo de tela: {transfer.consumoTela} metros
                           </Badge>
                         </div>
@@ -456,7 +456,7 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
             </Card>
           )}
 
-          
+
         </div>
       </DialogContent>
     </Dialog>
