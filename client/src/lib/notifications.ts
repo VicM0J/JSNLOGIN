@@ -36,6 +36,37 @@ export class NotificationService {
     return permission === 'granted';
   }
 
+  private playNotificationSound(): void {
+    try {
+      // Crear un contexto de audio
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Crear oscilador para generar el sonido
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      // Conectar oscilador al gain y luego al destino
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Configurar el sonido (tipo campana/notification)
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+      
+      // Configurar volumen
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      // Reproducir sonido
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+      
+    } catch (error) {
+      console.warn('No se pudo reproducir el sonido de notificación:', error);
+    }
+  }
+
   public async showNotification(title: string, options: {
     body?: string;
     icon?: string;
@@ -64,6 +95,11 @@ export class NotificationService {
     };
 
     try {
+      // Reproducir sonido si no está silenciado
+      if (!defaultOptions.silent) {
+        this.playNotificationSound();
+      }
+
       const notification = new Notification(title, defaultOptions);
       
       notification.onclick = (event) => {

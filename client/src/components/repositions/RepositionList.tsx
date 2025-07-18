@@ -1204,6 +1204,8 @@ export function RepositionList({ userArea }: { userArea: string }) {
               <CardContent>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>Área creadora: {reposition.solicitanteArea}</span>
+                    <span>•</span>
                     <span>Área actual: {reposition.currentArea}</span>
                     <span>•</span>
                     <span>{new Date(reposition.createdAt).toLocaleString('es-ES', {

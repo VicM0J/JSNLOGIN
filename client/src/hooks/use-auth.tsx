@@ -82,17 +82,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      // Show welcome message first, then redirect
       Swal.fire({
         title: `¡Hola ${user.name}!`,
         text: 'Bienvenido al sistema JASANA',
         icon: 'success',
         confirmButtonText: 'Continuar',
-        timer: 3000,
+        timer: 1000,
         timerProgressBar: true,
         confirmButtonColor: '#8b5cf6',
         customClass: {
           popup: 'font-sans',
         },
+      }).then(() => {
+        // Redirect to dashboard after SweetAlert closes
+        window.location.href = '/dashboard';
       });
     },
     onError: (error: Error) => {
@@ -156,17 +160,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      // Show success message first, then redirect
       Swal.fire({
         title: `¡Hola ${user.name}!`,
         text: 'REGISTRO EXITOSO',
         icon: 'success',
         confirmButtonText: 'Continuar',
-        timer: 3000,
+        timer: 1000,
         timerProgressBar: true,
         confirmButtonColor: '#8b5cf6',
         customClass: {
           popup: 'font-sans',
         },
+      }).then(() => {
+        // Redirect to dashboard after SweetAlert closes
+        window.location.href = '/dashboard';
       });
     },
     onError: (error: Error) => {
@@ -205,17 +213,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      // Show goodbye message first, then redirect
       Swal.fire({
         title: "¡Hasta pronto!",
         text: "Has cerrado sesión exitosamente",
         icon: 'success',
         confirmButtonText: 'Continuar',
-        timer: 2000,
+        timer: 1000,
         timerProgressBar: true,
         confirmButtonColor: '#8b5cf6',
         customClass: {
           popup: 'font-sans',
         },
+      }).then(() => {
+        // Redirect to auth page after SweetAlert closes
+        window.location.href = '/auth';
       });
     },
     onError: (error: Error) => {

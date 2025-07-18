@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
-import { NotificationPermission } from "@/components/notifications/notification-permission";
 import { useWebSocket } from "@/lib/websocket";
+import { useAuth } from "@/hooks/use-auth";
 import { useEffect, Component, ReactNode } from "react";
 import { NotificationService } from "@/lib/notifications";
 
@@ -86,6 +86,7 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { isConnected } = useWebSocket();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     // Inicializar el servicio de notificaciones
@@ -103,8 +104,13 @@ function AppContent() {
         <Route path="/maintenance" component={MaintenanceScreen} />
         <Route path="/">
           {({ params }) => {
-            // Redirect root to dashboard
-            window.history.replaceState({}, '', '/dashboard');
+            // Redirect root to dashboard if authenticated, otherwise to auth
+            if (isLoading) return null;
+            if (user) {
+              window.history.replaceState({}, '', '/dashboard');
+            } else {
+              window.history.replaceState({}, '', '/auth');
+            }
             return null;
           }}
         </Route>
@@ -119,7 +125,6 @@ function AppContent() {
         <Route component={NotFound} />
       </Switch>
       <Toaster />
-      <NotificationPermission />
     </div>
   );
 }
