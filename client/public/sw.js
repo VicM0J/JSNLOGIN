@@ -91,9 +91,4 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Handle PWA installation prompt
-self.addEventListener('beforeinstallprompt', (event) => {
-  console.log('PWA install prompt triggered');
-  event.preventDefault();
-  return event;
-});
+// PWA installation prompt handling removed

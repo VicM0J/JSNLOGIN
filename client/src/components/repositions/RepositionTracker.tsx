@@ -100,15 +100,34 @@ export function RepositionTracker({ repositionId, onClose }: RepositionTrackerPr
   };
 
   const formatDate = (dateString: string) => {
-    // Asegurar que la fecha se interprete correctamente como UTC si no tiene zona horaria
-    const date = new Date(dateString.endsWith('Z') ? dateString : dateString + 'Z');
+    // Crear la fecha
+    const date = new Date(dateString);
+    
+    // Si la fecha parece estar en UTC (diferencia notable con hora local), ajustar
+    const now = new Date();
+    const localOffset = now.getTimezoneOffset() * 60000; // offset en milisegundos
+    const utcTime = date.getTime() + localOffset;
+    const mexicoOffset = -6 * 60 * 60 * 1000; // México es UTC-6
+    
+    // Si la fecha original parece estar en UTC, aplicar ajuste para México
+    if (dateString.includes('T') && dateString.includes('Z')) {
+      const adjustedDate = new Date(utcTime + mexicoOffset);
+      return adjustedDate.toLocaleString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // Si no tiene indicadores UTC, usar tal como está
     return date.toLocaleString('es-ES', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Mexico_City'
+      minute: '2-digit'
     });
   };
 

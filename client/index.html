@@ -32,13 +32,6 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // PWA Install prompt handling - DISABLED
-      window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('PWA install prompt available - but disabled');
-        e.preventDefault();
-        // Install prompt is disabled
-      });
-      
       // Service Worker registration
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -58,11 +51,6 @@
       } else {
         console.log('Service Worker not supported');
       }
-      
-      // Handle app installation
-      window.addEventListener('appinstalled', (evt) => {
-        console.log('PWA was installed successfully');
-      });
     </script>
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
   </body>

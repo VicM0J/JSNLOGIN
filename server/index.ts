@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { camelCaseResponseMiddleware } from './middlewares/camelCaseMiddleware';
@@ -117,6 +118,22 @@ if (!global.serverStarted) {
     } else {
       serveStatic(app);
     }
+
+    // Catch 404 and forward to error handler
+    app.use((req, res, next) => {
+      const error = new Error(`Not Found - ${req.originalUrl}`);
+      res.status(404);
+      next(error);
+    });
+
+    // Error handler
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+      res.status(statusCode).json({
+        message: err.message,
+        stack: process.env.NODE_ENV === 'production' ? null : err.stack
+      });
+    });
 
     // Iniciar servidor
     const port = 2000;

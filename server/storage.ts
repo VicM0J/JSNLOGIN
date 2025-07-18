@@ -861,7 +861,7 @@ export class DatabaseStorage implements IStorage {
     // Notificar al solicitante original
     await this.createNotification({
       userId: reposition.createdBy,
-      type: action === 'aprobado' ? 'transfer_accepted' : 'transfer_rejected',
+      type: action === 'aprobado' ? 'reposition_approved' : 'reposition_rejected',
       title: action === 'aprobado' ? 'Reposición Aprobada' : 'Reposición Rechazada',
       message: `Tu reposición ${reposition.folio} ha sido ${action === 'aprobado' ? 'aprobada' : 'rechazada'}${notes ? `: ${notes}` : ''}`,
       repositionId: repositionId,
@@ -1312,9 +1312,10 @@ async getRepositionTracking(repositionId: number): Promise<any> {
       };
     });
 
-    // Calcular tiempos por área - solo para áreas con tiempos registrados
+    // Calcular tiempos por área - incluir tiempos manuales registrados
     const areaTimesCalculated: Record<string, number> = {};
 
+    // Primero, procesar los timers de la base de datos
     timersFromDB.forEach(timer => {
       let elapsedMinutes = 0;
 
@@ -1342,7 +1343,23 @@ async getRepositionTracking(repositionId: number): Promise<any> {
 
         // Solo asignar si tenemos un valor válido
         if (!isNaN(elapsedMinutes) && elapsedMinutes > 0) {
-          areaTimesCalculated[timer.area] = elapsedMinutes;
+          areaTimesCalculated[timer.area] = (areaTimesCalculated[timer.area] || 0) + elapsedMinutes;
+        }
+      }
+    });
+
+    // Segundo, buscar tiempos manuales en el historial
+    history.forEach(event => {
+      if (event.description && event.description.includes('Tiempo manual registrado:')) {
+        // Extraer el tiempo y área del mensaje
+        const timeMatch = event.description.match(/(\d+)\s*minutos?\s*en\s*área\s*(\w+)/i);
+        if (timeMatch) {
+          const minutes = parseInt(timeMatch[1]);
+          const area = timeMatch[2].toLowerCase();
+          
+          if (!isNaN(minutes) && minutes > 0) {
+            areaTimesCalculated[area] = (areaTimesCalculated[area] || 0) + minutes;
+          }
         }
       }
     });
