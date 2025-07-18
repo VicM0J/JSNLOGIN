@@ -1,4 +1,3 @@
-
 import type { Express } from "express";
 import { Router } from "express";
 import { createServer, type Server } from "http";
@@ -151,12 +150,12 @@ function registerOrderRoutes(app: Express) {
     try {
       const user = req.user!;
       console.log(`[ORDERS API] User ${user.username} (${user.area}) requesting orders`);
-      
+
       // All areas can see all orders - no restrictions
       const orders = await storage.getOrders();
-      
+
       console.log(`[ORDERS API] Returning ${orders.length} orders to user ${user.username} (${user.area})`);
-      
+
       // Specific logging for bordado area to debug
       if (user.area === 'bordado') {
         console.log(`[BORDADO DEBUG] User ${user.username} from bordado area received ${orders.length} orders`);
@@ -170,7 +169,7 @@ function registerOrderRoutes(app: Express) {
           })));
         }
       }
-      
+
       res.json(orders);
     } catch (error) {
       console.error(`[ORDERS API] Get orders error for user ${req.user?.username} (${req.user?.area}):`, error);
@@ -813,10 +812,10 @@ function configureWebSocket(app: Express): Server {
   // Exponer función de broadcast
   (httpServer as any).wss = wss;
   (httpServer as any).broadcast = broadcastToAll;
-  
+
   // Store httpServer reference in app for access in routes
   app.set('httpServer', httpServer);
-  
+
   return httpServer;
 }
 
@@ -1068,9 +1067,9 @@ function registerRepositionRoutes(app: Express) {
     try {
       const user = (req as any).user;
       const repositionId = parseInt(req.params.id);
-      
+
       console.log('Edit reposition request:', { repositionId, userId: user?.id, hasUser: !!user });
-      
+
       if (isNaN(repositionId)) {
         return res.status(400).json({ message: "ID de reposición inválido" });
       }
@@ -1134,7 +1133,6 @@ function registerRepositionRoutes(app: Express) {
         {
           ...mainData,
           productos,
-          telaContraste: mainData.tieneTelaContraste ? telaContraste : undefined
         }, 
         allPieces, 
         user.id
@@ -1565,6 +1563,25 @@ function registerRepositionRoutes(app: Express) {
     } catch (error) {
       console.error('Get documents error:', error);
       res.status(500).json({ message: "Error al obtener documentos" });
+    }
+  });
+
+  // New route to get products for a reposition
+  router.get("/:id/products", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const repositionId = parseInt(req.params.id);
+
+      if (isNaN(repositionId)) {
+        return res.status(400).json({ message: "ID de reposición inválido" });
+      }
+
+      const products = await storage.getRepositionProducts(repositionId);
+      res.json(products);
+    } catch (error) {
+      console.error('Get products error:', error);
+      res.status(500).json({ message: "Error al obtener productos" });
     }
   });
 
@@ -1999,3 +2016,5 @@ function registerMetricsRoutes(app: Express) {
     }
   });
 }
+
+// The route related to contrast fabric has been removed.

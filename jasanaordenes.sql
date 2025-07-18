@@ -171,6 +171,11 @@ BEGIN
         ALTER TYPE notification_type ADD VALUE 'partial_transfer_warning';
     EXCEPTION WHEN duplicate_object THEN NULL;
     END;
+
+    BEGIN
+        ALTER TYPE notification_type ADD VALUE 'reposition_resubmitted';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
 END
 $$;
 
@@ -303,7 +308,6 @@ CREATE TABLE IF NOT EXISTS repositions (
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     approved_at TIMESTAMP,
     completed_at TIMESTAMP,
-    rejection_reason TEXT,
     CONSTRAINT repositions_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT repositions_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES users(id)
 );
@@ -314,6 +318,10 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'repositions' AND column_name = 'materiales_implicados') THEN
         ALTER TABLE repositions ADD COLUMN materiales_implicados TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'repositions' AND column_name = 'rejection_reason') THEN
+        ALTER TABLE repositions ADD COLUMN rejection_reason TEXT;
     END IF;
 END
 $$;

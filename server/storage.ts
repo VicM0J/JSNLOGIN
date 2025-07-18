@@ -8,7 +8,6 @@ import {
   repositions,
   repositionPieces,
   repositionProducts,
-  repositionContrastFabrics,
   repositionTimers,
   repositionTransfers,
   repositionHistory,
@@ -213,7 +212,8 @@ export interface IStorage {
   async resetUserSequence(): Promise<void>;
   async backupUsers(): Promise<any>;
   async restoreUsers(backupData: any): Promise<any>;
-  updateReposition(repositionId: number, data: any, pieces: any[], userId: number): Promise<any>;
+  updateReposition(repositionId: number, data: any[], pieces: any[], userId: number): Promise<any>;
+  getRepositionProducts(repositionId: number): Promise<any[]>;
 }
 
 export interface LocalRepositionTimer {
@@ -705,8 +705,8 @@ export class DatabaseStorage implements IStorage {
       .where(eq(notifications.id, notificationId));
   }
 
-  async createReposition(repositionData: InsertReposition & { folio: string, productos?: any[], telaContraste?: any }, pieces: InsertRepositionPiece[], createdBy: number): Promise<Reposition> {
-    const { productos, telaContraste, ...mainRepositionData } = repositionData;
+  async createReposition(repositionData: InsertReposition & { folio: string, productos?: any[] }, pieces: InsertRepositionPiece[], createdBy: number): Promise<Reposition> {
+    const { productos, ...mainRepositionData } = repositionData;
 
     const [reposition] = await db.insert(repositions)
       .values({
@@ -734,23 +734,6 @@ export class DatabaseStorage implements IStorage {
           tipoPieza: producto.tipoPieza,
           consumoTela: producto.consumoTela || 0
         })));
-    }
-
-    // Guardar tela contraste si existe
-    if (telaContraste) {
-      await db.insert(repositionContrastFabrics)
-        .values({
-          repositionId: reposition.id,
-          tela: telaContraste.tela,
-          color: telaContraste.color,
-          consumo: telaContraste.consumo
-        });
-
-      // Guardar piezas de tela contraste si existen
-      if (telaContraste.pieces && telaContraste.pieces.length > 0) {
-        // Crear entradas separadas para las piezas de contraste
-        // Esto puede requerir una tabla adicional o manejo especial
-      }
     }
 
     await this.addRepositionHistory(
@@ -879,7 +862,7 @@ export class DatabaseStorage implements IStorage {
     await this.createNotification({
       userId: reposition.createdBy,
       type: action === 'aprobado' ? 'transfer_accepted' : 'transfer_rejected',
-      title: action === 'aprobado' ? 'Reposición Aprobada' : 'ReposiciónRechazada',
+      title: action === 'aprobado' ? 'Reposición Aprobada' : 'Reposición Rechazada',
       message: `Tu reposición ${reposition.folio} ha sido ${action === 'aprobado' ? 'aprobada' : 'rechazada'}${notes ? `: ${notes}` : ''}`,
       repositionId: repositionId,
     });
@@ -897,8 +880,7 @@ export class DatabaseStorage implements IStorage {
 
     await this.addRepositionHistory(
       transfer.repositionId,
-      'transfer_requested',
-      `Transfer requested from ${transfer.fromArea} to ${transfer.toArea}`,
+      'transfer_requested',      `Transfer requested from ${transfer.fromArea} to ${transfer.toArea}`,
       createdBy,
       transfer.fromArea,
       transfer.toArea
@@ -1756,7 +1738,8 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
     const user = await this.getUser(userId);
 
     // Registrar en el historial
-    await db.insert(repositionHistory).values({
+    await db.insert
+(repositionHistory).values({
       repositionId,
       action: 'timer_stopped',
       description: `Cronómetro detenido por ${user?.name || 'Usuario'} en área ${area}. Tiempo transcurrido: ${elapsedTimeFormatted}`,
@@ -1932,7 +1915,6 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
       await db.delete(repositionTimers);
       await db.delete(repositionTransfers);
       await db.delete(repositionMaterials);
-      await db.delete(repositionContrastFabrics);
       await db.delete(repositionProducts);
       await db.delete(repositionPieces);
       await db.delete(repositions);
@@ -2134,141 +2116,64 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
     return material[0] || null;
   }
 
-  async updateReposition(repositionId: number, data: any, pieces: any[], userId: number): Promise<any> {
-    try {
-      console.log('UpdateReposition called with:', { repositionId, dataKeys: Object.keys(data), piecesLength: pieces?.length || 0 });
+  async updateReposition(repositionId: number, data: any[], pieces: any[], userId: number): Promise<any> {
+    // Update the main reposition record
+    await db.update(repositions)
+      .set({
+        ...data,
+        status: 'pendiente' as RepositionStatus,
+        approvedBy: null,
+        approvedAt: null,
+        rejectionReason: null,
+      })
+      .where(eq(repositions.id, repositionId));
 
-      const { productos, telaContraste, ...mainRepositionData } = data;
+    // Delete existing pieces
+    await db.delete(repositionPieces)
+      .where(eq(repositionPieces.repositionId, repositionId));
 
-      // Para reposiciones, usar los datos del primer producto si existe
-      let updateData = { ...mainRepositionData };
-      if (data.type === 'repocision' && productos && productos.length > 0) {
-        const firstProduct = productos[0];
-        updateData = {
-          ...updateData,
-          modeloPrenda: firstProduct.modeloPrenda || '',
-          tela: firstProduct.tela || '',
-          color: firstProduct.color || '',
-          tipoPieza: firstProduct.tipoPieza || '',
-          consumoTela: firstProduct.consumoTela || 0
-        };
-      } else if (data.type === 'reproceso') {
-        // Para reprocesos, mantener los campos vacíos o usar valores por defecto
-        updateData = {
-          ...updateData,
-          modeloPrenda: updateData.modeloPrenda || '',
-          tela: updateData.tela || '',
-          color: updateData.color || '',
-          tipoPieza: updateData.tipoPieza || '',
-          consumoTela: updateData.consumoTela || 0
-        };
-      }
-
-      // Actualizar datos principales de la reposición
-      const [updatedReposition] = await db.update(repositions)
-        .set({
-          ...updateData,
-          status: 'pendiente' as RepositionStatus, // Cambiar status a pendiente para nueva aprobación
-          rejectionReason: null, // Limpiar razón de rechazo
-          approvedBy: null,
-          approvedAt: null,
-          updatedAt: new Date()
-        })
-        .where(eq(repositions.id, repositionId))
-        .returning();
-
-      console.log('Reposition updated successfully');
-
-      // Eliminar piezas existentes y agregar las nuevas
-      await db.delete(repositionPieces)
-        .where(eq(repositionPieces.repositionId, repositionId));
-
-      if (pieces && pieces.length > 0) {
-        const piecesToInsert = pieces.map(piece => ({
-          repositionId: repositionId,
-          talla: piece.talla || '',
-          cantidad: piece.cantidad || 1,
-          folioOriginal: piece.folioOriginal || null
-        }));
-
-        console.log('Inserting pieces:', piecesToInsert);
-        await db.insert(repositionPieces).values(piecesToInsert);
-      }
-
-      // Actualizar productos si existen (solo para reposiciones)
-      if (data.type === 'repocision' && productos && productos.length > 0) {
-        // Eliminar productos existentes
-        await db.delete(repositionProducts)
-          .where(eq(repositionProducts.repositionId, repositionId));
-
-        // Insertar nuevos productos
-        await db.insert(repositionProducts)
-          .values(productos.map((producto: any) => ({
-            repositionId: repositionId,
-            modeloPrenda: producto.modeloPrenda || '',
-            tela: producto.tela || '',
-            color: producto.color || '',
-            tipoPieza: producto.tipoPieza || '',
-            consumoTela: producto.consumoTela || 0
-          })));
-
-        console.log('Products updated successfully');
-      }
-
-      // Actualizar tela contraste si existe
-      if (telaContraste && telaContraste.tela) {
-        // Eliminar tela contraste existente
-        await db.delete(repositionContrastFabrics)
-          .where(eq(repositionContrastFabrics.repositionId, repositionId));
-
-        // Insertar nueva tela contraste
-        await db.insert(repositionContrastFabrics)
-          .values({
-            repositionId: repositionId,
-            tela: telaContraste.tela,
-            color: telaContraste.color || '',
-            consumo: telaContraste.consumo || 0
-          });
-
-        console.log('Contrast fabric updated successfully');
-      }
-
-      await this.addRepositionHistory(
-        repositionId,
-        'updated',
-        'Reposición editada y reenviada para aprobación',
-        userId
+    // Insert new pieces
+    if (pieces && pieces.length > 0) {
+      await db.insert(repositionPieces).values(
+        pieces.map((piece: any) => ({
+          repositionId,
+          talla: piece.talla,
+          cantidad: piece.cantidad,
+          folioOriginal: piece.folioOriginal || null,
+        }))
       );
-
-      // Notificar a admin, operaciones y envíos sobre reposición editada
-      const adminUsers = await db.select().from(users)
-        .where(eq(users.area, 'admin'));
-
-      const operacionesUsers = await db.select().from(users)
-        .where(eq(users.area, 'operaciones'));
-
-      const enviosUsers = await db.select().from(users)
-        .where(eq(users.area, 'envios'));
-
-      const allTargetUsers = [...adminUsers, ...operacionesUsers, ...enviosUsers];
-
-      for (const targetUser of allTargetUsers) {
-        await this.createNotification({
-          userId: targetUser.id,
-          type: 'new_reposition',
-          title: 'Reposición Editada',
-          message: `La reposición ${updatedReposition.folio} ha sido editada y reenviada para aprobación`,
-          repositionId: repositionId,
-        });
-      }
-
-      console.log('UpdateReposition completed successfully');
-      return updatedReposition;
-
-    } catch (error) {
-      console.error('Error in updateReposition:', error);
-      throw error;
     }
+
+    // Add history entry
+    await this.addRepositionHistory(
+      repositionId,
+      'updated',
+      'Reposición editada y reenviada para aprobación',
+      userId
+    );
+
+    // Get the updated reposition
+    const reposition = await this.getRepositionById(repositionId);
+
+    // Notify approval users (admin, envios, operaciones)
+    const approvalUsers = await db.select().from(users)
+      .where(or(
+        eq(users.area, 'admin'),
+        eq(users.area, 'envios'),
+        eq(users.area, 'operaciones')
+      ));
+
+    for (const user of approvalUsers) {
+      await this.createNotification({
+        userId: user.id,
+        type: 'new_reposition',
+        title: 'Reposición Reenviada',
+        message: `La reposición ${reposition?.folio} ha sido editada y reenviada para aprobación`,
+        repositionId: repositionId,
+      });
+    }
+
+    return reposition;
   }
 
   async saveRepositionDocument(documentData: {
@@ -2407,17 +2312,41 @@ async startRepositionTimer(repositionId: number, userId: number, area: Area): Pr
     return result;
   }
 
-async createReposition(data: InsertReposition & { folio: string, productos?: any[], telaContraste?: any, volverHacer?:string, materialesImplicados?:string, observaciones?: string }, pieces: InsertRepositionPiece[], createdBy: number): Promise<Reposition> {
-    const { productos, telaContraste, volverHacer, materialesImplicados, observaciones, ...mainRepositionData } = data;
+async createReposition(data: InsertReposition & { folio: string, productos?: any[], volverHacer?:string, materialesImplicados?:string, observaciones?: string }, pieces: InsertRepositionPiece[], createdBy: number): Promise<Reposition> {
+    const { productos, ...mainRepositionData } = data;
+
+      // Para reposiciones, usar los datos del primer producto si existe
+      let repositionData = { ...mainRepositionData };
+      if (data.type === 'repocision' && productos && productos.length > 0) {
+        const firstProduct = productos[0];
+        repositionData = {
+          ...repositionData,
+          modeloPrenda: firstProduct.modeloPrenda || '',
+          tela: firstProduct.tela || '',
+          color: firstProduct.color || '',
+          tipoPieza: firstProduct.tipoPieza || '',
+          consumoTela: firstProduct.consumoTela || 0
+        };
+      } else if (data.type === 'reproceso') {
+        // Para reprocesos, mantener los campos vacíos o usar valores por defecto
+        repositionData = {
+          ...repositionData,
+          modeloPrenda: repositionData.modeloPrenda || '',
+          tela: repositionData.tela || '',
+          color: repositionData.color || '',
+          tipoPieza: repositionData.tipoPieza || '',
+          consumoTela: 0
+        };
+      }
 
     const [reposition] = await db.insert(repositions)
       .values({
         ...mainRepositionData,
         createdBy,
-        volverHacer: volverHacer,
+        volverHacer: data.volverHacer,
         descripcionSuceso: data.descripcionSuceso,
-        materialesImplicados: materialesImplicados,
-        observaciones: observaciones,
+        materialesImplicados: data.materialesImplicados,
+        observaciones: data.observaciones,
         createdAt: createMexicoTimestamp()
       })
       .returning();
@@ -2441,23 +2370,6 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
           tipoPieza: producto.tipoPieza,
           consumoTela: producto.consumoTela || 0
         })));
-    }
-
-    // Guardar tela contraste si existe
-    if (telaContraste) {
-      await db.insert(repositionContrastFabrics)
-        .values({
-          repositionId: reposition.id,
-          tela: telaContraste.tela,
-          color: telaContraste.color,
-          consumo: telaContraste.consumo
-        });
-
-      // Guardar piezas de tela contraste si existen
-      if (telaContraste.pieces && telaContraste.pieces.length > 0) {
-        // Crear entradas separadas para las piezas de contraste
-        // Esto puede requerir una tabla adicional o manejo especial
-      }
     }
 
     await this.addRepositionHistory(
@@ -2497,11 +2409,6 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
     const [reposition] = await db.select().from(repositions).where(eq(repositions.id, id));
     if (!reposition) return undefined;
 
-    // Obtener tela de contraste si existe
-    const contrastFabric = await db.select().from(repositionContrastFabrics)
-      .where(eq(repositionContrastFabrics.repositionId, id))
-      .limit(1);
-
     return {
       id: reposition.id,
       folio: reposition.folio,
@@ -2530,7 +2437,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
       otroAccidente: reposition.otroAccidente,
       volverHacer: reposition.volverHacer,
       materialesImplicados: reposition.materialesImplicados,
-      telaContraste: contrastFabric.length > 0 ? contrastFabric[0] : null,
+      areaCausanteDano: reposition.areaCausanteDano,
       rejectionReason: reposition.rejectionReason
     };
   }
@@ -2653,7 +2560,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
       const repositionsQuery = await db.select({
         area: repositions.solicitanteArea,
         type: repositions.type,
-        count: sql<number>`COUNT(*)::int`,
+        count: sql<number>`COUNT(*)::int`
       })
       .from(repositions)
       .where(and(
@@ -3041,7 +2948,6 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
       await db.delete(repositionTransfers);
       await db.delete(repositionHistory);
       await db.delete(repositionMaterials);
-      await db.delete(repositionContrastFabrics);
       await db.delete(repositionProducts);
       await db.delete(repositionPieces);
       await db.delete(repositions);
@@ -3221,6 +3127,16 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
     }
 
     return reposition;
+  }
+
+  async getRepositionPieces(repositionId: number): Promise<RepositionPiece[]> {
+    return await db.select().from(repositionPieces)
+      .where(eq(repositionPieces.repositionId, repositionId));
+  }
+
+  async getRepositionProducts(repositionId: number): Promise<any[]> {
+    return await db.select().from(repositionProducts)
+      .where(eq(repositionProducts.repositionId, repositionId));
   }
 }
 

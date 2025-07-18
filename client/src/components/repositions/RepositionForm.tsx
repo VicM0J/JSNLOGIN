@@ -31,38 +31,26 @@ import { useEffect } from 'react';
     pieces: RepositionPiece[];
   }
 
-  interface ContrastFabric {
-    tela: string;
-    color: string;
-    consumo: number;
-    tipoPiezas: {
-      tipoPieza: string;
-      pieces: RepositionPiece[];
-    }[];
-  }
-
   interface RepositionFormData {
-    type: 'repocision' | 'reproceso';
-    solicitanteNombre: string;
-    noSolicitud: string;
-    noHoja?: string;
-    fechaCorte?: string;
-    causanteDano: string;
-    tipoAccidente: string;
-    otroAccidente?: string;
-    solicitanteArea: 'patronaje' | 'corte' | 'bordado' | 'ensamble' | 'plancha' | 'calidad' | 'operaciones' | 'admin';
-    currentArea: 'patronaje' | 'corte' | 'bordado' | 'ensamble' | 'plancha' | 'calidad' | 'operaciones' | 'admin';
-    descripcionSuceso: string;
-    productos: ProductInfo[];
-    urgencia: 'urgente' | 'intermedio' | 'poco_urgente';
-    observaciones?: string;
-    pieces: RepositionPiece[];
-    tieneTelaContraste: boolean;
-    telaContraste?: ContrastFabric;
-    // Campos específicos para reproceso
-    volverHacer?: string;
-    materialesImplicados?: string;
-  }
+  type: string;
+  solicitanteNombre: string;
+  solicitanteArea: string;
+  fechaSolicitud: string;
+  noSolicitud: string;
+  noHoja?: string;
+  fechaCorte?: string;
+  causanteDano: string;
+  descripcionSuceso: string;
+  urgencia: string;
+  observaciones?: string;
+  currentArea: string;
+  tipoAccidente?: string;
+  otroAccidente?: string;
+  volverHacer?: string;
+  materialesImplicados?: string;
+  areaCausanteDano?: string;
+  productos: ProductInfo[];
+}
 
   const areas = [
     'patronaje', 'corte', 'bordado', 'ensamble', 'plancha', 'calidad', 'operaciones', 'diseño', 'almacen'
@@ -102,12 +90,6 @@ import { useEffect } from 'react';
       consumoTela: 0,
       pieces: [{ talla: '', cantidad: 1, folioOriginal: '' }]
     }]);
-    const [contrastFabric, setContrastFabric] = useState<ContrastFabric>({
-      tela: '',
-      color: '',
-      consumo: 0,
-      tipoPiezas: [{ tipoPieza: '', pieces: [{ talla: '', cantidad: 1, folioOriginal: '' }] }]
-    });
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -134,11 +116,21 @@ import { useEffect } from 'react';
       enabled: !!repositionId
     });
 
+    const { data: existingProducts = [] } = useQuery({
+      queryKey: ['reposition-products', repositionId],
+      queryFn: async () => {
+        if (!repositionId) return [];
+        const response = await fetch(`/api/repositions/${repositionId}/products`);
+        if (!response.ok) return [];
+        return response.json();
+      },
+      enabled: !!repositionId
+    });
+
     const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<RepositionFormData>({
       defaultValues: {
         type: 'repocision',
         urgencia: 'intermedio',
-        tieneTelaContraste: false,
         productos: [{ modeloPrenda: '', tela: '', color: '', tipoPieza: '', consumoTela: 0, pieces: [{ talla: '', cantidad: 1, folioOriginal: '' }] }]
       }
     });
@@ -153,7 +145,7 @@ import { useEffect } from 'react';
 
     // Populate form with existing data when editing
     useEffect(() => {
-      if (existingReposition && existingPieces.length > 0) {
+      if (existingReposition) {
         setValue('type', existingReposition.type);
         setValue('solicitanteNombre', existingReposition.solicitanteNombre);
         setValue('noSolicitud', existingReposition.noSolicitud);
@@ -171,22 +163,49 @@ import { useEffect } from 'react';
         setValue('materialesImplicados', existingReposition.materialesImplicados || '');
 
         if (existingReposition.type === 'repocision') {
-          const newProductos = [{
-            modeloPrenda: existingReposition.modeloPrenda || '',
-            tela: existingReposition.tela || '',
-            color: existingReposition.color || '',
-            tipoPieza: existingReposition.tipoPieza || '',
-            consumoTela: existingReposition.consumoTela || 0,
-            pieces: existingPieces.map((piece: any) => ({
-              talla: piece.talla,
-              cantidad: piece.cantidad,
-              folioOriginal: piece.folioOriginal || ''
-            }))
-          }];
-          setProductos(newProductos);
+          // Si hay productos adicionales, usarlos; si no, usar los datos principales
+          if (existingProducts && existingProducts.length > 0) {
+            const loadedProductos = existingProducts.map((product: any, index: number) => ({
+              modeloPrenda: product.modeloPrenda || '',
+              tela: product.tela || '',
+              color: product.color || '',
+              tipoPieza: product.tipoPieza || '',
+              consumoTela: product.consumoTela || 0,
+              pieces: existingPieces
+                .filter((piece: any) => {
+                  // Distribuir las piezas entre los productos
+                  const piecesPerProduct = Math.ceil(existingPieces.length / existingProducts.length);
+                  const startIndex = index * piecesPerProduct;
+                  const endIndex = startIndex + piecesPerProduct;
+                  const pieceIndex = existingPieces.indexOf(piece);
+                  return pieceIndex >= startIndex && pieceIndex < endIndex;
+                })
+                .map((piece: any) => ({
+                  talla: piece.talla,
+                  cantidad: piece.cantidad,
+                  folioOriginal: piece.folioOriginal || ''
+                }))
+            }));
+            setProductos(loadedProductos);
+          } else {
+            // Fallback a los datos principales si no hay productos adicionales
+            const newProductos = [{
+              modeloPrenda: existingReposition.modeloPrenda || '',
+              tela: existingReposition.tela || '',
+              color: existingReposition.color || '',
+              tipoPieza: existingReposition.tipoPieza || '',
+              consumoTela: existingReposition.consumoTela || 0,
+              pieces: existingPieces.map((piece: any) => ({
+                talla: piece.talla,
+                cantidad: piece.cantidad,
+                folioOriginal: piece.folioOriginal || ''
+              }))
+            }];
+            setProductos(newProductos);
+          }
         }
       }
-    }, [existingReposition, existingPieces, setValue]);
+    }, [existingReposition, existingPieces, existingProducts, setValue]);
 
 
 
@@ -202,7 +221,6 @@ import { useEffect } from 'react';
           ...data, 
           pieces: allPieces,
           productos,
-          telaContraste: data.tieneTelaContraste ? contrastFabric : undefined
         }));
 
         // Agregar archivos
@@ -249,14 +267,24 @@ import { useEffect } from 'react';
 
 
     const addProducto = () => {
-      setProductos([...productos, { 
+      // Si ya existe al menos un producto, usar sus datos para el nuevo producto
+      const baseProduct = productos.length > 0 ? {
+        modeloPrenda: productos[0].modeloPrenda,
+        tela: productos[0].tela,
+        color: productos[0].color,
+        tipoPieza: '', // Mantener vacío para que el usuario pueda especificar diferente tipo de pieza
+        consumoTela: 0,
+        pieces: [{ talla: '', cantidad: 1, folioOriginal: '' }]
+      } : {
         modeloPrenda: '', 
         tela: '', 
         color: '', 
         tipoPieza: '', 
         consumoTela: 0,
         pieces: [{ talla: '', cantidad: 1, folioOriginal: '' }]
-      }]);
+      };
+
+      setProductos([...productos, baseProduct]);
     };
 
     const removeProducto = (index: number) => {
@@ -291,67 +319,6 @@ import { useEffect } from 'react';
       setProductos(newProductos);
     };
 
-    const addContrastPieceType = () => {
-      setContrastFabric(prev => ({
-        ...prev,
-        tipoPiezas: [...prev.tipoPiezas, { tipoPieza: '', pieces: [{ talla: '', cantidad: 1, folioOriginal: '' }] }]
-      }));
-    };
-
-    const removeContrastPieceType = (index: number) => {
-      setContrastFabric(prev => ({
-        ...prev,
-        tipoPiezas: prev.tipoPiezas.filter((_, i) => i !== index)
-      }));
-    };
-
-    const updateContrastPieceType = (index: number, tipoPieza: string) => {
-      setContrastFabric(prev => ({
-        ...prev,
-        tipoPiezas: prev.tipoPiezas.map((item, i) => 
-          i === index ? { ...item, tipoPieza } : item
-        )
-      }));
-    };
-
-    const addContrastPiece = (pieceTypeIndex: number) => {
-      setContrastFabric(prev => ({
-        ...prev,
-        tipoPiezas: prev.tipoPiezas.map((item, i) => 
-          i === pieceTypeIndex 
-            ? { ...item, pieces: [...item.pieces, { talla: '', cantidad: 1, folioOriginal: '' }] }
-            : item
-        )
-      }));
-    };
-
-    const removeContrastPiece = (pieceTypeIndex: number, pieceIndex: number) => {
-      setContrastFabric(prev => ({
-        ...prev,
-        tipoPiezas: prev.tipoPiezas.map((item, i) => 
-          i === pieceTypeIndex 
-            ? { ...item, pieces: item.pieces.filter((_, j) => j !== pieceIndex) }
-            : item
-        )
-      }));
-    };
-
-    const updateContrastPiece = (pieceTypeIndex: number, pieceIndex: number, field: keyof RepositionPiece, value: string | number) => {
-      setContrastFabric(prev => ({
-        ...prev,
-        tipoPiezas: prev.tipoPiezas.map((item, i) => 
-          i === pieceTypeIndex 
-            ? { 
-                ...item, 
-                pieces: item.pieces.map((piece, j) => 
-                  j === pieceIndex ? { ...piece, [field]: value } : piece
-                )
-              }
-            : item
-        )
-      }));
-    };
-
     const calculateResourceCost = () => {
       let totalCost = 0;
 
@@ -361,14 +328,6 @@ import { useEffect } from 'react';
           totalCost += producto.consumoTela * 60;
         }
       });
-
-      // Costo de tela contraste si aplica
-      if (watch('tieneTelaContraste') && watch('telaContraste')) {
-        const contraste = watch('telaContraste');
-        if (contraste?.consumo) {
-          totalCost += contraste.consumo * 60;
-        }
-      }
 
       return totalCost;
     };
@@ -838,183 +797,6 @@ import { useEffect } from 'react';
               </Card>
             )}
 
-
-
-            {/* Segunda Tela - Solo para reposiciones */}
-            {watch('type') === 'repocision' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    Segunda Tela
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="tela-contraste"
-                        checked={watch('tieneTelaContraste')}
-                        onCheckedChange={(checked) => setValue('tieneTelaContraste', checked)}
-                      />
-                      <Label htmlFor="tela-contraste">Activar segunda tela</Label>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                {watch('tieneTelaContraste') && (
-                <CardContent>
-                  <div className="border rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-medium">Segunda Tela</h4>
-                      <Button type="button" onClick={addContrastPieceType} size="sm" variant="outline">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Agregar Tipo de Pieza
-                      </Button>
-                    </div>
-
-                    {/* Información básica de la segunda tela */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <Label>Segunda Tela *</Label>
-                        <Input
-                          value={contrastFabric.tela}
-                          onChange={(e) => setContrastFabric(prev => ({ ...prev, tela: e.target.value }))}
-                          placeholder="Tipo de segunda tela"
-                          uppercase={true}
-                        />
-                      </div>
-                      <div>
-                        <Label>Color *</Label>
-                        <Input
-                          value={contrastFabric.color}
-                          onChange={(e) => setContrastFabric(prev => ({ ...prev, color: e.target.value }))}
-                          placeholder="Color"
-                          uppercase={true}
-                        />
-                      </div>
-                      {watch('currentArea') === 'corte' && (
-                        <div>
-                          <Label>Consumo de Tela (metros)</Label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            value={contrastFabric.consumo || ''}
-                            onChange={(e) => setContrastFabric(prev => ({ ...prev, consumo: parseFloat(e.target.value) || 0 }))}
-                            placeholder="0.0"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tipos de piezas de la segunda tela */}
-                    <div className="space-y-6">
-                      {contrastFabric.tipoPiezas.map((tipoPieza, pieceTypeIndex) => (
-                        <div key={pieceTypeIndex} className="border rounded-lg p-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <h5 className="font-medium">Tipo de Pieza {pieceTypeIndex + 1}</h5>
-                            {contrastFabric.tipoPiezas.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeContrastPieceType(pieceTypeIndex)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-
-                          <div className="mb-4">
-                            <Label>Tipo de Pieza *</Label>
-                            <Input
-                              value={tipoPieza.tipoPieza}
-                              onChange={(e) => updateContrastPieceType(pieceTypeIndex, e.target.value)}
-                              placeholder="ej. Manga, Delantero, Cuello"
-                              uppercase={true}
-                            />
-                          </div>
-
-                          {/* Piezas del tipo */}
-                          <div className="border-t pt-4">
-                            <div className="flex justify-between items-center mb-4">
-                              <Label className="text-base font-medium">Piezas Solicitadas</Label>
-                              <Button 
-                                type="button" 
-                                onClick={() => addContrastPiece(pieceTypeIndex)} 
-                                size="sm"
-                                variant="outline"
-                              >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Agregar Pieza
-                              </Button>
-                            </div>
-                            <div className="space-y-3">
-                              {tipoPieza.pieces.map((piece, pieceIndex) => (
-                                <div key={pieceIndex} className="flex gap-4 items-end">
-                                  <div className="flex-1">
-                                    <Label>Talla</Label>
-                                    <Input
-                                      value={piece.talla}
-                                      onChange={(e) => updateContrastPiece(pieceTypeIndex, pieceIndex, 'talla', e.target.value)}
-                                      placeholder="ej. S, M, L, XL"
-                                      uppercase={true}
-                                    />
-                                  </div>
-                                  <div className="flex-1">
-                                    <Label>Cantidad</Label>
-                                    <Input
-                                      type="number"
-                                      min="1"
-                                      value={piece.cantidad === 1 ? '' : piece.cantidad}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        if (value === '' || value === '0') {
-                                          updateContrastPiece(pieceTypeIndex, pieceIndex, 'cantidad', '');
-                                        } else {
-                                          const numValue = parseInt(value);
-                                          if (!isNaN(numValue) && numValue > 0) {
-                                            updateContrastPiece(pieceTypeIndex, pieceIndex, 'cantidad', numValue);
-                                          }
-                                        }
-                                      }}
-                                      onBlur={(e) => {
-                                        if (e.target.value === '' || e.target.value === '0') {
-                                          updateContrastPiece(pieceTypeIndex, pieceIndex, 'cantidad', 1);
-                                        }
-                                      }}
-                                      placeholder="1"
-                                      className="text-center"
-                                      uppercase={true}
-                                    />
-                                  </div>
-                                  <div className="flex-1">
-                                    <Label>No° Folio Original</Label>
-                                    <Input
-                                      value={piece.folioOriginal || ''}
-                                      onChange={(e) => updateContrastPiece(pieceTypeIndex, pieceIndex, 'folioOriginal', e.target.value)}
-                                      placeholder="Opcional"
-                                      uppercase={true}
-                                    />
-                                  </div>
-                                  {tipoPieza.pieces.length > 1 && (
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => removeContrastPiece(pieceTypeIndex, pieceIndex)}
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-                )}
-              </Card>
-            )}
-
             {/* Cálculo de Recursos - Solo para área de corte y reposiciones */}
             {watch('currentArea') === 'corte' && watch('type') === 'repocision' && (
               <Card>
@@ -1034,12 +816,6 @@ import { useEffect } from 'react';
                             </div>
                           )
                         ))}
-                        {watch('tieneTelaContraste') && watch('telaContraste.consumo') && (
-                          <div className="flex justify-between">
-                            <span>Segunda Tela - {watch('telaContraste.tela')}</span>
-                            <span>{watch('telaContraste.consumo')} m × $60 = ${((watch('telaContraste.consumo') || 0) * 60).toFixed(2)}</span>
-                          </div>
-                        )}
                         <div className="border-t pt-2 font-medium flex justify-between">
                           <span>Total Estimado:</span>
                           <span>${calculateResourceCost().toFixed(2)}</span>
@@ -1100,6 +876,40 @@ import { useEffect } from 'react';
                 />
               </CardContent>
             </Card>
+
+            {/* Alerta de tiempo para reposiciones */}
+            {(() => {
+              if (watch('type') === 'repocision' && !repositionId) {
+                const now = new Date();
+                const currentHour = now.getHours();
+                if (currentHour >= 14) {
+                  return (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-yellow-800">
+                            Horario de Procesamiento
+                          </h3>
+                          <div className="mt-2 text-sm text-yellow-700">
+                            <p>
+                              Son las {currentHour}:{now.getMinutes().toString().padStart(2, '0')} hrs. 
+                              Es poco probable que esta solicitud se tome en cuenta hoy. 
+                              Probablemente será procesada mañana a partir de las 8:00 AM.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
 
             <div className="flex justify-end space-x-4">
               <Button type="button" variant="outline" onClick={onClose}>
