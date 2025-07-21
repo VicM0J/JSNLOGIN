@@ -45,8 +45,10 @@ export default function MetricsPage() {
       }
       return response.json();
     },
-    retry: 3,
-    retryDelay: 1000
+    retry: 2,
+    retryDelay: 500,
+    staleTime: 30000,
+    cacheTime: 300000
   });
 
   const { data: overallMetrics, isLoading: overallLoading, error: overallError } = useQuery({
@@ -59,8 +61,10 @@ export default function MetricsPage() {
       }
       return response.json();
     },
-    retry: 3,
-    retryDelay: 1000
+    retry: 2,
+    retryDelay: 500,
+    staleTime: 60000,
+    cacheTime: 600000
   });
 
   const { data: requestAnalysis, isLoading: requestLoading, error: requestError } = useQuery({
@@ -73,8 +77,10 @@ export default function MetricsPage() {
       }
       return response.json();
     },
-    retry: 3,
-    retryDelay: 1000
+    retry: 2,
+    retryDelay: 500,
+    staleTime: 45000,
+    cacheTime: 450000
   });
 
   const handleExport = async (type: 'monthly' | 'overall' | 'requests') => {

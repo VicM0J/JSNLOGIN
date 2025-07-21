@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,8 +60,10 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
   const { data: repositionNotifications = [] } = useQuery({
     queryKey: ["/api/notifications"],
     enabled: !!user,
-    refetchInterval: 10000,
+    refetchInterval: 1500, // Reducido a 1.5 segundos para notificaciones más rápidas
     refetchOnWindowFocus: true,
+    staleTime: 500, // Datos más frescos
+    refetchOnMount: 'always',
     queryFn: async () => {
       const res = await fetch('/api/notifications', {
         credentials: 'include'
@@ -165,7 +166,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
           <SidebarTrigger className="ml-auto h-6 w-6 group-data-[collapsible=icon]:ml-0" />
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent className="bg-[var(--jasana-sidebar-bg)]">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -191,7 +192,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Tablero</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
                   onClick={(e) => {
@@ -211,7 +212,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Pedidos</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
                   onClick={(e) => {
@@ -244,7 +245,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
                   onClick={(e) => {
@@ -263,7 +264,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Historial</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              
+
               <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                 <SidebarMenuButton 
                   onClick={(e) => {
@@ -282,7 +283,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                   <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Agenda</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              
+
               {user?.area === 'almacen' && (
                 <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                   <SidebarMenuButton 
@@ -330,7 +331,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
-                  
+
                   {canCreateRepositions && (
                     <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                       <SidebarMenuButton 
@@ -379,7 +380,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                       <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Administración</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  
+
                   <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                     <SidebarMenuButton 
                       onClick={(e) => {
@@ -404,7 +405,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
           </>
         )}
       </SidebarContent>
-      
+
       <SidebarFooter className="border-t bg-[var(--jasana-sidebar-bg)]">
         <SidebarMenu>
           <SidebarMenuItem>

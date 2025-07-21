@@ -1,3 +1,4 @@
+
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
@@ -45,11 +46,12 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: 5000, // Refetch every 5 seconds
+      refetchInterval: 2000, // Reducido a 2 segundos para respuesta más rápida
       refetchOnWindowFocus: true,
-      staleTime: 1000 * 10, // 10 seconds
+      staleTime: 500, // Reducido a 500ms para datos más frescos
       refetchIntervalInBackground: true,
       retry: 1,
+      refetchOnMount: 'always',
     },
     mutations: {
       retry: false,

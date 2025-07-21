@@ -142,7 +142,7 @@ export interface IStorage {
 
   createRepositionTransfer(transfer: InsertRepositionTransfer, createdBy: number): Promise<RepositionTransfer>;
   processRepositionTransfer(transferId: number, action: 'accepted' | 'rejected', userId: number, reason?: string): Promise<RepositionTransfer>;
-  getRepositionHistory(repositionId: number): Promise<RepositionHistory[]>;
+  getRepositionHistory(repositionId: number): Promise<any>;
   getRepositionTracking(repositionId: number): Promise<any>;
 
   deleteReposition(repositionId: number, userId: number, reason?: string): Promise<void>;
@@ -974,10 +974,30 @@ export class DatabaseStorage implements IStorage {
     return transfer;
   }
 
-  async getRepositionHistory(repositionId: number): Promise<RepositionHistory[]> {
-    return await db.select().from(repositionHistory)
-      .where(eq(repositionHistory.repositionId, repositionId))
-      .orderBy(asc(repositionHistory.createdAt));
+  async getRepositionHistory(repositionId: number): Promise<any[]> {
+    const historyEntries = await db.select({
+      id: repositionHistory.id,
+      action: repositionHistory.action,
+      description: repositionHistory.description,
+      fromArea: repositionHistory.fromArea,
+      toArea: repositionHistory.toArea,
+      createdAt: repositionHistory.createdAt,
+      userName: users.name,
+    })
+    .from(repositionHistory)
+    .leftJoin(users, eq(repositionHistory.userId, users.id))
+    .where(eq(repositionHistory.repositionId, repositionId))
+    .orderBy(desc(repositionHistory.createdAt));
+
+    return historyEntries.map(entry => ({
+      id: entry.id,
+      action: entry.action,
+      description: entry.description,
+      fromArea: entry.fromArea || undefined,
+      toArea: entry.toArea || undefined,
+      createdAt: entry.createdAt.toISOString(),
+      userName: entry.userName || 'Usuario desconocido'
+    }));
   }
 
   async createAdminPassword(password: string, createdBy: number): Promise<AdminPassword> {
@@ -1356,7 +1376,7 @@ async getRepositionTracking(repositionId: number): Promise<any> {
         if (timeMatch) {
           const minutes = parseInt(timeMatch[1]);
           const area = timeMatch[2].toLowerCase();
-          
+
           if (!isNaN(minutes) && minutes > 0) {
             areaTimesCalculated[area] = (areaTimesCalculated[area] || 0) + minutes;
           }
@@ -2660,7 +2680,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
         const areaData = areaMap.get(area)!;
         areaData.count += item.count;
 
-        if (item.type === 'repocision') {
+        if (item.type === 'repocision'){
           areaData.reposiciones += item.count;
         } else if (item.type === 'reproceso') {
           areaData.reprocesos += item.count;

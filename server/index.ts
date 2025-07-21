@@ -30,31 +30,18 @@ app.use((req, res, next) => {
 
 app.use(camelCaseResponseMiddleware);
 
-// Middleware de logging
+// Middleware de logging optimizado
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      // Solo loggear si toma más de 100ms para evitar spam
+      if (duration > 100) {
+        log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
       }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
     }
   });
 
@@ -136,12 +123,12 @@ if (!global.serverStarted) {
     });
 
     // Iniciar servidor
-    const port = 2000;
+    const port = process.env.PORT || 2000;
     server.listen({
       port,
       host: "0.0.0.0",
     }, () => {
-      log(`Servidor activo en http://localhost:${port}`);
+      log(`Servidor activo en http://0.0.0.0:${port}`);
     });
   })();
 } else {

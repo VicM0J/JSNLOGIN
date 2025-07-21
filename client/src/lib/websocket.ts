@@ -5,8 +5,8 @@ import { NotificationService, formatNotificationContent } from './notifications'
 class WebSocketManager {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectInterval = 5000;
+  private maxReconnectAttempts = 10;
+  private reconnectInterval = 2000;
   private listeners: Array<(data: any) => void> = [];
 
   connect() {
@@ -16,7 +16,7 @@ class WebSocketManager {
       const wsUrl = `${protocol}//${host}/ws`;
 
       console.log('Intentando conectar WebSocket a:', wsUrl);
-      
+
       // Validar que la URL sea correcta antes de crear el WebSocket
       if (!host || host === 'undefined' || !wsUrl.includes('://')) {
         console.error('URL de WebSocket inválida:', wsUrl);

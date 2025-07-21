@@ -14,7 +14,11 @@ if (!connectionString) {
 
 export const pool = new Pool({ 
   connectionString: connectionString,
-  ssl: false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // Para Render, siempre usar SSL si está en la URL externa
+  ...(connectionString.includes('render.com') && {
+    ssl: { rejectUnauthorized: false }
+  })
 });
 
 export const db = drizzle({ client: pool, schema });
