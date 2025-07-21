@@ -92,17 +92,16 @@ function CreatorAreaButton({
         const historyResponse = await fetch(`/api/repositions/${reposition.id}/history`);
         if (historyResponse.ok) {
           const history = await historyResponse.json();
-          
-          // Contar cuántas veces ha llegado a esta área (incluyendo la creación inicial)
-          const timesInCreatorArea = history.filter((entry: any) => 
-            (entry.action === 'created' && reposition.solicitanteArea === userArea) ||
-            (entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea)
+
+          // Contar cuántas veces ha sido aceptada una transferencia hacia esta área creadora
+          const transfersToCreatorArea = history.filter((entry: any) => 
+            entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea
           ).length;
-          
-          // Si ha llegado más de una vez, es que ha regresado
-          const hasReturned = timesInCreatorArea > 1;
-          setIsFirstTime(!hasReturned);
-          setShowCreatorBadge(!hasReturned);
+
+          // Si nunca ha regresado por transferencia, es primera vez
+          const isFirstTime = transfersToCreatorArea === 0;
+          setIsFirstTime(isFirstTime);
+          setShowCreatorBadge(isFirstTime);
         } else {
           // Si no se puede obtener el historial, asumir primera vez
           setIsFirstTime(true);
@@ -115,7 +114,7 @@ function CreatorAreaButton({
         setShowCreatorBadge(true);
       }
     };
-    
+
     checkHistory();
   }, [reposition.id, reposition.solicitanteArea, userArea]);
 
@@ -163,7 +162,7 @@ function CreatorAreaButton({
           </Badge>
         </div>
       )}
-      
+
       {/* Mostrar botón si ha regresado (no es primera vez) o si no es área creadora */}
       {(!isFirstTime || reposition.solicitanteArea !== userArea) && (
         <Button
@@ -636,6 +635,35 @@ export function RepositionList({ userArea }: { userArea: string }) {
       return;
     }
 
+    // Verificar la lógica del área creadora antes de enviar
+    const reposition = repositions.find(r => r.id === repositionId);
+    if (reposition && reposition.solicitanteArea === userArea) {
+      try {
+        const historyResponse = await fetch(`/api/repositions/${repositionId}/history`);
+        if (historyResponse.ok) {
+          const history = await historyResponse.json();
+
+          // Contar cuántas veces ha sido aceptada una transferencia hacia esta área
+          const transfersToCreatorArea = history.filter((entry: any) => 
+            entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea
+          ).length;
+
+          // Si nunca ha regresado por transferencia, no debe registrar tiempo
+          if (transfersToCreatorArea === 0) {
+            Swal.fire({
+              title: 'Información',
+              text: 'El área creadora no debe registrar tiempo en la primera ocasión',
+              icon: 'info',
+              confirmButtonColor: '#8B5CF6'
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error verificando historial:', error);
+      }
+    }
+
     try {
       // Asegurar que las fechas estén en formato YYYY-MM-DD
       const startDate = timeData.startDate instanceof Date 
@@ -725,14 +753,13 @@ export function RepositionList({ userArea }: { userArea: string }) {
           if (historyResponse.ok) {
             const history = await historyResponse.json();
 
-            // Contar cuántas veces ha llegado a esta área (incluyendo la creación inicial)
-            const timesInCreatorArea = history.filter((entry: any) => 
-              (entry.action === 'created' && reposition.solicitanteArea === userArea) ||
-              (entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea)
+            // Contar cuántas veces ha sido aceptada una transferencia hacia esta área
+            const transfersToCreatorArea = history.filter((entry: any) => 
+              entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea
             ).length;
 
-            // Si ha llegado más de una vez al área creadora, debe registrar tiempo
-            if (timesInCreatorArea > 1) {
+            // Si ha regresado por transferencia, debe registrar tiempo
+            if (transfersToCreatorArea > 0) {
               shouldRequireTime = true;
             }
           }
@@ -1113,14 +1140,13 @@ export function RepositionList({ userArea }: { userArea: string }) {
           if (historyResponse.ok) {
             const history = await historyResponse.json();
 
-            // Contar cuántas veces ha llegado a esta área (incluyendo la creación inicial)
-            const timesInCreatorArea = history.filter((entry: any) => 
-              (entry.action === 'created' && reposition.solicitanteArea === userArea) ||
-              (entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea)
+            // Contar cuántas veces ha sido aceptada una transferencia hacia esta área
+            const transfersToCreatorArea = history.filter((entry: any) => 
+              entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea
             ).length;
 
-            // Si ha llegado más de una vez al área creadora, debe registrar tiempo
-            if (timesInCreatorArea > 1) {
+            // Si ha regresado por transferencia, debe registrar tiempo
+            if (transfersToCreatorArea > 0) {
               shouldRequireTime = true;
             }
           }
@@ -1464,7 +1490,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
                     <p className="text-sm text-gray-600">
                       {transfer.notes && `Notas: ${transfer.notes}`}
                     </p>
-                    <p className="text-xs text-gray-500">
+<p className="text-xs text-gray-500">
                       {new Date(transfer.createdAt).toLocaleString()}
                     </p>
                   </div>

@@ -1873,11 +1873,6 @@ async startRepositionTimer(repositionId: number, userId: number, area: string): 
       throw new Error('Reposición no encontrada');
     }
 
-    // Verificar si el usuario es el creador original de la reposición
-    if (reposition.createdBy === userId) {
-      throw new Error('El creador de la reposición no debe registrar tiempo');
-    }
-
     // Validar que las fechas y horas sean válidas
     if (!startTime || !endTime || !startDate || !endDate) {
       throw new Error('Todos los campos de fecha y hora son requeridos');

@@ -809,7 +809,7 @@ function configureWebSocket(app: Express): Server {
     }));
   });
 
-  // Exponer función de broadcast
+  // Exponer función debroadcast
   (httpServer as any).wss = wss;
   (httpServer as any).broadcast = broadcastToAll;
 
@@ -1005,14 +1005,13 @@ function registerRepositionRoutes(app: Express) {
         // Si es el área que creó la reposición, verificar si ha regresado después de circular
         const history = await storage.getRepositionHistory(repositionId);
 
-        // Contar cuántas veces ha llegado a esta área (incluyendo la creación inicial)
-        const timesInCreatorArea = history.filter((entry: any) => 
-          (entry.action === 'created' && reposition.solicitanteArea === user.area) ||
-          (entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea)
+        // Contar cuántas veces ha sido aceptada una transferencia hacia esta área
+        const transfersToCreatorArea = history.filter((entry: any) => 
+          entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea
         ).length;
 
-        // Si ha llegado más de una vez al área creadora, debe registrar tiempo
-        if (timesInCreatorArea > 1) {
+        // Si ha regresado por transferencia, debe registrar tiempo
+        if (transfersToCreatorArea > 0) {
           shouldRequireTime = true;
         }
       }
@@ -1473,14 +1472,13 @@ function registerRepositionRoutes(app: Express) {
         // Si es el área creadora, verificar si ha regresado después de circular
         const history = await storage.getRepositionHistory(repositionId);
 
-        // Contar cuántas veces ha llegado a esta área (incluyendo la creación inicial)
-        const timesInCreatorArea = history.filter((entry: any) => 
-          (entry.action === 'created' && reposition.solicitanteArea === user.area) ||
-          (entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea)
+        // Contar cuántas veces ha sido aceptada una transferencia hacia esta área
+        const transfersToCreatorArea = history.filter((entry: any) => 
+          entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea
         ).length;
 
-        // Si es la primera vez (solo creación), no debe registrar tiempo
-        if (timesInCreatorArea <= 1) {
+        // Solo debe registrar tiempo si ha regresado por transferencia
+        if (transfersToCreatorArea === 0) {
           return res.status(400).json({ message: "El creador de la reposición no debe registrar tiempo en la primera ocasión" });
         }
       }
@@ -1519,14 +1517,13 @@ function registerRepositionRoutes(app: Express) {
         // Si es el área creadora, verificar si ha regresado después de circular
         const history = await storage.getRepositionHistory(repositionId);
 
-        // Contar cuántas veces ha llegado a esta área (incluyendo la creación inicial)
-        const timesInCreatorArea = history.filter((entry: any) => 
-          (entry.action === 'created' && reposition.solicitanteArea === user.area) ||
-          (entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea)
+        // Contar cuántas veces ha sido aceptada una transferencia hacia esta área
+        const transfersToCreatorArea = history.filter((entry: any) => 
+          entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea
         ).length;
 
-        // Si es la primera vez (solo creación), no debe registrar tiempo
-        if (timesInCreatorArea <= 1) {
+        // Solo debe registrar tiempo si ha regresado por transferencia
+        if (transfersToCreatorArea === 0) {
           return res.status(400).json({ message: "El creador de la reposición no debe registrar tiempo en la primera ocasión" });
         }
       }
@@ -1565,22 +1562,7 @@ function registerRepositionRoutes(app: Express) {
         return res.status(403).json({ message: "No tienes acceso a esta reposición" });
       }
 
-      // Verificar si el área creadora debe registrar tiempo según la nueva lógica
-      if (reposition.solicitanteArea === user.area) {
-        // Si es el área creadora, verificar si ha regresado después de circular
-        const history = await storage.getRepositionHistory(repositionId);
-
-        // Contar cuántas veces ha llegado a esta área (incluyendo la creación inicial)
-        const timesInCreatorArea = history.filter((entry: any) => 
-          (entry.action === 'created' && reposition.solicitanteArea === user.area) ||
-          (entry.action === 'transfer_accepted' && entry.toArea === reposition.solicitanteArea)
-        ).length;
-
-        // Si es la primera vez (solo creación), no debe registrar tiempo
-        if (timesInCreatorArea <= 1) {
-          return res.status(400).json({ message: "El creador de la reposición no debe registrar tiempo en la primera ocasión" });
-        }
-      }
+      // Permitir registro de tiempo para todas las áreas
 
       if (!startTime || !endTime || !startDate || !endDate) {
         return res.status(400).json({ message: "Hora de inicio, fin, fecha de inicio y fecha de fin son requeridas" });
@@ -1592,9 +1574,7 @@ function registerRepositionRoutes(app: Express) {
       console.error('Set manual time error:', error);
       res.status(400).json({ message: error instanceof Error ? error.message : "Error al registrar tiempo manual" });
     }
-  });
-
-  router.get("/:id/timer", async (req, res) => {
+  });router.get("/:id/timer", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
 
     try {
@@ -2126,4 +2106,4 @@ function registerMetricsRoutes(app: Express) {
   });
 }
 
-// The route related to contrast fabric has been removed.
+// Corrected timer validation logic in reposition routes to accurately determine when creator areas should register time.
