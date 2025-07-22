@@ -64,7 +64,8 @@ import HistoryPage from "@/pages/history-page";
 import AlmacenPage from "@/pages/almacen-page";
 import AgendaPage from "@/pages/agenda-page";
 import MetricsPage from "@/pages/metrics-page";
-import MaintenanceScreen from "@/components/maintenance/MaintenanceScreen";
+import SystemTicketsPage from "./pages/system-tickets-page";
+import MaintenanceScreen from './components/maintenance/MaintenanceScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -122,6 +123,8 @@ function AppContent() {
         <ProtectedRoute path="/almacen" component={AlmacenPage} />
         <ProtectedRoute path="/agenda" component={AgendaPage} />
         <ProtectedRoute path="/metrics" component={MetricsPage} />
+        <ProtectedRoute path="/system-tickets" component={SystemTicketsPage} />
+        <ProtectedRoute path="/tickets" component={SystemTicketsPage} />
         <Route component={NotFound} />
       </Switch>
       <Toaster />

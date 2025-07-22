@@ -123,7 +123,7 @@ if (!global.serverStarted) {
     });
 
     // Iniciar servidor
-    const port = process.env.PORT || 5000;
+    const port = process.env.PORT || 2000;
     server.listen({
       port,
       host: "0.0.0.0",

@@ -4,7 +4,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'area') THEN
         CREATE TYPE area AS ENUM (
             'patronaje', 'corte', 'bordado', 'ensamble', 
-            'plancha', 'calidad', 'operaciones', 'admin', 'envios', 'almacen', 'diseño'
+            'plancha', 'calidad', 'operaciones', 'admin', 'envios', 'almacen', 'diseño', 'sistemas'
         );
     ELSE
         BEGIN
@@ -29,6 +29,11 @@ BEGIN
         END;
         BEGIN
             ALTER TYPE area ADD VALUE 'diseño';
+        EXCEPTION
+            WHEN duplicate_object THEN NULL;
+        END;
+        BEGIN
+            ALTER TYPE area ADD VALUE 'sistemas';
         EXCEPTION
             WHEN duplicate_object THEN NULL;
         END;
@@ -176,6 +181,55 @@ BEGIN
         ALTER TYPE notification_type ADD VALUE 'reposition_resubmitted';
     EXCEPTION WHEN duplicate_object THEN NULL;
     END;
+
+    BEGIN
+        ALTER TYPE notification_type ADD VALUE 'new_system_ticket';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
+        ALTER TYPE notification_type ADD VALUE 'system_ticket_accepted';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
+        ALTER TYPE notification_type ADD VALUE 'system_ticket_completed';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
+        ALTER TYPE notification_type ADD VALUE 'system_ticket_rejected';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
+        ALTER TYPE notification_type ADD VALUE 'system_ticket_cancelled';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+END
+$$;
+
+-- Crear ENUMs para tickets de sistemas
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ticket_type') THEN
+        CREATE TYPE ticket_type AS ENUM (
+            'soporte_hardware', 
+            'soporte_software', 
+            'problemas_red', 
+            'acceso_permisos', 
+            'instalacion_configuracion', 
+            'otro'
+        );
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ticket_urgency') THEN
+        CREATE TYPE ticket_urgency AS ENUM ('alta', 'media', 'baja');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ticket_status') THEN
+        CREATE TYPE ticket_status AS ENUM ('pendiente', 'aceptada', 'finalizada', 'rechazada', 'cancelada');
+    END IF;
 END
 $$;
 
@@ -256,14 +310,22 @@ CREATE UNIQUE INDEX IF NOT EXISTS transfers_pkey ON transfers(id);
 CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    type notification_type NOT NULL,
+    type notification_type,
     title TEXT NOT NULL,
     message TEXT NOT NULL,
-    transfer_id INTEGER,
+    read BOOLEAN NOT NULL DEFAULT false,
     order_id INTEGER,
     reposition_id INTEGER,
-    read BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    ticket_id INTEGER,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT notifications_user_id_fkey 
+        FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT notifications_order_id_fkey 
+        FOREIGN KEY (order_id) REFERENCES orders(id),
+    CONSTRAINT notifications_reposition_id_fkey 
+        FOREIGN KEY (reposition_id) REFERENCES repositions(id),
+    CONSTRAINT notifications_ticket_id_fkey 
+        FOREIGN KEY (ticket_id) REFERENCES system_tickets(id)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS notifications_pkey ON notifications(id);
 CREATE INDEX IF NOT EXISTS idx_notifications_reposition_id ON notifications(reposition_id);
@@ -319,7 +381,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'repositions' AND column_name = 'materiales_implicados') THEN
         ALTER TABLE repositions ADD COLUMN materiales_implicados TEXT;
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'repositions' AND column_name = 'rejection_reason') THEN
         ALTER TABLE repositions ADD COLUMN rejection_reason TEXT;
     END IF;
@@ -402,15 +464,15 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_start_time') THEN
         ALTER TABLE reposition_timers ADD COLUMN manual_start_time VARCHAR(5);
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_end_time') THEN
         ALTER TABLE reposition_timers ADD COLUMN manual_end_time VARCHAR(5);
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_date') THEN
         ALTER TABLE reposition_timers ADD COLUMN manual_date VARCHAR(10);
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_end_date') THEN
         ALTER TABLE reposition_timers ADD COLUMN manual_end_date VARCHAR(10);
     END IF;
@@ -501,4 +563,28 @@ CREATE TABLE IF NOT EXISTS documents (
         FOREIGN KEY (reposition_id) REFERENCES repositions(id) ON DELETE CASCADE,
     CONSTRAINT documents_uploaded_by_fkey 
         FOREIGN KEY (uploaded_by) REFERENCES users(id)
+);
+
+-- Tabla de tickets de sistemas
+CREATE TABLE IF NOT EXISTS system_tickets (
+    id SERIAL PRIMARY KEY,
+    ticket_number VARCHAR(20) UNIQUE NOT NULL,
+    created_by INTEGER NOT NULL,
+    requester_name TEXT NOT NULL,
+    requester_area area NOT NULL,
+    request_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    ticket_type ticket_type NOT NULL,
+    other_type_description TEXT,
+    description TEXT NOT NULL,
+    urgency ticket_urgency NOT NULL,
+    status ticket_status NOT NULL DEFAULT 'pendiente',
+    received_by INTEGER,
+    attention_date DATE,
+    solution TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT system_tickets_created_by_fkey 
+        FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT system_tickets_received_by_fkey 
+        FOREIGN KEY (received_by) REFERENCES users(id)
 );
