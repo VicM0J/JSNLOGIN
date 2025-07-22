@@ -277,20 +277,21 @@ export const systemTickets = pgTable("system_tickets", {
 
 export const ticketMessages = pgTable("ticket_messages", {
   id: serial("id").primaryKey(),
-  ticketId: integer("ticket_id").notNull().references(() => systemTickets.id, { onDelete: "cascade" }),
+  ticketId: integer("ticket_id").notNull().references(() => systemTickets.id),
   userId: integer("user_id").notNull().references(() => users.id),
   message: text("message").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const ticketMessageReads = pgTable("ticket_message_reads", {
   id: serial("id").primaryKey(),
-  ticketId: integer("ticket_id").notNull().references(() => systemTickets.id, { onDelete: "cascade" }),
+  ticketId: integer("ticket_id").notNull().references(() => systemTickets.id),
   userId: integer("user_id").notNull().references(() => users.id),
-  lastReadAt: timestamp("last_read_at").defaultNow().notNull(),
-}, (table) => ({
-  unq: unique().on(table.ticketId, table.userId),
-}));
+  readAt: timestamp("read_at").notNull().defaultNow(),
+});
+
+export type TicketMessageRead = typeof ticketMessageReads.$inferSelect;
+export type InsertTicketMessageRead = typeof ticketMessageReads.$inferInsert;
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   creator: one(users, {

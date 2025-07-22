@@ -32,7 +32,7 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/notifications");
       const allNotifications = await res.json();
-      return allNotifications.filter((n: any) => 
+      const filteredNotifications = allNotifications.filter((n: any) => 
         !n.read && (
           n.type?.includes('reposition') || 
           n.type?.includes('completion') ||
@@ -53,6 +53,28 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
           n.type === 'system_ticket_cancelled'
         )
       );
+
+      // Enviar notificaciones push automáticamente para nuevas notificaciones
+      filteredNotifications.forEach((notification: any) => {
+        if (notification.type?.includes('system_ticket') || 
+            notification.type === 'new_system_ticket') {
+          // Importar y usar el servicio de notificaciones
+          import('@/lib/notifications').then(({ NotificationService, formatNotificationContent }) => {
+            const notificationService = NotificationService.getInstance();
+            if (notificationService.getPermissionStatus() === 'granted') {
+              const content = formatNotificationContent(notification);
+              notificationService.showNotification(content.title, {
+                body: content.body,
+                tag: `ticket-${notification.ticketId || notification.id}`,
+                data: content.data,
+                requireInteraction: notification.type === 'system_ticket_message'
+              });
+            }
+          });
+        }
+      });
+
+      return filteredNotifications;
     },
   });
 

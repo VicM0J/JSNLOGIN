@@ -810,7 +810,7 @@ function configureWebSocket(app: Express): Server {
     }));
   });
 
-  // Exponer función debroadcast
+  // Exponer función de broadcast
   (httpServer as any).wss = wss;
   (httpServer as any).broadcast = broadcastToAll;
 
@@ -2152,8 +2152,8 @@ function registerSystemTicketsRoutes(app: Express) {
 
       const ticket = await storage.createSystemTicket(ticketData);
 
-      // Notificar al área de sistemas
-      await storage.notifySystemsArea(ticket);
+      // Enviar notificación de nuevo ticket
+      await storage.notifyNewTicket(ticket);
 
       res.status(201).json(ticket);
     } catch (error) {
@@ -2295,7 +2295,7 @@ function registerSystemTicketsRoutes(app: Express) {
     try {
       const user = req.user!;
       const ticketId = parseInt(req.params.id);
-      
+
       if (isNaN(ticketId)) {
         return res.status(400).json({ message: "ID de ticket inválido" });
       }
@@ -2343,7 +2343,7 @@ function registerSystemTicketsRoutes(app: Express) {
     try {
       const user = req.user!;
       const ticketId = parseInt(req.params.id);
-      
+
       if (isNaN(ticketId)) {
         return res.status(400).json({ message: "ID de ticket inválido" });
       }

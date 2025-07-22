@@ -2669,7 +2669,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
               userId: user.id,
               type: 'system_ticket_message',
               title: 'Nuevo mensaje en ticket',
-              message: `Nuevo mensaje en el ticket ${ticket.ticketNumber}`,
+              message: `Tienes un nuevo mensaje en el ticket ${ticket.ticketNumber}`,
               ticketId: ticket.id,
             });
           }
@@ -3497,6 +3497,89 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
         message: `Se ha creado un nuevo ticket: ${ticket.ticketNumber}`,
         ticketId: ticket.id,
       });
+    }
+  }
+
+  async getTicketUnreadMessages(ticketId: number, userId: number): Promise<{ hasUnread: boolean; lastMessageTime?: string }> {
+    try {
+      const ticket = await this.getSystemTicketById(ticketId);
+      if (!ticket) {
+        return { hasUnread: false };
+      }
+
+      // Verificar si el usuario puede ver este ticket
+      const canParticipate = ticket.createdBy === userId || 
+        (await db.select().from(users).where(eq(users.id, userId)))[0]?.area === 'sistemas';
+
+      if (!canParticipate) {
+        return { hasUnread: false };
+      }
+
+      // Buscar mensajes más recientes que la última lectura del usuario
+      const lastRead = await db.select()
+        .from(ticketMessageReads)
+        .where(and(
+          eq(ticketMessageReads.ticketId, ticketId),
+          eq(ticketMessageReads.userId, userId)
+        ));
+
+      let lastReadTime = lastRead[0]?.readAt || new Date('2000-01-01');
+
+      const unreadMessages = await db.select()
+        .from(ticketMessages)
+        .where(and(
+          eq(ticketMessages.ticketId, ticketId),
+          gt(ticketMessages.createdAt, lastReadTime),
+          ne(ticketMessages.userId, userId) // No contar mensajes propios como no leídos
+        ));
+
+      const lastMessage = await db.select()
+        .from(ticketMessages)
+        .where(eq(ticketMessages.ticketId, ticketId))
+        .orderBy(desc(ticketMessages.createdAt))
+        .limit(1);
+
+      return {
+        hasUnread: unreadMessages.length > 0,
+        lastMessageTime: lastMessage[0]?.createdAt?.toISOString()
+      };
+    } catch (error) {
+      console.error('Error checking unread messages:', error);
+      return { hasUnread: false };
+    }
+  }
+
+  async markTicketMessagesAsRead(ticketId: number, userId: number): Promise<void> {
+    try {
+      const now = new Date();
+      
+      // Buscar registro existente
+      const existing = await db.select()
+        .from(ticketMessageReads)
+        .where(and(
+          eq(ticketMessageReads.ticketId, ticketId),
+          eq(ticketMessageReads.userId, userId)
+        ));
+
+      if (existing.length > 0) {
+        // Actualizar timestamp existente
+        await db.update(ticketMessageReads)
+          .set({ readAt: now })
+          .where(and(
+            eq(ticketMessageReads.ticketId, ticketId),
+            eq(ticketMessageReads.userId, userId)
+          ));
+      } else {
+        // Crear nuevo registro
+        await db.insert(ticketMessageReads)
+          .values({
+            ticketId,
+            userId,
+            readAt: now
+          });
+      }
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
     }
   }
 

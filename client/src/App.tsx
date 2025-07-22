@@ -6,6 +6,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { useWebSocket } from "@/lib/websocket";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotifications } from "@/hooks/use-notifications";
 import { useEffect, Component, ReactNode } from "react";
 import { NotificationService } from "@/lib/notifications";
 
@@ -133,6 +134,15 @@ function AppContent() {
 }
 
 function App() {
+  const { user, loading } = useAuth();
+
+  // Inicializar notificaciones push solo cuando el usuario esté autenticado
+  useNotifications();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
