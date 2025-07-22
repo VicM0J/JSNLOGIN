@@ -54,8 +54,7 @@ export default function AuthPage() {
       patronaje: "Patronaje",
       almacen: "Almacén",
       diseño: "Diseño",
-      admin: "Administración",
-      sistemas: "Sistemas"
+      admin: "Administración"
     };
     return names[area] || area;
   };
@@ -450,12 +449,12 @@ export default function AuthPage() {
                           <SelectItem value="patronaje" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-600">Patronaje 📐</SelectItem>
                           <SelectItem value="almacen" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-600">Almacén 🏪</SelectItem>
                           <SelectItem value="diseño" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-600">Diseño 🎨</SelectItem>
-                          <SelectItem value="admin" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-600">Admin ⚙️</SelectItem>
+                          {/* <SelectItem value="admin" className="text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-600">Admin ⚙️</SelectItem> */}
                         </SelectContent>
                       </Select>
                     </div>
 
-                    {registerData.area && registerData.area !== "admin" && registerData.area !== "sistemas" && (
+                    {registerData.area && registerData.area !== "admin" && (
                       <div className="space-y-2">
                         <Label htmlFor="admin-password" className="text-sm font-medium text-orange-600 dark:text-orange-400">
                           Contraseña de Administrador

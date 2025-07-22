@@ -34,8 +34,7 @@ import {
   Calendar,
   MessageSquare,
   FileX,
-  PanelLeft,
-  Ticket
+  PanelLeft
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -108,7 +107,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
 
   const canCreateOrders = user?.area === 'corte' || user?.area === 'admin';
   const canCreateRepositions = user?.area === 'calidad' || user?.area === 'admin';
-  const isAdmin = user?.area === 'admin' || user?.area === 'sistemas';
+  const isAdmin = user?.area === 'admin';
 
   const getAreaDisplayName = (area: string) => {
     const names: Record<string, string> = {
@@ -285,25 +284,6 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
-                <SidebarMenuButton 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setLocation('/system-tickets');
-                  }}
-                  isActive={location === '/system-tickets' || location === '/tickets'}
-                  className={`h-10 transition-all duration-200 hover:bg-gradient-to-r hover:from-[#8c69a5]/10 hover:to-[#504b78]/10 hover:scale-[1.02] hover:shadow-sm ${
-                    location === '/system-tickets' || location === '/tickets'
-                      ? 'bg-gradient-to-r from-[#8c69a5]/20 to-[#504b78]/20 text-[#8c69a5] border-r-2 border-[#8c69a5] font-medium shadow-sm' 
-                      : ''
-                  }`}
-                >
-                  <Ticket className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Tickets Sistemas</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
               {user?.area === 'almacen' && (
                 <SidebarMenuItem onClick={(e) => {if (state === "collapsed") {e.preventDefault();e.stopPropagation();}}}>
                   <SidebarMenuButton 
@@ -419,7 +399,6 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
                       <span className="transition-colors duration-200 group-data-[collapsible=icon]:hidden">Métricas</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

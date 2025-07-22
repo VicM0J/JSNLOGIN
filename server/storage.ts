@@ -1,12 +1,45 @@
 import { 
-  orders, orderPieces, transfers, orderHistory, notifications, users,
-  repositions, repositionPieces, repositionTransfers, repositionHistory, repositionTimers,
-  adminPasswords, repositionMaterials, documents, agendaEvents, repositionProducts, repositionContrastFabrics,
-  systemTickets,
-  type InsertOrder, type Area, type User, type InsertTransfer, type InsertNotification,
-  type InsertReposition, type RepositionPiece, type InsertRepositionPiece, type InsertRepositionTransfer, 
-  type InsertAgendaEvent, type AgendaEvent, type RepositionMaterial, type InsertRepositionMaterial,
-  type RepositionTimer, type InsertRepositionTimer, type SystemTicket, type InsertSystemTicket
+  users, 
+  orders, 
+  orderPieces,
+  transfers, 
+  orderHistory, 
+  notifications,
+  repositions,
+  repositionPieces,
+  repositionProducts,
+  repositionTimers,
+  repositionTransfers,
+  repositionHistory,
+  repositionMaterials,
+  adminPasswords,
+  agendaEvents,
+  documents,
+  type User, 
+  type InsertUser,
+  type Order,
+  type InsertOrder,
+  type Transfer,
+  type InsertTransfer,
+  type OrderHistory,
+  type Notification,
+  type InsertNotification,
+  type Reposition,
+  type InsertReposition,
+  type RepositionPiece,
+  type InsertRepositionPiece,
+  type RepositionTimer as SharedRepositionTimer,
+  type InsertRepositionTimer,
+  type RepositionTransfer,
+  type InsertRepositionTransfer,
+  type RepositionHistory,
+  type AdminPassword,
+  type InsertAdminPassword,
+  type AgendaEvent,
+  type InsertAgendaEvent,
+  type Area,
+  type RepositionType,
+  type RepositionStatus
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ne, isNotNull, isNull, count, gte, lte, sql, asc } from 'drizzle-orm';
@@ -3224,82 +3257,6 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
   async getRepositionProducts(repositionId: number): Promise<any[]> {
     return await db.select().from(repositionProducts)
       .where(eq(repositionProducts.repositionId, repositionId));
-  }
-
-  // System Tickets functions
-  async getAllSystemTickets(): Promise<SystemTicket[]> {
-    return await db.select().from(systemTickets).orderBy(desc(systemTickets.createdAt));
-  }
-
-  async getNextTicketCounter(): Promise<number> {
-    const result = await db.select().from(systemTickets);
-    return result.length + 1;
-  }
-
-  async notifySystemsArea(ticket: SystemTicket): Promise<void> {
-    // Notificar a usuarios del área de sistemas
-    const systemsUsers = await db.select().from(users)
-      .where(eq(users.area, 'sistemas'));
-
-    for (const user of systemsUsers) {
-      await this.createNotification({
-        userId: user.id,
-        type: 'system_ticket_created',
-        title: 'Nuevo Ticket de Sistemas',
-        message: `Se ha creado un nuevo ticket: ${ticket.ticketNumber}`,
-        repositionId: ticket.id,
-      });
-    }
-  }
-
-  async notifyTicketStatusChange(ticket: SystemTicket, userId: number): Promise<void> {
-    const typeMap: Record<string, string> = {
-      'aceptada': 'system_ticket_accepted',
-      'finalizada': 'system_ticket_completed',
-      'rechazada': 'system_ticket_rejected',
-      'cancelada': 'system_ticket_cancelled'
-    };
-
-    const notificationType = typeMap[ticket.status];
-    if (!notificationType) return;
-
-    await this.createNotification({
-      userId: ticket.createdBy,
-      type: notificationType as any,
-      title: `Ticket ${ticket.status.toUpperCase()}`,
-      message: `Tu ticket ${ticket.ticketNumber} ha sido ${ticket.status}`,
-      ticketId: ticket.id,
-    });
-  }
-   // System Tickets CRUD operations
-   async createSystemTicket(ticket: InsertSystemTicket): Promise<SystemTicket> {
-    const [newTicket] = await db
-      .insert(systemTickets)
-      .values(ticket)
-      .returning();
-    return newTicket;
-  }
-
-  async getSystemTicketById(id: number): Promise<SystemTicket | undefined> {
-    const [ticket] = await db.select().from(systemTickets).where(eq(systemTickets.id, id));
-    return ticket || undefined;
-  }
-
-  async getSystemTickets(): Promise<SystemTicket[]> {
-    return await db.select().from(systemTickets);
-  }
-
-  async updateSystemTicket(id: number, ticket: Partial<InsertSystemTicket>): Promise<SystemTicket> {
-    const [updatedTicket] = await db
-      .update(systemTickets)
-      .set(ticket)
-      .where(eq(systemTickets.id, id))
-      .returning();
-    return updatedTicket;
-  }
-
-  async deleteSystemTicket(id: number): Promise<void> {
-    await db.delete(systemTickets).where(eq(systemTickets.id, id));
   }
 }
 
