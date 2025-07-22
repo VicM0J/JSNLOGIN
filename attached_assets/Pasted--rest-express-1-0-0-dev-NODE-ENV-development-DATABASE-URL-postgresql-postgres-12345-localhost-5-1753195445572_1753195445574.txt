@@ -1,0 +1,124 @@
+> rest-express@1.0.0 dev
+> NODE_ENV=development DATABASE_URL=postgresql://postgres:12345@localhost:5432/jasanaordenes SESSION_SECRET=6e9f8a7c3b1d4e2f9a0c7b8d5e3f2a1c4b7d9e0d3b5e2 tsx server/index.ts
+
+8:43:34 AM [express] Servidor activo en http://0.0.0.0:2000
+Nueva conexión WebSocket establecida
+Nueva conexión WebSocket establecida
+Nueva conexión WebSocket establecida
+Nueva conexión WebSocket establecida
+Nueva conexión WebSocket establecida
+Nueva conexión WebSocket establecida
+Nueva conexión WebSocket establecida
+Nueva conexión WebSocket establecida
+Getting request analysis
+Getting request analysis...
+getUserNotifications: Found 0 notifications for user 1
+Fetched 0 notifications for user 1 (admin)
+Getting overall metrics
+Getting overall metrics...
+Requests query result: []
+Requests map: Map(0) {}
+Request analysis result: {
+  totalRequestsWithRepositions: 0,
+  averageRepositionsPerRequest: 0,
+  mostProblematicRequest: 'N/A',
+  topRequests: []
+}
+Request analysis result: {
+  totalRequestsWithRepositions: 0,
+  averageRepositionsPerRequest: 0,
+  mostProblematicRequest: 'N/A',
+  topRequests: []
+}
+Getting monthly metrics for: 6 2025
+Getting monthly metrics for 6/2025
+Date range: 2025-07-01T12:00:00.000Z to 2025-08-01T11:59:59.999Z
+Total repositions: 0
+Repositions query result: []
+Total repositions: 0
+Monthly metrics result: { byArea: [], byAreaAndType: [], byCause: [], total: 0 }
+Total pieces: 0
+Most active area: N/A
+Monthly average: 0
+Overall metrics result: {
+  totalRepositions: 0,
+  totalPieces: 0,
+  mostActiveArea: 'N/A',
+  monthlyAverage: 0
+}
+Overall metrics result: {
+  totalRepositions: 0,
+  totalPieces: 0,
+  mostActiveArea: 'N/A',
+  monthlyAverage: 0
+}
+Files in the public directory are served at the root path.
+Instead of /public/logo.svg, use /logo.svg.
+Conexión WebSocket cerrada
+Conexión WebSocket cerrada
+Conexión WebSocket cerrada
+Conexión WebSocket cerrada
+Conexión WebSocket cerrada
+Conexión WebSocket cerrada
+Conexión WebSocket cerrada
+Conexión WebSocket cerrada
+Nueva conexión WebSocket establecida
+Files in the public directory are served at the root path.
+Instead of /public/icono_pestaña.png, use /icono_pestaña.png.
+Files in the public directory are served at the root path.
+Instead of /public/logo.svg, use /logo.svg.
+Nueva conexión WebSocket establecida
+getUserNotifications: Found 0 notifications for user 1
+Fetched 0 notifications for user 1 (admin)
+Getting monthly metrics for: 6 2025
+Getting monthly metrics for 6/2025
+Date range: 2025-07-01T12:00:00.000Z to 2025-08-01T11:59:59.999Z
+Repositions query result: []
+Total repositions: 0
+Monthly metrics result: { byArea: [], byAreaAndType: [], byCause: [], total: 0 }
+Getting overall metrics
+Getting overall metrics...
+Getting request analysis
+Getting request analysis...
+Total repositions: 0
+Requests query result: []
+Requests map: Map(0) {}
+Request analysis result: {
+  totalRequestsWithRepositions: 0,
+  averageRepositionsPerRequest: 0,
+  mostProblematicRequest: 'N/A',
+  topRequests: []
+}
+Request analysis result: {
+  totalRequestsWithRepositions: 0,
+  averageRepositionsPerRequest: 0,
+  mostProblematicRequest: 'N/A',
+  topRequests: []
+}
+Total pieces: 0
+Most active area: N/A
+Monthly average: 0
+Overall metrics result: {
+  totalRepositions: 0,
+  totalPieces: 0,
+  mostActiveArea: 'N/A',
+  monthlyAverage: 0
+}
+Overall metrics result: {
+  totalRepositions: 0,
+  totalPieces: 0,
+  mostActiveArea: 'N/A',
+  monthlyAverage: 0
+}
+getUserNotifications: Found 0 notifications for user 1
+Fetched 0 notifications for user 1 (admin)
+Nueva conexión WebSocket establecida
+[ORDERS API] User admin (admin) requesting orders
+Getting orders, area filter: none
+getUserNotifications: Found 0 notifications for user 1
+Fetched 0 notifications for user 1 (admin)
+Found 0 total orders
+[ORDERS API] Returning 0 orders to user admin (admin)
+Nueva conexión WebSocket establecida
+getUserNotifications: Found 0 notifications for user 1
+Fetched 0 notifications for user 1 (admin)

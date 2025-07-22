@@ -27,9 +27,17 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "reposition_received",
   "transfer_processed",
   "completion_approval_needed",
-  "partial_transfer_warning"
+  "partial_transfer_warning",
+  "new_system_ticket",
+  "system_ticket_accepted",
+  "system_ticket_completed",
+  "system_ticket_rejected",
+  "system_ticket_cancelled"
 ]);
 export const materialStatusEnum = pgEnum("material_status", ["disponible", "falta_parcial", "no_disponible"]);
+export const ticketTypeEnum = pgEnum("ticket_type", ["soporte_hardware", "soporte_software", "problemas_red", "acceso_permisos", "instalacion_configuracion", "otro"]);
+export const ticketUrgencyEnum = pgEnum("ticket_urgency", ["alta", "media", "baja"]);
+export const ticketStatusEnum = pgEnum("ticket_status", ["pendiente", "aceptada", "finalizada", "rechazada", "cancelada"]);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -101,6 +109,7 @@ export const notifications = pgTable("notifications", {
   transferId: integer("transfer_id"),
   orderId: integer("order_id"),
   repositionId: integer("reposition_id"),
+  ticketId: integer("ticket_id"),
   read: boolean("read").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -247,6 +256,25 @@ export const documents = pgTable("documents", {
   repositionId: integer("reposition_id"),
   uploadedBy: integer("uploaded_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const systemTickets = pgTable("system_tickets", {
+  id: serial("id").primaryKey(),
+  ticketNumber: varchar("ticket_number", { length: 20 }).notNull().unique(),
+  createdBy: integer("created_by").notNull(),
+  requesterName: text("requester_name").notNull(),
+  requesterArea: areaEnum("requester_area").notNull(),
+  requestDate: varchar("request_date", { length: 10 }).notNull(),
+  ticketType: ticketTypeEnum("ticket_type").notNull(),
+  otherTypeDescription: text("other_type_description"),
+  description: text("description").notNull(),
+  urgency: ticketUrgencyEnum("urgency").notNull(),
+  status: ticketStatusEnum("status").notNull().default("pendiente"),
+  receivedBy: integer("received_by"),
+  attentionDate: varchar("attention_date", { length: 10 }),
+  solution: text("solution"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 
@@ -508,3 +536,17 @@ export type InsertRepositionMaterial = InferInsertModel<typeof repositionMateria
 export type RepositionType = "repocision" | "reproceso";
 export type Urgency = "urgente" | "intermedio" | "poco_urgente";
 export type RepositionStatus = "pendiente" | "aprobado" | "rechazado" | "completado" | "eliminado" | "cancelado";
+
+export type TicketType = "soporte_hardware" | "soporte_software" | "problemas_red" | "acceso_permisos" | "instalacion_configuracion" | "otro";
+export type TicketUrgency = "alta" | "media" | "baja";
+export type TicketStatus = "pendiente" | "aceptada" | "finalizada" | "rechazada" | "cancelada";
+
+export type SystemTicket = typeof systemTickets.$inferSelect;
+export type InsertSystemTicket = typeof systemTickets.$inferInsert;
+
+export const insertSystemTicketSchema = createInsertSchema(systemTickets).omit({
+  id: true,
+  ticketNumber: true,
+  createdAt: true,
+  updatedAt: true,
+});
