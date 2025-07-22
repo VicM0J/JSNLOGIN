@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development DATABASE_URL=postgresql://postgres:12345@localhost:5432/jasanaordenes SESSION_SECRET=6e9f8a7c3b1d4e2f9a0c7b8d5e3f2a1c4b7d9e0d3b5e2 tsx server/index.ts",
+    "dev": "NODE_ENV=development DATABASE_URL=postgresql://postgres:12345@localhost:5432/jsnbd SESSION_SECRET=6e9f8a7c3b1d4e2f9a0c7b8d5e3f2a1c4b7d9e0d3b5e2 tsx server/index.ts",
     "build": "npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "render-build": "npm install --include=dev && npm run build",

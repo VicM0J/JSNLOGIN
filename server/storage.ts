@@ -2,11 +2,12 @@ import {
   orders, orderPieces, transfers, orderHistory, notifications, users,
   repositions, repositionPieces, repositionTransfers, repositionHistory, repositionTimers,
   adminPasswords, repositionMaterials, documents, agendaEvents, repositionProducts, repositionContrastFabrics,
-  systemTickets,
+  systemTickets, ticketMessages,
   type InsertOrder, type Area, type User, type InsertTransfer, type InsertNotification,
   type InsertReposition, type RepositionPiece, type InsertRepositionPiece, type InsertRepositionTransfer, 
   type InsertAgendaEvent, type AgendaEvent, type RepositionMaterial, type InsertRepositionMaterial,
-  type RepositionTimer, type InsertRepositionTimer, type SystemTicket, type InsertSystemTicket
+  type RepositionTimer, type InsertRepositionTimer, type SystemTicket, type InsertSystemTicket,
+  type TicketMessage, type InsertTicketMessage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ne, isNotNull, isNull, count, gte, lte, sql, asc } from 'drizzle-orm';
@@ -162,6 +163,21 @@ export interface IStorage {
   getRepositionTimer(repositionId: number, area: Area): Promise<SharedRepositionTimer | null>;
 
    updateUser(userId: number, updateData: any): Promise<void>;
+
+  // System Tickets
+  createSystemTicket(ticketData: InsertSystemTicket): Promise<SystemTicket>;
+  getAllSystemTickets(userArea: string): Promise<SystemTicket[]>;
+  getSystemTicketById(id: number): Promise<SystemTicket | undefined>;
+  updateSystemTicket(id: number, updateData: any): Promise<SystemTicket>;
+  deleteSystemTicket(id: number): Promise<void>;
+  getNextTicketCounter(): Promise<number>;
+  notifySystemsArea(ticket: SystemTicket): Promise<void>;
+  notifyTicketStatusChange(ticket: SystemTicket, userId: number): Promise<void>;
+
+  // Ticket Messages
+  createTicketMessage(messageData: InsertTicketMessage): Promise<TicketMessage>;
+  getTicketMessages(ticketId: number): Promise<any[]>;
+  clearTicketMessages(ticketId: number): Promise<void>;
 
   saveOrderDocument(docData: {
     orderId: number;
@@ -2520,6 +2536,137 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
     }
   }
 
+  // System Tickets Methods
+  async createSystemTicket(ticketData: InsertSystemTicket): Promise<SystemTicket> {
+    const [ticket] = await db.insert(systemTickets)
+      .values(ticketData)
+      .returning();
+    return ticket;
+  }
+
+  async getAllSystemTickets(userArea: string): Promise<SystemTicket[]> {
+    if (userArea === 'sistemas') {
+      // Sistemas puede ver todos los tickets
+      return await db.select().from(systemTickets)
+        .orderBy(desc(systemTickets.createdAt));
+    } else {
+      // Otras áreas no pueden ver tickets finalizados
+      return await db.select().from(systemTickets)
+        .where(ne(systemTickets.status, 'finalizada'))
+        .orderBy(desc(systemTickets.createdAt));
+    }
+  }
+
+  async getSystemTicketById(id: number): Promise<SystemTicket | undefined> {
+    const [ticket] = await db.select().from(systemTickets)
+      .where(eq(systemTickets.id, id));
+    return ticket || undefined;
+  }
+
+  async updateSystemTicket(id: number, updateData: any): Promise<SystemTicket> {
+    const [ticket] = await db.update(systemTickets)
+      .set(updateData)
+      .where(eq(systemTickets.id, id))
+      .returning();
+    return ticket;
+  }
+
+  async deleteSystemTicket(id: number): Promise<void> {
+    // Eliminar primero los mensajes del chat
+    await db.delete(ticketMessages)
+      .where(eq(ticketMessages.ticketId, id));
+    
+    // Luego eliminar el ticket
+    await db.delete(systemTickets)
+      .where(eq(systemTickets.id, id));
+  }
+
+  async getNextTicketCounter(): Promise<number> {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+
+    const yearStr = year.toString();
+    const monthStr = String(month).padStart(2, '0');
+    const ticketPrefix = `JSN-TI-${monthStr}-${yearStr.slice(-2)}-`;
+
+    const result = await db.select().from(systemTickets);
+    const thisMonthCount = result.filter(t => t.ticketNumber.startsWith(ticketPrefix)).length;
+
+    return thisMonthCount + 1;
+  }
+
+  async notifySystemsArea(ticket: SystemTicket): Promise<void> {
+    const systemsUsers = await db.select().from(users)
+      .where(eq(users.area, 'sistemas'));
+
+    for (const user of systemsUsers) {
+      await this.createNotification({
+        userId: user.id,
+        type: 'system_ticket_created',
+        title: 'Nuevo Ticket de Sistemas',
+        message: `Se ha creado un nuevo ticket: ${ticket.ticketNumber}`,
+        ticketId: ticket.id,
+      });
+    }
+  }
+
+  async notifyTicketStatusChange(ticket: SystemTicket, userId: number): Promise<void> {
+    // Notificar al creador del ticket sobre el cambio de estado
+    if (ticket.createdBy !== userId) {
+      let notificationType: any = 'system_ticket_completed';
+      let title = 'Ticket Completado';
+      let message = `Tu ticket ${ticket.ticketNumber} ha sido completado`;
+
+      if (ticket.status === 'rechazada') {
+        notificationType = 'system_ticket_rejected';
+        title = 'Ticket Rechazado';
+        message = `Tu ticket ${ticket.ticketNumber} ha sido rechazado`;
+      } else if (ticket.status === 'aceptada') {
+        notificationType = 'system_ticket_accepted';
+        title = 'Ticket Aceptado';
+        message = `Tu ticket ${ticket.ticketNumber} ha sido aceptado`;
+      }
+
+      await this.createNotification({
+        userId: ticket.createdBy,
+        type: notificationType,
+        title: title,
+        message: message,
+        ticketId: ticket.id,
+      });
+    }
+  }
+
+  // Ticket Messages Methods
+  async createTicketMessage(messageData: InsertTicketMessage): Promise<TicketMessage> {
+    const [message] = await db.insert(ticketMessages)
+      .values(messageData)
+      .returning();
+    return message;
+  }
+
+  async getTicketMessages(ticketId: number): Promise<any[]> {
+    const messages = await db.select({
+      id: ticketMessages.id,
+      message: ticketMessages.message,
+      createdAt: ticketMessages.createdAt,
+      userName: users.name,
+      userArea: users.area
+    })
+    .from(ticketMessages)
+    .leftJoin(users, eq(ticketMessages.userId, users.id))
+    .where(eq(ticketMessages.ticketId, ticketId))
+    .orderBy(asc(ticketMessages.createdAt));
+
+    return messages;
+  }
+
+  async clearTicketMessages(ticketId: number): Promise<void> {
+    await db.delete(ticketMessages)
+      .where(eq(ticketMessages.ticketId, ticketId));
+  }
+
   async addRepositionHistory(
     repositionId: number,
     action: string,
@@ -3227,8 +3374,15 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
   }
 
   // System Tickets functions
-  async getAllSystemTickets(): Promise<SystemTicket[]> {
-    return await db.select().from(systemTickets).orderBy(desc(systemTickets.createdAt));
+  async getAllSystemTickets(userArea?: string): Promise<SystemTicket[]> {
+    let query = db.select().from(systemTickets);
+    
+    // Si no es del área de sistemas, filtrar tickets completados
+    if (userArea && userArea !== 'sistemas') {
+      query = query.where(ne(systemTickets.status, 'finalizada' as any)) as any;
+    }
+    
+    return await (query as any).orderBy(desc(systemTickets.createdAt));
   }
 
   async getNextTicketCounter(): Promise<number> {
@@ -3247,7 +3401,7 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
         type: 'system_ticket_created',
         title: 'Nuevo Ticket de Sistemas',
         message: `Se ha creado un nuevo ticket: ${ticket.ticketNumber}`,
-        repositionId: ticket.id,
+        ticketId: ticket.id,
       });
     }
   }
@@ -3299,7 +3453,40 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
   }
 
   async deleteSystemTicket(id: number): Promise<void> {
+    // Eliminar mensajes de chat relacionados
+    await db.delete(ticketMessages).where(eq(ticketMessages.ticketId, id));
+    // Eliminar el ticket
     await db.delete(systemTickets).where(eq(systemTickets.id, id));
+  }
+
+  // Sistema de chat para tickets
+  async createTicketMessage(messageData: {
+    ticketId: number;
+    userId: number;
+    message: string;
+  }): Promise<any> {
+    const [message] = await db.insert(ticketMessages)
+      .values(messageData)
+      .returning();
+    return message;
+  }
+
+  async getTicketMessages(ticketId: number): Promise<any[]> {
+    return await db.select({
+      id: ticketMessages.id,
+      message: ticketMessages.message,
+      createdAt: ticketMessages.createdAt,
+      userName: users.name,
+      userArea: users.area
+    })
+    .from(ticketMessages)
+    .leftJoin(users, eq(ticketMessages.userId, users.id))
+    .where(eq(ticketMessages.ticketId, ticketId))
+    .orderBy(ticketMessages.createdAt);
+  }
+
+  async clearTicketMessages(ticketId: number): Promise<void> {
+    await db.delete(ticketMessages).where(eq(ticketMessages.ticketId, ticketId));
   }
 }
 

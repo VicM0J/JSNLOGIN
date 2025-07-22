@@ -2162,12 +2162,13 @@ function registerSystemTicketsRoutes(app: Express) {
     }
   });
 
-  // Obtener tickets - todos pueden ver todos los tickets
+  // Obtener tickets - filtrar completados para no-sistemas
   router.get("/", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
 
     try {
-      const tickets = await storage.getAllSystemTickets();
+      const user = req.user!;
+      const tickets = await storage.getAllSystemTickets(user.area);
       res.json(tickets);
     } catch (error) {
       console.error('Get system tickets error:', error);
@@ -2212,7 +2213,7 @@ function registerSystemTicketsRoutes(app: Express) {
         return res.status(400).json({ message: "ID de ticket inválido" });
       }
 
-      const { status, solution, attentionDate } = req.body;
+      const { status, solution, attentionDate, rejectionReason } = req.body;
 
       const updateData: any = {
         status,
@@ -2228,6 +2229,13 @@ function registerSystemTicketsRoutes(app: Express) {
         updateData.attentionDate = attentionDate || new Date().toISOString().split('T')[0];
       }
 
+      if (status === 'rechazada') {
+        if (!rejectionReason?.trim()) {
+          return res.status(400).json({ message: "La explicación del rechazo es requerida" });
+        }
+        updateData.rejectionReason = rejectionReason.trim();
+      }
+
       const updatedTicket = await storage.updateSystemTicket(ticketId, updateData);
 
       // Notificar al creador del ticket sobre el cambio de estado
@@ -2237,6 +2245,98 @@ function registerSystemTicketsRoutes(app: Express) {
     } catch (error) {
       console.error('Update system ticket error:', error);
       res.status(500).json({ message: "Error al actualizar ticket" });
+    }
+  });
+
+  // Eliminar ticket - solo área de sistemas
+  router.delete("/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const user = req.user!;
+      if (user.area !== 'sistemas') {
+        return res.status(403).json({ message: "Solo el área de sistemas puede eliminar tickets" });
+      }
+
+      const ticketId = parseInt(req.params.id);
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "ID de ticket inválido" });
+      }
+
+      await storage.deleteSystemTicket(ticketId);
+      res.json({ message: "Ticket eliminado correctamente" });
+    } catch (error) {
+      console.error('Delete system ticket error:', error);
+      res.status(500).json({ message: "Error al eliminar ticket" });
+    }
+  });
+
+  // Rutas del sistema de chat
+  router.get("/:id/messages", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const ticketId = parseInt(req.params.id);
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "ID de ticket inválido" });
+      }
+
+      const messages = await storage.getTicketMessages(ticketId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Get ticket messages error:', error);
+      res.status(500).json({ message: "Error al obtener mensajes" });
+    }
+  });
+
+  router.post("/:id/messages", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const user = req.user!;
+      const ticketId = parseInt(req.params.id);
+      const { message } = req.body;
+
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "ID de ticket inválido" });
+      }
+
+      if (!message?.trim()) {
+        return res.status(400).json({ message: "El mensaje no puede estar vacío" });
+      }
+
+      const newMessage = await storage.createTicketMessage({
+        ticketId,
+        userId: user.id,
+        message: message.trim()
+      });
+
+      res.json(newMessage);
+    } catch (error) {
+      console.error('Create ticket message error:', error);
+      res.status(500).json({ message: "Error al crear mensaje" });
+    }
+  });
+
+  router.delete("/:id/messages", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const user = req.user!;
+      if (user.area !== 'sistemas') {
+        return res.status(403).json({ message: "Solo el área de sistemas puede limpiar el chat" });
+      }
+
+      const ticketId = parseInt(req.params.id);
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "ID de ticket inválido" });
+      }
+
+      await storage.clearTicketMessages(ticketId);
+      res.json({ message: "Chat limpiado correctamente" });
+    } catch (error) {
+      console.error('Clear ticket messages error:', error);
+      res.status(500).json({ message: "Error al limpiar chat" });
     }
   });
 

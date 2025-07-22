@@ -206,6 +206,11 @@ BEGIN
         ALTER TYPE notification_type ADD VALUE 'system_ticket_cancelled';
     EXCEPTION WHEN duplicate_object THEN NULL;
     END;
+
+    BEGIN
+        ALTER TYPE notification_type ADD VALUE 'system_ticket_created';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
 END
 $$;
 
@@ -233,7 +238,7 @@ BEGIN
 END
 $$;
 
--- Tabla de usuarios
+-- Tabla de usuarios (primera porque otras tablas la referencian)
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
@@ -261,85 +266,13 @@ CREATE TABLE IF NOT EXISTS orders (
     status order_status NOT NULL DEFAULT 'active',
     created_by INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
-    completed_at TIMESTAMP
+    completed_at TIMESTAMP,
+    CONSTRAINT orders_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(id)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS orders_folio_unique ON orders(folio);
 CREATE UNIQUE INDEX IF NOT EXISTS orders_pkey ON orders(id);
 
--- Historial de órdenes
-CREATE TABLE IF NOT EXISTS order_history (
-    id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL,
-    action TEXT NOT NULL,
-    description TEXT NOT NULL,
-    from_area area,
-    to_area area,
-    pieces INTEGER,
-    user_id INTEGER NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT now()
-);
-CREATE UNIQUE INDEX IF NOT EXISTS order_history_pkey ON order_history(id);
-
--- Piezas de la orden
-CREATE TABLE IF NOT EXISTS order_pieces (
-    id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL,
-    area area NOT NULL,
-    pieces INTEGER NOT NULL,
-    updated_at TIMESTAMP NOT NULL DEFAULT now()
-);
-CREATE UNIQUE INDEX IF NOT EXISTS order_pieces_pkey ON order_pieces(id);
-
--- Transferencias de órdenes
-CREATE TABLE IF NOT EXISTS transfers (
-    id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL,
-    from_area area NOT NULL,
-    to_area area NOT NULL,
-    pieces INTEGER NOT NULL,
-    status transfer_status NOT NULL DEFAULT 'pending',
-    notes TEXT,
-    created_by INTEGER NOT NULL,
-    processed_by INTEGER,
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
-    processed_at TIMESTAMP
-);
-CREATE UNIQUE INDEX IF NOT EXISTS transfers_pkey ON transfers(id);
-
--- Notificaciones
-CREATE TABLE IF NOT EXISTS notifications (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    type notification_type,
-    title TEXT NOT NULL,
-    message TEXT NOT NULL,
-    read BOOLEAN NOT NULL DEFAULT false,
-    order_id INTEGER,
-    reposition_id INTEGER,
-    ticket_id INTEGER,
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
-    CONSTRAINT notifications_user_id_fkey 
-        FOREIGN KEY (user_id) REFERENCES users(id),
-    CONSTRAINT notifications_order_id_fkey 
-        FOREIGN KEY (order_id) REFERENCES orders(id),
-    CONSTRAINT notifications_reposition_id_fkey 
-        FOREIGN KEY (reposition_id) REFERENCES repositions(id),
-    CONSTRAINT notifications_ticket_id_fkey 
-        FOREIGN KEY (ticket_id) REFERENCES system_tickets(id)
-);
-CREATE UNIQUE INDEX IF NOT EXISTS notifications_pkey ON notifications(id);
-CREATE INDEX IF NOT EXISTS idx_notifications_reposition_id ON notifications(reposition_id);
-
--- Tabla de sesión
-CREATE TABLE IF NOT EXISTS session (
-    sid VARCHAR PRIMARY KEY,
-    sess JSON NOT NULL,
-    expire TIMESTAMP NOT NULL
-);
-CREATE UNIQUE INDEX IF NOT EXISTS session_pkey ON session(sid);
-CREATE INDEX IF NOT EXISTS idx_session_expire ON session(expire);
-
--- Tabla de reposiciones
+-- Tabla de reposiciones (antes de notifications porque notifications la referencia)
 CREATE TABLE IF NOT EXISTS repositions (
     id SERIAL PRIMARY KEY,
     folio TEXT UNIQUE NOT NULL,
@@ -361,8 +294,8 @@ CREATE TABLE IF NOT EXISTS repositions (
     consumo_tela REAL,
     urgencia urgency NOT NULL,
     observaciones TEXT,
-    materiales_implicados TEXT,
     volver_hacer TEXT,
+    materiales_implicados TEXT,
     current_area area NOT NULL,
     status reposition_status NOT NULL DEFAULT 'pendiente',
     created_by INTEGER NOT NULL,
@@ -370,23 +303,128 @@ CREATE TABLE IF NOT EXISTS repositions (
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     approved_at TIMESTAMP,
     completed_at TIMESTAMP,
+    rejection_reason TEXT,
     CONSTRAINT repositions_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT repositions_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS repositions_folio_unique ON repositions(folio);
+CREATE UNIQUE INDEX IF NOT EXISTS repositions_pkey ON repositions(id);
 
+-- System Tickets Table
+CREATE TABLE IF NOT EXISTS system_tickets (
+    id SERIAL PRIMARY KEY,
+    ticket_number VARCHAR(20) NOT NULL UNIQUE,
+    created_by INTEGER NOT NULL,
+    requester_name TEXT NOT NULL,
+    requester_area area NOT NULL,
+    request_date VARCHAR(10) NOT NULL,
+    ticket_type ticket_type NOT NULL,
+    other_type_description TEXT,
+    description TEXT NOT NULL,
+    urgency ticket_urgency NOT NULL,
+    status ticket_status NOT NULL DEFAULT 'pendiente',
+    received_by INTEGER,
+    attention_date VARCHAR(10),
+    solution TEXT,
+    rejection_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 
--- Agregar la columna materiales_implicados si no existe
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'repositions' AND column_name = 'materiales_implicados') THEN
-        ALTER TABLE repositions ADD COLUMN materiales_implicados TEXT;
-    END IF;
+-- Ticket Messages Table (Chat System)
+CREATE TABLE IF NOT EXISTS ticket_messages (
+    id SERIAL PRIMARY KEY,
+    ticket_id INTEGER NOT NULL REFERENCES system_tickets(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
 
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'repositions' AND column_name = 'rejection_reason') THEN
-        ALTER TABLE repositions ADD COLUMN rejection_reason TEXT;
-    END IF;
-END
-$$;
+CREATE UNIQUE INDEX IF NOT EXISTS system_tickets_ticket_number_unique ON system_tickets(ticket_number);
+CREATE UNIQUE INDEX IF NOT EXISTS system_tickets_pkey ON system_tickets(id);
+
+-- Historial de órdenes
+CREATE TABLE IF NOT EXISTS order_history (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    description TEXT NOT NULL,
+    from_area area,
+    to_area area,
+    pieces INTEGER,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT order_history_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders(id),
+    CONSTRAINT order_history_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS order_history_pkey ON order_history(id);
+
+-- Piezas de la orden
+CREATE TABLE IF NOT EXISTS order_pieces (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    area area NOT NULL,
+    pieces INTEGER NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT order_pieces_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS order_pieces_pkey ON order_pieces(id);
+
+-- Transferencias de órdenes
+CREATE TABLE IF NOT EXISTS transfers (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    from_area area NOT NULL,
+    to_area area NOT NULL,
+    pieces INTEGER NOT NULL,
+    status transfer_status NOT NULL DEFAULT 'pending',
+    notes TEXT,
+    created_by INTEGER NOT NULL,
+    processed_by INTEGER,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    processed_at TIMESTAMP,
+    CONSTRAINT transfers_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders(id),
+    CONSTRAINT transfers_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT transfers_processed_by_fkey FOREIGN KEY (processed_by) REFERENCES users(id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS transfers_pkey ON transfers(id);
+
+-- Notificaciones (después de crear todas las tablas que referencia)
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    type notification_type,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    read BOOLEAN NOT NULL DEFAULT false,
+    order_id INTEGER,
+    reposition_id INTEGER,
+    ticket_id INTEGER,
+    transfer_id INTEGER,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT notifications_user_id_fkey 
+        FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT notifications_order_id_fkey 
+        FOREIGN KEY (order_id) REFERENCES orders(id),
+    CONSTRAINT notifications_reposition_id_fkey 
+        FOREIGN KEY (reposition_id) REFERENCES repositions(id),
+    CONSTRAINT notifications_ticket_id_fkey 
+        FOREIGN KEY (ticket_id) REFERENCES system_tickets(id),
+    CONSTRAINT notifications_transfer_id_fkey 
+        FOREIGN KEY (transfer_id) REFERENCES transfers(id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS notifications_pkey ON notifications(id);
+CREATE INDEX IF NOT EXISTS idx_notifications_reposition_id ON notifications(reposition_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_transfer_id ON notifications(transfer_id);
+
+-- Tabla de sesión
+CREATE TABLE IF NOT EXISTS session (
+    sid VARCHAR PRIMARY KEY,
+    sess JSON NOT NULL,
+    expire TIMESTAMP NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS session_pkey ON session(sid);
+CREATE INDEX IF NOT EXISTS idx_session_expire ON session(expire);
 
 -- Historial de reposiciones
 CREATE TABLE IF NOT EXISTS reposition_history (
@@ -398,9 +436,12 @@ CREATE TABLE IF NOT EXISTS reposition_history (
     to_area VARCHAR(50),
     user_id INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT reposition_history_reposition_id_fkey 
+        FOREIGN KEY (reposition_id) REFERENCES repositions(id),
     CONSTRAINT reposition_history_user_id_fkey
         FOREIGN KEY (user_id) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS reposition_history_pkey ON reposition_history(id);
 
 -- Piezas de reposición
 CREATE TABLE IF NOT EXISTS reposition_pieces (
@@ -409,8 +450,11 @@ CREATE TABLE IF NOT EXISTS reposition_pieces (
     talla TEXT NOT NULL,
     cantidad INTEGER NOT NULL,
     folio_original TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT reposition_pieces_reposition_id_fkey 
+        FOREIGN KEY (reposition_id) REFERENCES repositions(id) ON DELETE CASCADE
 );
+CREATE UNIQUE INDEX IF NOT EXISTS reposition_pieces_pkey ON reposition_pieces(id);
 
 -- Productos adicionales de reposición
 CREATE TABLE IF NOT EXISTS reposition_products (
@@ -425,6 +469,7 @@ CREATE TABLE IF NOT EXISTS reposition_products (
     CONSTRAINT reposition_products_reposition_id_fkey 
         FOREIGN KEY (reposition_id) REFERENCES repositions(id) ON DELETE CASCADE
 );
+CREATE UNIQUE INDEX IF NOT EXISTS reposition_products_pkey ON reposition_products(id);
 
 -- Telas de contraste de reposición
 CREATE TABLE IF NOT EXISTS reposition_contrast_fabrics (
@@ -437,6 +482,7 @@ CREATE TABLE IF NOT EXISTS reposition_contrast_fabrics (
     CONSTRAINT reposition_contrast_fabrics_reposition_id_fkey 
         FOREIGN KEY (reposition_id) REFERENCES repositions(id) ON DELETE CASCADE
 );
+CREATE UNIQUE INDEX IF NOT EXISTS reposition_contrast_fabrics_pkey ON reposition_contrast_fabrics(id);
 
 -- Tiempos de reposición por área
 CREATE TABLE IF NOT EXISTS reposition_timers (
@@ -451,49 +497,33 @@ CREATE TABLE IF NOT EXISTS reposition_timers (
     manual_start_time VARCHAR(5), -- HH:MM format
     manual_end_time VARCHAR(5), -- HH:MM format
     manual_date VARCHAR(10), -- YYYY-MM-DD format
+    manual_end_date VARCHAR(10), -- YYYY-MM-DD format
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     CONSTRAINT reposition_timers_reposition_id_fkey 
         FOREIGN KEY (reposition_id) REFERENCES repositions(id) ON DELETE CASCADE,
     CONSTRAINT reposition_timers_user_id_fkey 
         FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
--- Agregar las columnas a la tabla existente si no existen
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_start_time') THEN
-        ALTER TABLE reposition_timers ADD COLUMN manual_start_time VARCHAR(5);
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_end_time') THEN
-        ALTER TABLE reposition_timers ADD COLUMN manual_end_time VARCHAR(5);
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_date') THEN
-        ALTER TABLE reposition_timers ADD COLUMN manual_date VARCHAR(10);
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'reposition_timers' AND column_name = 'manual_end_date') THEN
-        ALTER TABLE reposition_timers ADD COLUMN manual_end_date VARCHAR(10);
-    END IF;
-END
-$$;
+CREATE UNIQUE INDEX IF NOT EXISTS reposition_timers_pkey ON reposition_timers(id);
 
 -- Transferencias de reposiciones
 CREATE TABLE IF NOT EXISTS reposition_transfers (
     id SERIAL PRIMARY KEY,
     reposition_id INTEGER NOT NULL,
-    from_area VARCHAR(50) NOT NULL,
-    to_area VARCHAR(50) NOT NULL,
+    from_area area NOT NULL,
+    to_area area NOT NULL,
     notes TEXT,
     created_by INTEGER NOT NULL,
     processed_by INTEGER,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    status transfer_status NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     processed_at TIMESTAMP,
+    CONSTRAINT reposition_transfers_reposition_id_fkey 
+        FOREIGN KEY (reposition_id) REFERENCES repositions(id),
     CONSTRAINT reposition_transfers_created_by_fkey FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT reposition_transfers_processed_by_fkey FOREIGN KEY (processed_by) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS reposition_transfers_pkey ON reposition_transfers(id);
 
 -- Contraseñas de administrador
 CREATE TABLE IF NOT EXISTS admin_passwords (
@@ -505,8 +535,9 @@ CREATE TABLE IF NOT EXISTS admin_passwords (
     CONSTRAINT admin_passwords_created_by_fkey
         FOREIGN KEY (created_by) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS admin_passwords_pkey ON admin_passwords(id);
 
--- Eventos en la agenda (debe ir al final porque depende de users)
+-- Eventos en la agenda
 CREATE TABLE IF NOT EXISTS agenda_events (
     id SERIAL PRIMARY KEY,
     created_by INTEGER NOT NULL,
@@ -522,6 +553,7 @@ CREATE TABLE IF NOT EXISTS agenda_events (
     CONSTRAINT agenda_events_created_by_fkey 
         FOREIGN KEY (created_by) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS agenda_events_pkey ON agenda_events(id);
 
 -- Tabla de materiales de reposición
 CREATE TABLE IF NOT EXISTS reposition_materials (
@@ -545,6 +577,7 @@ CREATE TABLE IF NOT EXISTS reposition_materials (
     CONSTRAINT reposition_materials_resumed_by_fkey 
         FOREIGN KEY (resumed_by) REFERENCES users(id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS reposition_materials_pkey ON reposition_materials(id);
 
 -- Tabla de documentos para pedidos y reposiciones
 CREATE TABLE IF NOT EXISTS documents (
@@ -564,27 +597,4 @@ CREATE TABLE IF NOT EXISTS documents (
     CONSTRAINT documents_uploaded_by_fkey 
         FOREIGN KEY (uploaded_by) REFERENCES users(id)
 );
-
--- Tabla de tickets de sistemas
-CREATE TABLE IF NOT EXISTS system_tickets (
-    id SERIAL PRIMARY KEY,
-    ticket_number VARCHAR(20) UNIQUE NOT NULL,
-    created_by INTEGER NOT NULL,
-    requester_name TEXT NOT NULL,
-    requester_area area NOT NULL,
-    request_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    ticket_type ticket_type NOT NULL,
-    other_type_description TEXT,
-    description TEXT NOT NULL,
-    urgency ticket_urgency NOT NULL,
-    status ticket_status NOT NULL DEFAULT 'pendiente',
-    received_by INTEGER,
-    attention_date DATE,
-    solution TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP NOT NULL DEFAULT now(),
-    CONSTRAINT system_tickets_created_by_fkey 
-        FOREIGN KEY (created_by) REFERENCES users(id),
-    CONSTRAINT system_tickets_received_by_fkey 
-        FOREIGN KEY (received_by) REFERENCES users(id)
-);
+CREATE UNIQUE INDEX IF NOT EXISTS documents_pkey ON documents(id);

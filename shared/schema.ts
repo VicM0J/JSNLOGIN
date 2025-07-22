@@ -32,7 +32,8 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "system_ticket_accepted",
   "system_ticket_completed",
   "system_ticket_rejected",
-  "system_ticket_cancelled"
+  "system_ticket_cancelled",
+  "system_ticket_created"
 ]);
 export const materialStatusEnum = pgEnum("material_status", ["disponible", "falta_parcial", "no_disponible"]);
 export const ticketTypeEnum = pgEnum("ticket_type", ["soporte_hardware", "soporte_software", "problemas_red", "acceso_permisos", "instalacion_configuracion", "otro"]);
@@ -277,6 +278,13 @@ export const systemTickets = pgTable("system_tickets", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const ticketMessages = pgTable("ticket_messages", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull(),
+  userId: integer("user_id").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   creator: one(users, {
@@ -550,3 +558,6 @@ export const insertSystemTicketSchema = createInsertSchema(systemTickets).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+export type TicketMessage = typeof ticketMessages.$inferSelect;
+export type InsertTicketMessage = typeof ticketMessages.$inferInsert;
