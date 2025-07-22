@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, pgEnum, varchar, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, pgEnum, varchar, real, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -10,30 +10,27 @@ export const urgencyEnum = pgEnum("urgency", ["urgente", "intermedio", "poco_urg
 export const repositionStatusEnum = pgEnum("reposition_status", ["pendiente", "aprobado", "rechazado", "completado", "eliminado", "cancelado"]);
 export const orderStatusEnum = pgEnum("order_status", ["active", "completed", "paused"]);
 export const transferStatusEnum = pgEnum("transfer_status", ["pending", "accepted", "rejected"]);
-export const notificationTypeEnum = pgEnum("notification_type", [
-  "transfer_request", 
-  "transfer_accepted", 
-  "transfer_rejected", 
-  "order_completed",
-  "new_reposition",
-  "reposition_transfer",
-  "reposition_approved", 
-  "reposition_rejected",
-  "reposition_completed",
-  "reposition_deleted",
-  "reposition_canceled",
-  "reposition_paused",
-  "reposition_resumed",
-  "reposition_received",
-  "transfer_processed",
-  "completion_approval_needed",
-  "partial_transfer_warning",
-  "new_system_ticket",
-  "system_ticket_accepted",
-  "system_ticket_completed",
-  "system_ticket_rejected",
-  "system_ticket_cancelled",
-  "system_ticket_created"
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'order_created',
+  'order_completed',
+  'transfer',
+  'new_reposition',
+  'reposition_approved',
+  'reposition_rejected',
+  'reposition_completed',
+  'reposition_deleted',
+  'reposition_cancelled',
+  'reposition_paused',
+  'reposition_resumed',
+  'reposition_received',
+  'transfer_processed',
+  'completion_approval_needed',
+  'partial_transfer_warning',
+  'reposition_resubmitted',
+  'new_system_ticket',
+  'system_ticket_accepted',
+  'system_ticket_message',
+  'reposition_transfer'
 ]);
 export const materialStatusEnum = pgEnum("material_status", ["disponible", "falta_parcial", "no_disponible"]);
 export const ticketTypeEnum = pgEnum("ticket_type", ["soporte_hardware", "soporte_software", "problemas_red", "acceso_permisos", "instalacion_configuracion", "otro"]);
@@ -280,11 +277,20 @@ export const systemTickets = pgTable("system_tickets", {
 
 export const ticketMessages = pgTable("ticket_messages", {
   id: serial("id").primaryKey(),
-  ticketId: integer("ticket_id").notNull(),
-  userId: integer("user_id").notNull(),
+  ticketId: integer("ticket_id").notNull().references(() => systemTickets.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id),
   message: text("message").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const ticketMessageReads = pgTable("ticket_message_reads", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull().references(() => systemTickets.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id),
+  lastReadAt: timestamp("last_read_at").defaultNow().notNull(),
+}, (table) => ({
+  unq: unique().on(table.ticketId, table.userId),
+}));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   creator: one(users, {

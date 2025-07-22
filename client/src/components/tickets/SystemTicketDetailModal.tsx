@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -33,6 +32,7 @@ interface SystemTicket {
   solution?: string;
   rejectionReason?: string;
   createdAt: string;
+  hasUnreadMessages?: boolean; // Added to track unread messages
 }
 
 interface TicketMessage {
@@ -77,9 +77,31 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
     refetchInterval: 3000, // Refrescar cada 3 segundos
   });
 
+  // Marcar mensajes como leídos cuando se abre el modal
+  const markAsReadMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/system-tickets/${ticket.id}/messages/mark-read`, {
+        method: "POST",
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Error al marcar como leído");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["system-tickets"] });
+    }
+  });
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (open && canParticipateInChat) {
+      // Marcar mensajes como leídos cuando se abre el modal
+      markAsReadMutation.mutate();
+    }
+  }, [open, canParticipateInChat]);
 
   const updateTicketMutation = useMutation({
     mutationFn: async (data: { status: string; solution?: string; attentionDate?: string; rejectionReason?: string }) => {
@@ -157,6 +179,12 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
     onSuccess: () => {
       setNewMessage("");
       refetchMessages();
+      queryClient.invalidateQueries({ queryKey: ["system-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] }); // Invalidate notifications
+      toast({
+        title: "✅ Mensaje enviado",
+        description: "Tu mensaje ha sido enviado correctamente"
+      });
     },
     onError: () => {
       toast({
@@ -253,7 +281,8 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('es-MX', {
+      timeZone: 'America/Mexico_City',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -285,7 +314,7 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
     }
 
     const updateData: any = { status: newStatus };
-    
+
     if (newStatus === "finalizada") {
       updateData.solution = solution.trim();
       updateData.attentionDate = attentionDate || getCurrentDate();
@@ -304,12 +333,14 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
   };
 
   const formatMessageTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('es-ES', {
+    return new Date(dateString).toLocaleString('es-MX', {
+      timeZone: 'America/Mexico_City',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -513,7 +544,7 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
                         Aceptar
                       </Button>
                     )}
-                    
+
                     {(ticket.status === "pendiente" || ticket.status === "aceptada") && (
                       <>
                         <Button
@@ -528,7 +559,7 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
                           )}
                           Finalizar
                         </Button>
-                        
+
                         <Button
                           onClick={() => handleStatusChange("rechazada")}
                           disabled={updateTicketMutation.isPending}
@@ -543,7 +574,7 @@ export function SystemTicketDetailModal({ open, onClose, ticket }: SystemTicketD
                         </Button>
                       </>
                     )}
-                    
+
                     {ticket.status !== "cancelada" && ticket.status !== "finalizada" && (
                       <Button
                         onClick={() => handleStatusChange("cancelada")}

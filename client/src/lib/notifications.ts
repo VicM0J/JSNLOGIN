@@ -199,6 +199,57 @@ export function formatNotificationContent(notification: any): {
         data: { path: '#/orders' }
       };
     
+    case 'new_system_ticket':
+      return {
+        title: '🎫 Nuevo Ticket de Sistema',
+        body: message || 'Se ha creado un nuevo ticket de sistema',
+        data: { path: '#/system-tickets' }
+      };
+    
+    case 'system_ticket_accepted':
+      return {
+        title: '✅ Ticket Aceptado',
+        body: message || 'Tu ticket ha sido aceptado por sistemas',
+        data: { path: '#/system-tickets' }
+      };
+    
+    case 'system_ticket_message':
+      return {
+        title: '💬 Nuevo Mensaje en Ticket',
+        body: message || 'Tienes un nuevo mensaje en tu ticket',
+        data: { path: '#/system-tickets' },
+        requireInteraction: true,
+        silent: false
+      };
+    
+    case 'system_ticket_created':
+      return {
+        title: '🎫 Nuevo Ticket de Sistema',
+        body: message || 'Se ha creado un nuevo ticket de sistema',
+        data: { path: '#/system-tickets' }
+      };
+    
+    case 'system_ticket_completed':
+      return {
+        title: '✅ Ticket Completado',
+        body: message || 'Tu ticket ha sido completado',
+        data: { path: '#/system-tickets' }
+      };
+    
+    case 'system_ticket_rejected':
+      return {
+        title: '❌ Ticket Rechazado',
+        body: message || 'Tu ticket ha sido rechazado',
+        data: { path: '#/system-tickets' }
+      };
+    
+    case 'system_ticket_cancelled':
+      return {
+        title: '🚫 Ticket Cancelado',
+        body: message || 'Tu ticket ha sido cancelado',
+        data: { path: '#/system-tickets' }
+      };
+    
     default:
       return {
         title: '🔔 Nueva Notificación',

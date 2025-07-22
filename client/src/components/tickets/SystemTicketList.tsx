@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +25,8 @@ interface SystemTicket {
   attentionDate?: string;
   solution?: string;
   createdAt: string;
+  hasUnreadMessages?: boolean;
+  lastMessageTime?: string;
 }
 
 interface SystemTicketListProps {
@@ -47,12 +48,33 @@ export function SystemTicketList({ userArea }: SystemTicketListProps) {
         credentials: "include"
       });
       if (!response.ok) throw new Error("Failed to fetch tickets");
-      return response.json();
+      const ticketsData = await response.json();
+
+      // Verificar mensajes sin leer para cada ticket
+      const ticketsWithUnreadStatus = await Promise.all(
+        ticketsData.map(async (ticket: SystemTicket) => {
+          try {
+            const unreadResponse = await fetch(`/api/system-tickets/${ticket.id}/messages/unread`, {
+              credentials: "include"
+            });
+            if (unreadResponse.ok) {
+              const unreadData = await unreadResponse.json();
+              return {
+                ...ticket,
+                hasUnreadMessages: unreadData.hasUnread || false,
+                lastMessageTime: unreadData.lastMessageTime
+              };
+            }
+          } catch (error) {
+            console.error(`Error checking unread messages for ticket ${ticket.id}:`, error);
+          }
+          return ticket;
+        })
+      );
+
+      return ticketsWithUnreadStatus;
     },
-    refetchInterval: 5000, // Refrescar cada 5 segundos
-    refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
-    staleTime: 1000 // Los datos son considerados obsoletos después de 1 segundo
+    refetchInterval: 3000,
   });
 
   const getTicketTypeLabel = (type: string) => {
@@ -195,6 +217,11 @@ export function SystemTicketList({ userArea }: SystemTicketListProps) {
                       <Badge className={`${getUrgencyColor(ticket.urgency)} border`}>
                         Urgencia: {ticket.urgency.toUpperCase()}
                       </Badge>
+                      {ticket.hasUnreadMessages && (
+                        <Badge className="bg-blue-500 text-white text-xs animate-pulse">
+                          💬 Nuevo mensaje
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-sm text-gray-600">
                       <p><strong>Solicitante:</strong> {ticket.requesterName}</p>

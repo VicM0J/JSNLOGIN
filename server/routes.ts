@@ -2289,6 +2289,25 @@ function registerSystemTicketsRoutes(app: Express) {
     }
   });
 
+  router.get("/:id/messages/unread", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const user = req.user!;
+      const ticketId = parseInt(req.params.id);
+      
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "ID de ticket inválido" });
+      }
+
+      const unreadStatus = await storage.getTicketUnreadMessages(ticketId, user.id);
+      res.json(unreadStatus);
+    } catch (error) {
+      console.error('Get unread messages error:', error);
+      res.status(500).json({ message: "Error al verificar mensajes sin leer" });
+    }
+  });
+
   router.post("/:id/messages", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
 
@@ -2315,6 +2334,25 @@ function registerSystemTicketsRoutes(app: Express) {
     } catch (error) {
       console.error('Create ticket message error:', error);
       res.status(500).json({ message: "Error al crear mensaje" });
+    }
+  });
+
+  router.post("/:id/messages/mark-read", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const user = req.user!;
+      const ticketId = parseInt(req.params.id);
+      
+      if (isNaN(ticketId)) {
+        return res.status(400).json({ message: "ID de ticket inválido" });
+      }
+
+      await storage.markTicketMessagesAsRead(ticketId, user.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Mark messages as read error:', error);
+      res.status(500).json({ message: "Error al marcar mensajes como leídos" });
     }
   });
 

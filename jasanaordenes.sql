@@ -193,6 +193,11 @@ BEGIN
     END;
 
     BEGIN
+        ALTER TYPE notification_type ADD VALUE 'system_ticket_message';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
         ALTER TYPE notification_type ADD VALUE 'system_ticket_completed';
     EXCEPTION WHEN duplicate_object THEN NULL;
     END;
@@ -338,6 +343,15 @@ CREATE TABLE IF NOT EXISTS ticket_messages (
     user_id INTEGER NOT NULL REFERENCES users(id),
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Ticket Message Read Status Table
+CREATE TABLE IF NOT EXISTS ticket_message_reads (
+    id SERIAL PRIMARY KEY,
+    ticket_id INTEGER NOT NULL REFERENCES system_tickets(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    last_read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UNIQUE(ticket_id, user_id)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS system_tickets_ticket_number_unique ON system_tickets(ticket_number);
