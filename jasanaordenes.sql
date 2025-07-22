@@ -4,7 +4,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'area') THEN
         CREATE TYPE area AS ENUM (
             'patronaje', 'corte', 'bordado', 'ensamble', 
-            'plancha', 'calidad', 'operaciones', 'admin', 'envios', 'almacen', 'diseño'
+            'plancha', 'calidad', 'operaciones', 'admin', 'envios', 'almacen', 'diseño', 'sistemas'
         );
     ELSE
         BEGIN
@@ -29,6 +29,11 @@ BEGIN
         END;
         BEGIN
             ALTER TYPE area ADD VALUE 'diseño';
+        EXCEPTION
+            WHEN duplicate_object THEN NULL;
+        END;
+        BEGIN
+            ALTER TYPE area ADD VALUE 'sistemas';
         EXCEPTION
             WHEN duplicate_object THEN NULL;
         END;

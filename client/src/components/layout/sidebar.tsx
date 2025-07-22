@@ -107,7 +107,7 @@ export function CustomSidebar({ onShowNotifications, onCreateOrder, onCreateRepo
 
   const canCreateOrders = user?.area === 'corte' || user?.area === 'admin';
   const canCreateRepositions = user?.area === 'calidad' || user?.area === 'admin';
-  const isAdmin = user?.area === 'admin';
+  const isAdmin = user?.area === 'admin' || user?.area === 'sistemas';
 
   const getAreaDisplayName = (area: string) => {
     const names: Record<string, string> = {

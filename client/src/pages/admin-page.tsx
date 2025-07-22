@@ -21,7 +21,7 @@ type User = {
   id: number;
   username: string;
   name: string;
-  area: "patronaje" | "corte" | "bordado" | "ensamble" | "plancha" | "calidad" | "operaciones" | "admin" | "almacen" | "diseño";
+  area: "patronaje" | "corte" | "bordado" | "ensamble" | "plancha" | "calidad" | "operaciones" | "admin" | "almacen" | "diseño" | "sistemas";
   createdAt: Date;
   password: string;
   active: boolean; 
@@ -391,7 +391,8 @@ export default function AdminPage() {
       admin: 'Admin',
       diseño: 'Diseño',
       patronaje: 'Patronaje',
-      operaciones: 'Operaciones'
+      operaciones: 'Operaciones',
+      sistemas: 'Sistemas'
     };
     return names[area] || area;
   };
@@ -408,7 +409,8 @@ export default function AdminPage() {
       almacen: "badge-almacen",
       diseño: "badge-diseño",
       patronaje: "bg-yellow-100 text-yellow-800",
-      operaciones: "badge-operaciones"
+      operaciones: "badge-operaciones",
+      sistemas: "badge-sistemas"
     };
     return colors[area] || "badge-admin";
   };
@@ -574,7 +576,7 @@ export default function AdminPage() {
                           <SelectValue placeholder="Seleccionar área" />
                         </SelectTrigger>
                         <SelectContent>
-                          {["admin","corte","bordado","ensamble","plancha","calidad","envios", "diseño", "patronaje", "almacen", "operaciones"].map(a => (
+                          {["admin","sistemas","corte","bordado","ensamble","plancha","calidad","envios", "diseño", "patronaje", "almacen", "operaciones"].map(a => (
                             <SelectItem key={a} value={a}>{getAreaDisplayName(a)}</SelectItem>
                           ))}
                         </SelectContent>
@@ -872,7 +874,7 @@ export default function AdminPage() {
               <div><Label>Área</Label>
                 <Select value={editForm.area} onValueChange={val => setEditForm({ ...editForm, area: val })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{["admin","corte","bordado","ensamble","plancha","calidad","envios", "diseño", "patronaje", "almacen", "operaciones"].map(a => (
+                  <SelectContent>{["admin","sistemas","corte","bordado","ensamble","plancha","calidad","envios", "diseño", "patronaje", "almacen", "operaciones"].map(a => (
                     <SelectItem key={a} value={a}>{getAreaDisplayName(a)}</SelectItem>
                   ))}</SelectContent>
                 </Select>

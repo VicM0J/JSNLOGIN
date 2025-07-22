@@ -4,7 +4,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
-export const areaEnum = pgEnum("area", ["patronaje", "corte", "bordado", "ensamble", "plancha", "calidad", "operaciones", "admin", "almacen", "diseño", "envios"]);
+export const areaEnum = pgEnum("area", ["patronaje", "corte", "bordado", "ensamble", "plancha", "calidad", "operaciones", "admin", "almacen", "diseño", "envios", "sistemas"]);
 export const repositionTypeEnum = pgEnum("reposition_type", ["repocision", "reproceso"]);
 export const urgencyEnum = pgEnum("urgency", ["urgente", "intermedio", "poco_urgente"]);
 export const repositionStatusEnum = pgEnum("reposition_status", ["pendiente", "aprobado", "rechazado", "completado", "eliminado", "cancelado"]);
@@ -500,8 +500,8 @@ export type InsertAgendaEvent = typeof agendaEvents.$inferInsert;
 export const insertAgendaEventSchema = createInsertSchema(agendaEvents);
 export type InsertAgendaEventSchema = z.infer<typeof insertAgendaEventSchema>;
 
-export const areas = ['patronaje', 'corte', 'bordado', 'ensamble', 'plancha', 'calidad', 'operaciones', 'envios', 'almacen', 'admin', 'diseño'] as const;
-export type Area = "patronaje" | "corte" | "bordado" | "ensamble" | "plancha" | "calidad" | "operaciones" | "admin" | "almacen" | "diseño" | "envios";
+export const areas = ['patronaje', 'corte', 'bordado', 'ensamble', 'plancha', 'calidad', 'operaciones', 'envios', 'almacen', 'admin', 'diseño', 'sistemas'] as const;
+export type Area = "patronaje" | "corte" | "bordado" | "ensamble" | "plancha" | "calidad" | "operaciones" | "admin" | "almacen" | "diseño" | "envios" | "sistemas";
 export type MaterialStatus = "disponible" | "falta_parcial" | "no_disponible";
 export type RepositionMaterial = InferSelectModel<typeof repositionMaterials>;
 export type InsertRepositionMaterial = InferInsertModel<typeof repositionMaterials>;
