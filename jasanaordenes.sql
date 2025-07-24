@@ -173,6 +173,11 @@ BEGIN
     END;
 
     BEGIN
+        ALTER TYPE notification_type ADD VALUE 'reposition_reactivated';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+
+    BEGIN
         ALTER TYPE notification_type ADD VALUE 'reposition_resubmitted';
     EXCEPTION WHEN duplicate_object THEN NULL;
     END;

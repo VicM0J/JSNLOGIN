@@ -214,6 +214,7 @@ export interface IStorage {
   async restoreUsers(backupData: any): Promise<any>;
   updateReposition(repositionId: number, data: any, pieces: any[], userId: number): Promise<any>;
   getRepositionProducts(repositionId: number): Promise<any[]>;
+   reactivateReposition(repositionId: number, userId: number, reason: string): Promise<void>;
 }
 
 export interface LocalRepositionTimer {
@@ -1109,25 +1110,43 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async completeReposition(repositionId: number, userId: number, notes?: string): Promise<void> {
+async completeReposition(repositionId: number, userId: number, notes?: string): Promise<void> {
+    const now = new Date();
+
+    console.log('Completing reposition:', {
+      repositionId,
+      userId,
+      completedAt: now,
+      notes
+    });
+
     await db.update(repositions)
-      .set({
+      .set({ 
         status: 'completado' as RepositionStatus,
-        completedAt: new Date(),
-        approvedBy: userId,
+        completedAt: now,
+        approvedBy: userId
       })
       .where(eq(repositions.id, repositionId));
+
+    // Verificar que se actualizó correctamente
+    const updatedReposition = await this.getRepositionById(repositionId);
+    console.log('Reposition after completion update:', {
+      id: updatedReposition?.id,
+      status: updatedReposition?.status,
+      completedAt: updatedReposition?.completedAt,
+      approvedBy: updatedReposition?.approvedBy
+    });
 
     await this.addRepositionHistory(
       repositionId,
       'completed',
-      `Reposición finalizada${notes ? `: ${notes}` : ''}`,
-      userId,
+      `Reposición finalizada${notes ? ` - ${notes}` : ''}`,
+      userId
     );
 
     // Crear notificación para el solicitante
     const reposition = await this.getRepositionById(repositionId);
-    if (reposition) {
+    if (reposition && reposition.createdBy !== userId) {
       await this.createNotification({
         userId: reposition.createdBy,
         type: 'reposition_completed',
@@ -2148,41 +2167,68 @@ async startRepositionTimer(repositionId: number, userId: number, area: string): 
   }
 
   async resumeReposition(repositionId: number, userId: number): Promise<void> {
-    await db.update(repositionMaterials)
-      .set({
-        isPaused: false,
-        pauseReason: null,
-        resumedBy: userId,
-        resumedAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(repositionMaterials.repositionId, repositionId));
+    await db.transaction(async (tx) => {
+      // Update the reposition material status
+      await tx.update(repositionMaterials)
+        .set({
+          isPaused: false,
+          resumedBy: userId,
+          resumedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(repositionMaterials.repositionId, repositionId));
 
-    // Registrar en historial
-    await this.addRepositionHistory(
-      repositionId,
-      'resumed',
-      'Reposición reanudada por almacén',
-      userId
-    );
-
-    // Notificar a áreas relevantes
-    const areaUsers = await db.select().from(users)
-      .where(or(
-        eq(users.area, 'admin'),
-        eq(users.area, 'operaciones'),
-        eq(users.area, 'envios')
-      ));
-
-    for (const user of areaUsers) {
-      await this.createNotification({
-        userId: user.id,
-        type: 'reposition_resumed',
-        title: 'Reposición Reanudada',
-        message: 'La reposición ha sido reanudada por almacén',
-        repositionId
+      // Add history entry
+      await tx.insert(repositionHistory).values({
+        repositionId,
+        action: 'resumed',
+        description: 'Reposición reanudada por almacén',
+        userId,
       });
-    }
+    });
+  }
+
+  async reactivateReposition(repositionId: number, userId: number, reason: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Get the current reposition
+      const [reposition] = await tx.select().from(repositions)
+        .where(eq(repositions.id, repositionId))
+        .limit(1);
+
+      if (!reposition) {
+        throw new Error('Reposición no encontrada');
+      }
+
+      // Update reposition status back to 'aprobado' and remove completion date
+      await tx.update(repositions)
+        .set({
+          status: 'aprobado',
+          completedAt: null
+        })
+        .where(eq(repositions.id, repositionId));
+
+      // Add history entry
+      await tx.insert(repositionHistory).values({
+        repositionId,
+        action: 'reactivated',
+        description: `Reposición reactivada - Motivo: ${reason}`,
+        userId,
+      });
+
+      // Create notification for the creator
+      const usersToSend = await tx.select().from(users)
+        .where(eq(users.area, reposition.solicitanteArea));
+
+      for (const user of usersToSend) {
+        await tx.insert(notifications).values({
+          userId: user.id,
+          type: 'reposition_reactivated',
+          title: 'Reposición Reactivada',
+          message: `La reposición ${reposition.folio} ha sido reactivada y está nuevamente en proceso`,
+          repositionId,
+        });
+      }
+    });
   }
 
   async getRepositionMaterialStatus(repositionId: number): Promise<any> {

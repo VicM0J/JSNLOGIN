@@ -32,6 +32,7 @@ interface Reposition {
   status: 'pendiente' | 'aprobado' | 'rechazado' | 'en_proceso' | 'completado' | 'eliminado' | 'cancelado';
   urgencia: 'urgente' | 'intermedio' | 'poco_urgente';
   createdAt: string;
+  completedAt?: string;
 }
 
 const areas = [
@@ -981,6 +982,70 @@ export function RepositionList({ userArea }: { userArea: string }) {
     }
   };
 
+  const reactivateMutation = useMutation({
+    mutationFn: async ({ repositionId, reason }: { repositionId: number, reason: string }) => {
+      const response = await fetch(`/api/repositions/${repositionId}/reactivate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al reactivar reposición');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['repositions'] });
+      Swal.fire({
+        title: '¡Éxito!',
+        text: 'Reposición reactivada correctamente',
+        icon: 'success',
+        confirmButtonColor: '#8B5CF6'
+      });
+    },
+    onError: (error: Error) => {
+      Swal.fire({
+        title: 'Error',
+        text: error.message,
+        icon: 'error',
+        confirmButtonColor: '#8B5CF6'
+      });
+    }
+  });
+
+  const handleReactivate = async (repositionId: number) => {
+    const { value: reason } = await Swal.fire({
+      title: '¿Reactivar reposición?',
+      text: 'Esta acción volverá a poner la reposición en proceso',
+      input: 'textarea',
+      inputPlaceholder: 'Describe el motivo de la reactivación (mínimo 10 caracteres) *',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10B981',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Sí, reactivar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value || value.trim().length === 0) {
+          return 'Debes proporcionar un motivo para la reactivación';
+        }
+        if (value.trim().length < 10) {
+          return 'El motivo debe tener al menos 10 caracteres';
+        }
+      }
+    });
+
+    if (reason !== undefined && reason.trim().length >= 10) {
+      reactivateMutation.mutate({ repositionId, reason: reason.trim() });
+    }
+  };
+
+  const canReactivate = (reposition: Reposition) => {
+    // Solo verificar que esté completada, sin restricción de tiempo
+    return reposition.status === 'completado';
+  };
+
   const handleProcessTransfer = async (transferId: number, action: 'accepted' | 'rejected') => {
     if (action === 'rejected') {
       // Para rechazos, pedir motivo obligatorio
@@ -1877,6 +1942,21 @@ export function RepositionList({ userArea }: { userArea: string }) {
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Eliminar
+                      </Button>
+                    )}
+
+                    {/* Botón de reactivación para reposiciones completadas */}
+                    {(userArea === 'admin' || userArea === 'envios') && 
+                     reposition.status === 'completado' && 
+                     canReactivate(reposition) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-green-600 hover:bg-green-50 border-green-300"
+                        onClick={() => handleReactivate(reposition.id)}
+                      >
+                        <Activity className="w-4 h-4 mr-2" />
+                        Reactivar
                       </Button>
                     )}
                   </div>

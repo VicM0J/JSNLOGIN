@@ -1592,6 +1592,50 @@ function registerRepositionRoutes(app: Express) {
     }
   });
 
+  router.post("/:id/reactivate", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const user = req.user!;
+      if (user.area !== 'admin' && user.area !== 'envios') {
+        return res.status(403).json({ message: "Solo Admin o Envíos pueden reactivar reposiciones" });
+      }
+
+      const repositionId = parseInt(req.params.id);
+      if (isNaN(repositionId)) {
+        return res.status(400).json({ message: "ID de reposición inválido" });
+      }
+
+      const { reason } = req.body;
+      if (!reason || reason.trim().length === 0) {
+        return res.status(400).json({ message: "El motivo de reactivación es obligatorio" });
+      }
+
+      const reposition = await storage.getRepositionById(repositionId);
+      if (!reposition) {
+        return res.status(404).json({ message: "Reposición no encontrada" });
+      }
+
+      console.log('Reactivation attempt for reposition:', {
+        id: repositionId,
+        folio: reposition.folio,
+        status: reposition.status,
+        completedAt: reposition.completedAt,
+        completedAtType: typeof reposition.completedAt
+      });
+
+      if (reposition.status !== 'completado') {
+        return res.status(400).json({ message: "Solo se pueden reactivar reposiciones completadas" });
+      }
+
+      await storage.reactivateReposition(repositionId, user.id, reason.trim());
+      res.json({ message: "Reposición reactivada correctamente" });
+    } catch (error) {
+      console.error('Reactivate reposition error:', error);
+      res.status(500).json({ message: "Error al reactivar reposición" });
+    }
+  });
+
   // Upload documents to existing reposition
   router.post("/:id/documents", authenticateToken, upload.array('documents', 5), handleMulterError, async (req, res) => {
     try {
@@ -1671,6 +1715,58 @@ function registerRepositionRoutes(app: Express) {
     } catch (error) {
       console.error('Get products error:', error);
       res.status(500).json({ message: "Error al obtener productos" });
+    }
+  });
+
+  // Endpoint de emergencia para reparar reposiciones sin fecha de finalización
+  router.post("/repair-completed", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Autenticación requerida" });
+
+    try {
+      const user = req.user!;
+      if (user.area !== 'admin') {
+        return res.status(403).json({ message: "Solo administradores pueden usar esta función de reparación" });
+      }
+
+      // Buscar todas las reposiciones completadas sin fecha de finalización
+      const problematicRepositions = await db.select()
+        .from(repositions)
+        .where(and(
+          eq(repositions.status, 'completado' as RepositionStatus),
+          isNull(repositions.completedAt)
+        ));
+
+      let repaired = 0;
+      let failed = 0;
+
+      for (const reposition of problematicRepositions) {
+        try {
+          const history = await storage.getRepositionHistory(reposition.id);
+          const completedEntry = history.find(h => h.action === 'completed');
+          
+          if (completedEntry) {
+            await db.update(repositions)
+              .set({ completedAt: new Date(completedEntry.createdAt) })
+              .where(eq(repositions.id, reposition.id));
+            repaired++;
+          } else {
+            failed++;
+          }
+        } catch (error) {
+          console.error(`Failed to repair reposition ${reposition.id}:`, error);
+          failed++;
+        }
+      }
+
+      res.json({ 
+        message: `Reparación completada: ${repaired} reposiciones reparadas, ${failed} fallaron`,
+        repaired,
+        failed,
+        total: problematicRepositions.length
+      });
+    } catch (error) {
+      console.error('Repair repositions error:', error);
+      res.status(500).json({ message: "Error al reparar reposiciones" });
     }
   });
 
