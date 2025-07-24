@@ -94,7 +94,7 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Usuario ya existe" });
       }
 
-      if (area !== 'admin' && area !== 'sistemas') {
+      if (area !== 'admin') {
         const adminUsers = await storage.getAllAdminUsers();
         if (!adminUsers || adminUsers.length === 0 || !adminPassword) {
           return res.status(400).json({ message: "Se requiere clave de admin" });
@@ -165,7 +165,7 @@ export function setupAuth(app: Express) {
 
   app.post("/api/admin/reset-password", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || (req.user?.area !== 'admin' && req.user?.area !== 'sistemas')) {
+      if (!req.isAuthenticated() || req.user?.area !== 'admin') {
         return res.status(403).json({ message: "Clave admin requerida" });
       }
 

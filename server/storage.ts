@@ -1,16 +1,48 @@
 import { 
-  orders, orderPieces, transfers, orderHistory, notifications, users,
-  repositions, repositionPieces, repositionTransfers, repositionHistory, repositionTimers,
-  adminPasswords, repositionMaterials, documents, agendaEvents, repositionProducts, repositionContrastFabrics,
-  systemTickets, ticketMessages,
-  type InsertOrder, type Area, type User, type InsertTransfer, type InsertNotification,
-  type InsertReposition, type RepositionPiece, type InsertRepositionPiece, type InsertRepositionTransfer, 
-  type InsertAgendaEvent, type AgendaEvent, type RepositionMaterial, type InsertRepositionMaterial,
-  type RepositionTimer, type InsertRepositionTimer, type SystemTicket, type InsertSystemTicket,
-  type TicketMessage, type InsertTicketMessage
+  users, 
+  orders, 
+  orderPieces,
+  transfers, 
+  orderHistory, 
+  notifications,
+  repositions,
+  repositionPieces,
+  repositionProducts,
+  repositionTimers,
+  repositionTransfers,
+  repositionHistory,
+  repositionMaterials,
+  adminPasswords,
+  agendaEvents,
+  documents,
+  type User, 
+  type InsertUser,
+  type Order,
+  type InsertOrder,
+  type Transfer,
+  type InsertTransfer,
+  type OrderHistory,
+  type Notification,
+  type InsertNotification,
+  type Reposition,
+  type InsertReposition,
+  type RepositionPiece,
+  type InsertRepositionPiece,
+  type RepositionTimer as SharedRepositionTimer,
+  type InsertRepositionTimer,
+  type RepositionTransfer,
+  type InsertRepositionTransfer,
+  type RepositionHistory,
+  type AdminPassword,
+  type InsertAdminPassword,
+  type AgendaEvent,
+  type InsertAgendaEvent,
+  type Area,
+  type RepositionType,
+  type RepositionStatus
 } from "@shared/schema";
 import { db } from "./db";
-import { and, eq, ne, desc, asc, inArray, unique } from 'drizzle-orm';
+import { eq, desc, and, or, ne, isNotNull, isNull, count, gte, lte, sql, asc } from 'drizzle-orm';
 import bcrypt from "bcrypt";
 import ExcelJS from 'exceljs';
 import session from "express-session";
@@ -163,23 +195,6 @@ export interface IStorage {
   getRepositionTimer(repositionId: number, area: Area): Promise<SharedRepositionTimer | null>;
 
    updateUser(userId: number, updateData: any): Promise<void>;
-
-  // System Tickets
-  createSystemTicket(ticketData: InsertSystemTicket): Promise<SystemTicket>;
-  getAllSystemTickets(userArea: string): Promise<SystemTicket[]>;
-  getSystemTicketById(id: number): Promise<SystemTicket | undefined>;
-  updateSystemTicket(id: number, updateData: any): Promise<SystemTicket>;
-  deleteSystemTicket(id: number): Promise<void>;
-  getNextTicketCounter(): Promise<number>;
-  notifySystemsArea(ticket: SystemTicket): Promise<void>;
-  notifyTicketStatusChange(ticket: SystemTicket, userId: number): Promise<void>;
-
-  // Ticket Messages
-  createTicketMessage(messageData: InsertTicketMessage): Promise<TicketMessage>;
-  getTicketMessages(ticketId: number): Promise<any[]>;
-  clearTicketMessages(ticketId: number): Promise<void>;
-  getTicketUnreadMessages(ticketId: number, userId: number): Promise<{ hasUnread: boolean; lastMessageTime?: string }>;
-  markTicketMessagesAsRead(ticketId: number, userId: number): Promise<void>;
 
   saveOrderDocument(docData: {
     orderId: number;
@@ -853,7 +868,9 @@ export class DatabaseStorage implements IStorage {
     });
 
     return reposition;
-  }  async createRepositionTransfer(transfer: InsertRepositionTransfer, createdBy: number): Promise<RepositionTransfer> {
+  }
+
+  async createRepositionTransfer(transfer: InsertRepositionTransfer, createdBy: number): Promise<RepositionTransfer> {
     const [repositionTransfer] = await db.insert(repositionTransfers)
       .values({
         ...transfer,
@@ -1705,7 +1722,7 @@ async startRepositionTimer(repositionId: number, userId: number, area: string): 
     }
 
     if (reposition.status !== 'aprobado') {
-      throw new Error('La reposición debe estar aprobada para iniciar el cronómetro');
+      throw newError('Solo se puede iniciar el cronómetro en reposiciones aprobadas');
     }
 
     // Verificar si el usuario es el creador original de la reposición
@@ -1861,12 +1878,33 @@ async startRepositionTimer(repositionId: number, userId: number, area: string): 
       throw new Error('Todos los campos de fecha y hora son requeridos');
     }
 
-    // Convertir strings a Date objects
-    const startDateTime = new Date(`${startDate}T${startTime}`);
-    const endDateTime = new Date(`${endDate}T${endTime}`);
+    // Convertir strings a Date objects usando las fechas correctas
+    // Para manejar zonas horarias, vamos a crear las fechas como objetos Date locales
+    const startDateTime = new Date(`${startDate}T${startTime}:00`);
+    const endDateTime = new Date(`${endDate}T${endTime}:00`);
+
+    console.log('Start DateTime:', startDateTime);
+    console.log('End DateTime:', endDateTime);
+    console.log('Start Date String:', `${startDate}T${startTime}:00`);
+    console.log('End Date String:', `${endDate}T${endTime}:00`);
 
     if (startDateTime >= endDateTime) {
       throw new Error('La hora de inicio debe ser anterior a la hora de fin');
+    }
+
+    // Calcular duración en minutos
+    const durationMs = endDateTime.getTime() - startDateTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    console.log('Duration in minutes:', durationMinutes);
+
+    // Validar que la duración sea positiva y razonable (máximo 24 horas)
+    if (durationMinutes <= 0) {
+      throw new Error('La duración debe ser positiva');
+    }
+
+    if (durationMinutes > 24 * 60) {
+      throw new Error('La duración no puede exceder 24 horas');
     }
 
     // Verificar si ya existe un timer para esta reposición y área
@@ -1874,48 +1912,67 @@ async startRepositionTimer(repositionId: number, userId: number, area: string): 
       .from(repositionTimers)
       .where(and(
         eq(repositionTimers.repositionId, repositionId),
-        eq(repositionTimers.area, area as Area)
+        eq(repositionTimers.area, area as any)
       ))
       .limit(1);
 
-    let timer;
     if (existingTimer.length > 0) {
       // Actualizar timer existente
-      timer = await db.update(repositionTimers)
+      await db.update(repositionTimers)
         .set({
+          manualStartTime: startTime,
+          manualEndTime: endTime,
           startTime: startDateTime,
           endTime: endDateTime,
-          userId: userId
+          elapsedMinutes: durationMinutes,
+          isRunning: false,
+          userId: userId,
+          manualDate: startDate,
+          manualEndDate: endDate
         })
-        .where(eq(repositionTimers.id, existingTimer[0].id))
-        .returning();
+        .where(eq(repositionTimers.id, existingTimer[0].id));
+
+      console.log('Updated existing timer with manual time');
     } else {
       // Crear nuevo timer
-      timer = await db.insert(repositionTimers)
-        .values({
-          repositionId,
-          area: area as Area,
-          userId,
-          startTime: startDateTime,
-          endTime: endDateTime
-        })
-        .returning();
-    }
+      await db.insert(repositionTimers).values({
+        repositionId,
+        area: area as any,
+        userId,
+        startTime: startDateTime,
+        endTime: endDateTime,
+        elapsedMinutes: durationMinutes,
+        isRunning: false,
+        manualStartTime: startTime,
+        manualEndTime: endTime,
+        manualDate: startDate,
+        manualEndDate: endDate
+      });
 
-    // Calcular duración en minutos
-    const durationMs = endDateTime.getTime() - startDateTime.getTime();
-    const durationMinutes = Math.round(durationMs / (1000 * 60));
+      console.log('Created new timer with manual time');
+    }
 
     // Agregar entrada al historial
     await this.addRepositionHistory(
       repositionId,
-      'manual_time_set',
-      `Tiempo manual registrado: ${durationMinutes} minutos en área ${area}`,
+      'timer_manual',
+      `Tiempo manual: ${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`,
       userId
     );
 
-    console.log('Manual time set successfully:', timer[0]);
-    return timer[0];
+    const hours = Math.floor(durationMinutes / 60);
+    const minutes = durationMinutes % 60;
+    const elapsedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+
+    return {
+      repositionId,
+      area,
+      userId,
+      startTime: startDateTime,
+      endTime: endDateTime,
+      elapsedTime,
+      duration: durationMinutes
+    };
   }
 
   async getRepositionTimer(repositionId: number, area: Area): Promise<SharedRepositionTimer | null> {
@@ -2534,231 +2591,6 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
       console.error('Error updating user:', error);
       throw error;
     }
-  }
-
-  // System Tickets Methods
-  async createSystemTicket(ticketData: InsertSystemTicket): Promise<SystemTicket> {
-    const [ticket] = await db.insert(systemTickets)
-      .values(ticketData)
-      .returning();
-    return ticket;
-  }
-
-  async getAllSystemTickets(userArea: string): Promise<SystemTicket[]> {
-    if (userArea === 'sistemas') {
-      // Sistemas puede ver todos los tickets
-      return await db.select().from(systemTickets)
-        .orderBy(desc(systemTickets.createdAt));
-    } else {
-      // Otras áreas no pueden ver tickets finalizados
-      return await db.select().from(systemTickets)
-        .where(ne(systemTickets.status, 'finalizada'))
-        .orderBy(desc(systemTickets.createdAt));
-    }
-  }
-
-  async getSystemTicketById(id: number): Promise<SystemTicket | undefined> {
-    const [ticket] = await db.select().from(systemTickets)
-      .where(eq(systemTickets.id, id));
-    return ticket || undefined;
-  }
-
-  async updateSystemTicket(id: number, updateData: any): Promise<SystemTicket> {
-    const [ticket] = await db.update(systemTickets)
-      .set(updateData)
-      .where(eq(systemTickets.id, id))
-      .returning();
-    return ticket;
-  }
-
-  async deleteSystemTicket(id: number): Promise<void> {
-    // Eliminar primero los mensajes del chat
-    await db.delete(ticketMessages)
-      .where(eq(ticketMessages.ticketId, id));
-
-    // Luego eliminar el ticket
-    await db.delete(systemTickets)
-      .where(eq(systemTickets.id, id));
-  }
-
-  async getNextTicketCounter(): Promise<number> {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-
-    const yearStr = year.toString();
-    const monthStr = String(month).padStart(2, '0');
-    const ticketPrefix = `JSN-TI-${monthStr}-${yearStr.slice(-2)}-`;
-
-    const result = await db.select().from(systemTickets);
-    const thisMonthCount = result.filter(t => t.ticketNumber.startsWith(ticketPrefix)).length;
-
-    return thisMonthCount + 1;
-  }
-
-  async notifySystemsArea(ticket: SystemTicket): Promise<void> {
-    const systemsUsers = await db.select().from(users)
-      .where(eq(users.area, 'sistemas'));
-
-    for (const user of systemsUsers) {
-      await this.createNotification({
-        userId: user.id,
-        type: 'system_ticket_created',
-        title: 'Nuevo Ticket de Sistemas',
-        message: `Se ha creado un nuevo ticket: ${ticket.ticketNumber}`,
-        ticketId: ticket.id,
-      });
-    }
-  }
-
-  async notifyTicketStatusChange(ticket: SystemTicket, userId: number): Promise<void> {
-    // Notificar al creador del ticket sobre el cambio de estado
-    if (ticket.createdBy !== userId) {
-      let notificationType: any = 'system_ticket_completed';
-      let title = 'Ticket Completado';
-      let message = `Tu ticket ${ticket.ticketNumber} ha sido completado`;
-
-      if (ticket.status === 'rechazada') {
-        notificationType = 'system_ticket_rejected';
-        title = 'Ticket Rechazado';
-        message = `Tu ticket ${ticket.ticketNumber} ha sido rechazado`;
-      } else if (ticket.status === 'aceptada') {
-        notificationType = 'system_ticket_accepted';
-        title = 'Ticket Aceptado';
-        message = `Tu ticket ${ticket.ticketNumber} ha sido aceptado`;
-      }
-
-      await this.createNotification({
-        userId: ticket.createdBy,
-        type: notificationType,
-        title: title,
-        message: message,
-        ticketId: ticket.id,
-      });
-    }
-  }
-
-  // Ticket Messages Methods
-  async createTicketMessage(messageData: InsertTicketMessage): Promise<TicketMessage> {
-    const [message] = await db.insert(ticketMessages)
-      .values(messageData)
-      .returning();
-    
-    // Obtener información del ticket y del usuario
-    const ticket = await this.getSystemTicketById(messageData.ticketId);
-    if (ticket) {
-      // Notificar al creador del ticket si no es quien envía el mensaje
-      if (ticket.createdBy !== messageData.userId) {
-        await this.createNotification({
-          userId: ticket.createdBy,
-          type: 'system_ticket_message',
-          title: 'Nuevo mensaje en ticket',
-          message: `Tienes un nuevo mensaje en el ticket ${ticket.ticketNumber}`,
-          ticketId: ticket.id,
-        });
-      }
-      
-      // Si el mensaje es del creador, notificar a sistemas
-      if (ticket.createdBy === messageData.userId) {
-        const systemsUsers = await db.select().from(users)
-          .where(eq(users.area, 'sistemas'));
-        
-        for (const user of systemsUsers) {
-          if (user.id !== messageData.userId) {
-            await this.createNotification({
-              userId: user.id,
-              type: 'system_ticket_message',
-              title: 'Nuevo mensaje en ticket',
-              message: `Tienes un nuevo mensaje en el ticket ${ticket.ticketNumber}`,
-              ticketId: ticket.id,
-            });
-          }
-        }
-      }
-    }
-    
-    return message;
-  }
-
-  async getTicketMessages(ticketId: number): Promise<any[]> {
-    const messages = await db.select({
-      id: ticketMessages.id,
-      message: ticketMessages.message,
-      createdAt: ticketMessages.createdAt,
-      userName: users.name,
-      userArea: users.area
-    })
-    .from(ticketMessages)
-    .leftJoin(users, eq(ticketMessages.userId, users.id))
-    .where(eq(ticketMessages.ticketId, ticketId))
-    .orderBy(asc(ticketMessages.createdAt));
-
-    return messages;
-  }
-
-  async clearTicketMessages(ticketId: number): Promise<void> {
-    await db.delete(ticketMessages)
-      .where(eq(ticketMessages.ticketId, ticketId));
-  }
-
-  async getTicketUnreadMessages(ticketId: number, userId: number): Promise<{ hasUnread: boolean; lastMessageTime?: string }> {
-    // Obtener el último mensaje del ticket
-    const lastMessage = await db.select({
-      createdAt: ticketMessages.createdAt,
-      userId: ticketMessages.userId
-    })
-    .from(ticketMessages)
-    .where(eq(ticketMessages.ticketId, ticketId))
-    .orderBy(desc(ticketMessages.createdAt))
-    .limit(1);
-
-    if (lastMessage.length === 0) {
-      return { hasUnread: false };
-    }
-
-    // Si el último mensaje es del usuario actual, no hay mensajes sin leer para él
-    if (lastMessage[0].userId === userId) {
-      return { hasUnread: false };
-    }
-
-    // Si hay un último mensaje de otro usuario, considerarlo como no leído
-    return {
-      hasUnread: true,
-      lastMessageTime: lastMessage[0].createdAt.toISOString()
-    };
-  }
-
-  async markTicketMessagesAsRead(ticketId: number, userId: number): Promise<void> {
-    // Para simplicidad, no implementamos marcado de lectura en la base de datos
-    // Solo devolvemos éxito para que el frontend funcione
-    return Promise.resolve();
-  }
-
-  async getTicketUnreadMessages(ticketId: number, userId: number): Promise<{ hasUnread: boolean; lastMessageTime?: string }> {
-    // Obtener el último mensaje del ticket
-    const lastMessage = await db.select({
-      createdAt: ticketMessages.createdAt,
-      userId: ticketMessages.userId
-    })
-    .from(ticketMessages)
-    .where(eq(ticketMessages.ticketId, ticketId))
-    .orderBy(desc(ticketMessages.createdAt))
-    .limit(1);
-
-    if (lastMessage.length === 0) {
-      return { hasUnread: false };
-    }
-
-    // Si el último mensaje es del usuario actual, no hay mensajes sin leer para él
-    if (lastMessage[0].userId === userId) {
-      return { hasUnread: false };
-    }
-
-    // Si hay un último mensaje de otro usuario, considerarlo como no leído
-    return {
-      hasUnread: true,
-      lastMessageTime: lastMessage[0].createdAt.toISOString()
-    };
   }
 
   async addRepositionHistory(
@@ -3465,205 +3297,6 @@ async createReposition(data: InsertReposition & { folio: string, productos?: any
   async getRepositionProducts(repositionId: number): Promise<any[]> {
     return await db.select().from(repositionProducts)
       .where(eq(repositionProducts.repositionId, repositionId));
-  }
-
-  // System Tickets functions
-  async getAllSystemTickets(userArea?: string): Promise<SystemTicket[]> {
-    let query = db.select().from(systemTickets);
-
-    // Si no es del área de sistemas, filtrar tickets completados
-    if (userArea && userArea !== 'sistemas') {
-      query = query.where(ne(systemTickets.status, 'finalizada' as any)) as any;
-    }
-
-    return await (query as any).orderBy(desc(systemTickets.createdAt));
-  }
-
-  async getNextTicketCounter(): Promise<number> {
-    const result = await db.select().from(systemTickets);
-    return result.length + 1;
-  }
-
-  async notifySystemsArea(ticket: SystemTicket): Promise<void> {
-    // Notificar a usuarios del área de sistemas
-    const systemsUsers = await db.select().from(users)
-      .where(eq(users.area, 'sistemas'));
-
-    for (const user of systemsUsers) {
-      await this.createNotification({
-        userId: user.id,
-        type: 'system_ticket_created',
-        title: 'Nuevo Ticket de Sistemas',
-        message: `Se ha creado un nuevo ticket: ${ticket.ticketNumber}`,
-        ticketId: ticket.id,
-      });
-    }
-  }
-
-  async getTicketUnreadMessages(ticketId: number, userId: number): Promise<{ hasUnread: boolean; lastMessageTime?: string }> {
-    try {
-      const ticket = await this.getSystemTicketById(ticketId);
-      if (!ticket) {
-        return { hasUnread: false };
-      }
-
-      // Verificar si el usuario puede ver este ticket
-      const canParticipate = ticket.createdBy === userId || 
-        (await db.select().from(users).where(eq(users.id, userId)))[0]?.area === 'sistemas';
-
-      if (!canParticipate) {
-        return { hasUnread: false };
-      }
-
-      // Buscar mensajes más recientes que la última lectura del usuario
-      const lastRead = await db.select()
-        .from(ticketMessageReads)
-        .where(and(
-          eq(ticketMessageReads.ticketId, ticketId),
-          eq(ticketMessageReads.userId, userId)
-        ));
-
-      let lastReadTime = lastRead[0]?.readAt || new Date('2000-01-01');
-
-      const unreadMessages = await db.select()
-        .from(ticketMessages)
-        .where(and(
-          eq(ticketMessages.ticketId, ticketId),
-          gt(ticketMessages.createdAt, lastReadTime),
-          ne(ticketMessages.userId, userId) // No contar mensajes propios como no leídos
-        ));
-
-      const lastMessage = await db.select()
-        .from(ticketMessages)
-        .where(eq(ticketMessages.ticketId, ticketId))
-        .orderBy(desc(ticketMessages.createdAt))
-        .limit(1);
-
-      return {
-        hasUnread: unreadMessages.length > 0,
-        lastMessageTime: lastMessage[0]?.createdAt?.toISOString()
-      };
-    } catch (error) {
-      console.error('Error checking unread messages:', error);
-      return { hasUnread: false };
-    }
-  }
-
-  async markTicketMessagesAsRead(ticketId: number, userId: number): Promise<void> {
-    try {
-      const now = new Date();
-      
-      // Buscar registro existente
-      const existing = await db.select()
-        .from(ticketMessageReads)
-        .where(and(
-          eq(ticketMessageReads.ticketId, ticketId),
-          eq(ticketMessageReads.userId, userId)
-        ));
-
-      if (existing.length > 0) {
-        // Actualizar timestamp existente
-        await db.update(ticketMessageReads)
-          .set({ readAt: now })
-          .where(and(
-            eq(ticketMessageReads.ticketId, ticketId),
-            eq(ticketMessageReads.userId, userId)
-          ));
-      } else {
-        // Crear nuevo registro
-        await db.insert(ticketMessageReads)
-          .values({
-            ticketId,
-            userId,
-            readAt: now
-          });
-      }
-    } catch (error) {
-      console.error('Error marking messages as read:', error);
-    }
-  }
-
-  async notifyTicketStatusChange(ticket: SystemTicket, userId: number): Promise<void> {
-    const typeMap: Record<string, string> = {
-      'aceptada': 'system_ticket_accepted',
-      'finalizada': 'system_ticket_completed',
-      'rechazada': 'system_ticket_rejected',
-      'cancelada': 'system_ticket_cancelled'
-    };
-
-    const notificationType = typeMap[ticket.status];
-    if (!notificationType) return;
-
-    await this.createNotification({
-      userId: ticket.createdBy,
-      type: notificationType as any,
-      title: `Ticket ${ticket.status.toUpperCase()}`,
-      message: `Tu ticket ${ticket.ticketNumber} ha sido ${ticket.status}`,
-      ticketId: ticket.id,
-    });
-  }
-   // System Tickets CRUD operations
-   async createSystemTicket(ticket: InsertSystemTicket): Promise<SystemTicket> {
-    const [newTicket] = await db
-      .insert(systemTickets)
-      .values(ticket)
-      .returning();
-    return newTicket;
-  }
-
-  async getSystemTicketById(id: number): Promise<SystemTicket | undefined> {
-    const [ticket] = await db.select().from(systemTickets).where(eq(systemTickets.id, id));
-    return ticket || undefined;
-  }
-
-  async getSystemTickets(): Promise<SystemTicket[]> {
-    return await db.select().from(systemTickets);
-  }
-
-  async updateSystemTicket(id: number, ticket: Partial<InsertSystemTicket>): Promise<SystemTicket> {
-    const [updatedTicket] = await db
-      .update(systemTickets)
-      .set(ticket)
-      .where(eq(systemTickets.id, id))
-      .returning();
-    return updatedTicket;
-  }
-
-  async deleteSystemTicket(id: number): Promise<void> {
-    // Eliminar mensajes de chat relacionados
-    await db.delete(ticketMessages).where(eq(ticketMessages.ticketId, id));
-    // Eliminar el ticket
-    await db.delete(systemTickets).where(eq(systemTickets.id, id));
-  }
-
-  // Sistema de chat para tickets
-  async createTicketMessage(messageData: {
-    ticketId: number;
-    userId: number;
-    message: string;
-  }): Promise<any> {
-    const [message] = await db.insert(ticketMessages)
-      .values(messageData)
-      .returning();
-    return message;
-  }
-
-  async getTicketMessages(ticketId: number): Promise<any[]> {
-    return await db.select({
-      id: ticketMessages.id,
-      message: ticketMessages.message,
-      createdAt: ticketMessages.createdAt,
-      userName: users.name,
-      userArea: users.area
-    })
-    .from(ticketMessages)
-    .leftJoin(users, eq(ticketMessages.userId, users.id))
-    .where(eq(ticketMessages.ticketId, ticketId))
-    .orderBy(ticketMessages.createdAt);
-  }
-
-  async clearTicketMessages(ticketId: number): Promise<void> {
-    await db.delete(ticketMessages).where(eq(ticketMessages.ticketId, ticketId));
   }
 }
 

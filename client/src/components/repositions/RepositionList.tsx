@@ -126,11 +126,31 @@ function CreatorAreaButton({
       if (response.ok) {
         const timer = await response.json();
 
-        // Si ya existe un timer registrado, mostrar mensaje
+        // Si ya existe un timer registrado, mostrar mensaje con detalles
         if (timer && (timer.manualStartTime || timer.startTime)) {
+          let timeDetails = '';
+          
+          if (timer.manualStartTime && timer.manualEndTime) {
+            // Tiempo manual registrado
+            const startDate = timer.manualDate || 'N/A';
+            const endDate = timer.manualEndDate || timer.manualDate || 'N/A';
+            timeDetails = `Tiempo registrado:\n` +
+                         `Inicio: ${startDate} a las ${timer.manualStartTime}\n` +
+                         `Fin: ${endDate} a las ${timer.manualEndTime}`;
+          } else if (timer.startTime && timer.endTime) {
+            // Tiempo automático registrado
+            const start = new Date(timer.startTime);
+            const end = new Date(timer.endTime);
+            timeDetails = `Tiempo registrado:\n` +
+                         `Inicio: ${start.toLocaleDateString()} a las ${start.toLocaleTimeString()}\n` +
+                         `Fin: ${end.toLocaleDateString()} a las ${end.toLocaleTimeString()}`;
+          } else {
+            timeDetails = 'Ya existe un registro de tiempo para esta área.';
+          }
+
           Swal.fire({
             title: 'Tiempo ya registrado',
-            text: 'Ya existe un tiempo registrado para esta área en esta reposición.',
+            text: timeDetails,
             icon: 'info',
             confirmButtonColor: '#8B5CF6',
             confirmButtonText: 'Entendido'
@@ -669,6 +689,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
       const startDate = timeData.startDate instanceof Date 
         ? format(timeData.startDate, 'yyyy-MM-dd')
         : timeData.startDate;
+
       const endDate = timeData.endDate instanceof Date 
         ? format(timeData.endDate, 'yyyy-MM-dd')
         : timeData.endDate;
@@ -678,6 +699,11 @@ export function RepositionList({ userArea }: { userArea: string }) {
         endTime: timeData.endTime,
         startDate,
         endDate
+      });
+
+      console.log('Date objects before formatting:', {
+        startDateObj: timeData.startDate,
+        endDateObj: timeData.endDate
       });
 
       const response = await fetch(`/api/repositions/${repositionId}/timer/manual`, {
@@ -774,7 +800,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
           const response = await fetch(`/api/repositions/${repositionId}/timer`);
           const timer = await response.json();
 
-          if (!timer || (!timer.manualStartTime && !timer.startTime)) {
+          if (!timer|| (!timer.manualStartTime && !timer.startTime)) {
             Swal.fire({
               title: 'Tiempo no registrado',
               text: 'Debe registrar el tiempo de trabajo antes de transferir la reposición.',
@@ -1486,7 +1512,7 @@ export function RepositionList({ userArea }: { userArea: string }) {
                   <div>
                     <p className="font-semibold text-gray-800">
                       Reposición desde {transfer.fromArea}
-                    </p>
+                                        </p>
                     <p className="text-sm text-gray-600">
                       {transfer.notes && `Notas: ${transfer.notes}`}
                     </p>

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, CheckCircle, Info, Clock, Bell, Package, RefreshCw, Plus, X, XCircle, Trash2, BellRing, Settings, AlertTriangle, MessageCircle } from "lucide-react";
+import { ArrowRight, CheckCircle, Info, Clock, Bell, Package, RefreshCw, Plus, X, XCircle, Trash2, BellRing, Settings, AlertTriangle } from "lucide-react";
 import { type Transfer } from "@shared/schema";
 import { useState } from "react";
 import { NotificationPermission } from './notification-permission';
@@ -32,7 +32,7 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/notifications");
       const allNotifications = await res.json();
-      const filteredNotifications = allNotifications.filter((n: any) => 
+      return allNotifications.filter((n: any) => 
         !n.read && (
           n.type?.includes('reposition') || 
           n.type?.includes('completion') ||
@@ -43,38 +43,9 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
           n.type === 'reposition_completed' ||
           n.type === 'reposition_deleted' ||
           n.type === 'completion_approval_needed' ||
-          n.type === 'partial_transfer_warning' ||
-          n.type === 'new_system_ticket' ||
-          n.type === 'system_ticket_accepted' ||
-          n.type === 'system_ticket_message' ||
-          n.type === 'system_ticket_created' ||
-          n.type === 'system_ticket_completed' ||
-          n.type === 'system_ticket_rejected' ||
-          n.type === 'system_ticket_cancelled'
+          n.type === 'partial_transfer_warning'
         )
       );
-
-      // Enviar notificaciones push automáticamente para nuevas notificaciones
-      filteredNotifications.forEach((notification: any) => {
-        if (notification.type?.includes('system_ticket') || 
-            notification.type === 'new_system_ticket') {
-          // Importar y usar el servicio de notificaciones
-          import('@/lib/notifications').then(({ NotificationService, formatNotificationContent }) => {
-            const notificationService = NotificationService.getInstance();
-            if (notificationService.getPermissionStatus() === 'granted') {
-              const content = formatNotificationContent(notification);
-              notificationService.showNotification(content.title, {
-                body: content.body,
-                tag: `ticket-${notification.ticketId || notification.id}`,
-                data: content.data,
-                requireInteraction: notification.type === 'system_ticket_message'
-              });
-            }
-          });
-        }
-      });
-
-      return filteredNotifications;
     },
   });
 
@@ -148,75 +119,40 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
   };
 
   const formatDate = (dateInput: string | Date) => {
-    try {
-      let date: Date;
-      
-      if (typeof dateInput === "string") {
-        // Si la fecha ya tiene Z o zona horaria, usarla directamente
-        if (dateInput.includes('Z') || dateInput.includes('+') || dateInput.includes('-')) {
-          date = new Date(dateInput);
-        } else {
-          // Si no tiene zona horaria, asumir que es UTC
-          date = new Date(dateInput + 'Z');
-        }
-      } else {
-        date = dateInput;
-      }
+    const date = typeof dateInput === "string" 
+      ? new Date(dateInput.endsWith('Z') ? dateInput : dateInput + 'Z')
+      : dateInput;
 
-      // Validar que la fecha es válida
-      if (isNaN(date.getTime())) {
-        return 'Fecha inválida';
-      }
+    const now = new Date();
+    const mexicoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+    const mexicoDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
 
-      const now = new Date();
-      
-      // Convertir ambas fechas a tiempo de México para comparación
-      const mexicoFormatter = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'America/Mexico_City',
+    const diffMs = mexicoNow.getTime() - mexicoDate.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    const timeFormat = date.toLocaleString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'America/Mexico_City'
+    });
+
+    if (diffDays > 0) {
+      return `Hace ${diffDays} día${diffDays > 1 ? "s" : ""} - ${date.toLocaleString('es-ES', { 
+        day: '2-digit', 
+        month: '2-digit', 
         year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
+        hour: '2-digit', 
         minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      });
-
-      const nowInMexico = new Date(mexicoFormatter.format(now).replace(',', ''));
-      const dateInMexico = new Date(mexicoFormatter.format(date).replace(',', ''));
-
-      const diffMs = nowInMexico.getTime() - dateInMexico.getTime();
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMinutes / 60);
-      const diffDays = Math.floor(diffHours / 24);
-
-      // Formatear solo la hora
-      const timeFormat = new Intl.DateTimeFormat('es-MX', {
-        timeZone: 'America/Mexico_City',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).format(date);
-
-      if (diffDays > 0) {
-        const fullDate = new Intl.DateTimeFormat('es-MX', {
-          timeZone: 'America/Mexico_City',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }).format(date);
-        return `Hace ${diffDays} día${diffDays > 1 ? "s" : ""} - ${fullDate}`;
-      } else if (diffHours > 0) {
-        return `Hace ${diffHours} hora${diffHours > 1 ? "s" : ""} - ${timeFormat}`;
-      } else if (diffMinutes > 0) {
-        return `Hace ${diffMinutes} minuto${diffMinutes > 1 ? "s" : ""} - ${timeFormat}`;
-      } else {
-        return `Hace unos segundos - ${timeFormat}`;
-      }
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Error en fecha';
+        timeZone: 'America/Mexico_City'
+      })}`;
+    } else if (diffHours > 0) {
+      return `Hace ${diffHours} hora${diffHours > 1 ? "s" : ""} - ${timeFormat}`;
+    } else if (diffMinutes > 0) {
+      return `Hace ${diffMinutes} minuto${diffMinutes > 1 ? "s" : ""} - ${timeFormat}`;
+    } else {
+      return `Hace unos segundos - ${timeFormat}`;
     }
   };
 
@@ -249,11 +185,6 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
         return <Clock className="w-4 h-4" />;
       case 'partial_transfer_warning':
         return <AlertTriangle className="w-4 h-4" />;
-      case 'new_system_ticket':
-      case 'system_ticket_accepted':
-        return <Bell className="w-4 h-4" />;
-      case 'system_ticket_message':
-        return <MessageCircle className="w-4 h-4" />;
       default:
         return <Bell className="w-4 h-4" />;
     }
@@ -280,18 +211,6 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
       case 'completion_approval_needed':
       case 'partial_transfer_warning':
         return "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/50 dark:border-yellow-800";
-      case 'new_system_ticket':
-      case 'system_ticket_created':
-        return "bg-indigo-50 border-indigo-200 dark:bg-indigo-950/50 dark:border-indigo-800";
-      case 'system_ticket_accepted':
-        return "bg-green-50 border-green-200 dark:bg-green-950/50 dark:border-green-800";
-      case 'system_ticket_message':
-        return "bg-blue-50 border-blue-200 dark:bg-blue-950/50 dark:border-blue-800";
-      case 'system_ticket_completed':
-        return "bg-green-50 border-green-200 dark:bg-green-950/50 dark:border-green-800";
-      case 'system_ticket_rejected':
-      case 'system_ticket_cancelled':
-        return "bg-red-50 border-red-200 dark:bg-red-950/50 dark:border-red-800";
       default:
         return "bg-muted border-border";
     }
@@ -318,17 +237,6 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
       case 'completion_approval_needed':
       case 'partial_transfer_warning':
         return "text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30";
-      case 'new_system_ticket':
-      case 'system_ticket_created':
-        return "text-indigo-600 bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/30";
-      case 'system_ticket_accepted':
-      case 'system_ticket_completed':
-        return "text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30";
-      case 'system_ticket_message':
-        return "text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30";
-      case 'system_ticket_rejected':
-      case 'system_ticket_cancelled':
-        return "text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30";
       default:
         return "text-muted-foreground bg-muted";
     }
@@ -494,75 +402,30 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
             </div>
           )}
 
-          {/* Notificaciones de tickets del sistema */}
-          {repositionNotifications.filter((n: any) => 
-            n.type === 'new_system_ticket' ||
-            n.type === 'system_ticket_accepted' ||
-            n.type === 'system_ticket_message' ||
-            n.type === 'system_ticket_created' ||
-            n.type === 'system_ticket_completed' ||
-            n.type === 'system_ticket_rejected' ||
-            n.type === 'system_ticket_cancelled'
-          ).length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                <h3 className="text-sm font-semibold text-foreground">Tickets del Sistema</h3>
-                <Badge variant="secondary" className="text-xs">
-                  {repositionNotifications.filter((n: any) => 
-                    n.type === 'new_system_ticket' ||
-                    n.type === 'system_ticket_accepted' ||
-                    n.type === 'system_ticket_message' ||
-                    n.type === 'system_ticket_created' ||
-                    n.type === 'system_ticket_completed' ||
-                    n.type === 'system_ticket_rejected' ||
-                    n.type === 'system_ticket_cancelled'
-                  ).length}
-                </Badge>
-              </div>
-              {repositionNotifications.filter((n: any) => 
-                n.type === 'new_system_ticket' ||
-                n.type === 'system_ticket_accepted' ||
-                n.type === 'system_ticket_message' ||
-                n.type === 'system_ticket_created' ||
-                n.type === 'system_ticket_completed' ||
-                n.type === 'system_ticket_rejected' ||
-                n.type === 'system_ticket_cancelled'
-              ).map((notification: any) => (
-                <div
-                  key={notification.id}
-                  className={`relative overflow-hidden rounded-lg border ${getNotificationColor(notification.type)} transition-all duration-200 hover:shadow-md cursor-pointer group`}
-                  onClick={() => markNotificationReadMutation.mutate(notification.id)}
-                >
-                  <div className="relative p-3 md:p-4">
-                    <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 md:w-12 md:h-12 ${getIconColor(notification.type)} rounded-lg flex items-center justify-center`}>
-                        {getNotificationIcon(notification.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-foreground text-sm leading-tight">
-                          {notification.title}
-                        </h4>
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                          {notification.message}
-                        </p>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-3">
-                          {notification.ticketId && (
-                            <Badge variant="outline" className="text-xs font-medium w-fit">
-                              Ticket #{notification.ticketId}
-                            </Badge>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(notification.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+          {/* Notificaciones del sistema */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+              <h3 className="text-sm font-semibold text-foreground">Sistema</h3>
+            </div>
+
+            <div className="relative overflow-hidden rounded-lg border bg-green-50 border-green-200 dark:bg-green-950/50 dark:border-green-800 transition-all duration-200 hover:shadow-md group">
+              <div className="relative p-3 md:p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-foreground text-sm">Bienvenido a JASANA</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Sistema de gestión listo para usar
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">Ahora</p>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          )}
+          </div>
 
           {totalNotifications === 0 && (
             <div className="text-center py-12 md:py-16">
